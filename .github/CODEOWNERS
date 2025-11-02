@@ -1,0 +1,8 @@
+# Default owners for everything
+* @toon-format/python-maintainers
+
+# Project governance and documentation
+CODE_OF_CONDUCT.md @johannschopplich
+CONTRIBUTING.md @johannschopplich
+LICENSE @johannschopplich
+README.md @johannschopplich
