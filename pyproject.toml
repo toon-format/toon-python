@@ -1,6 +1,6 @@
 [project]
-name = "toon-format"
-version = "0.1.0"
+name = "python-toon"
+version = "1.0.0"
 description = "A compact, human-readable serialization format designed for passing structured data to Large Language Models with significantly reduced token usage"
 readme = "README.md"
 authors = [
@@ -37,9 +37,9 @@ toon = "toon_format.cli:main"
 [dependency-groups]
 dev = [
     "pytest>=8.0.0",
-    "pytest-cov>=6.0.0",
+    "pytest-cov>=4.1.0",
     "ruff>=0.8.0",
-    "mypy>=1.13.0",
+    "mypy>=1.8.0",
 ]
 
 [tool.pytest.ini_options]

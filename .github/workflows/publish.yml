@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/toon-format
+      url: https://pypi.org/p/python-toon
     permissions:
       id-token: write
 
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/toon-format
+      url: https://test.pypi.org/p/python-toon
     permissions:
       id-token: write
 
