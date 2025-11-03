@@ -5,20 +5,6 @@ import pytest
 from toon_format import decode
 
 
-def test_decode_not_implemented():
-    """Test that decode raises NotImplementedError."""
-    with pytest.raises(NotImplementedError, match="not yet implemented"):
-        decode("key: value")
-
-
-def test_decode_with_options_not_implemented():
-    """Test that decode with options raises NotImplementedError."""
-    with pytest.raises(NotImplementedError, match="not yet implemented"):
-        decode("[3]: 1,2,3", {"strict": False})
-
-
-# Placeholder tests for future implementation
-@pytest.mark.skip(reason="Implementation pending")
 def test_decode_simple_object():
     """Test decoding a simple object."""
     toon_data = "id: 123\nname: Ada\nactive: true"
@@ -27,7 +13,6 @@ def test_decode_simple_object():
     assert result == expected
 
 
-@pytest.mark.skip(reason="Implementation pending")
 def test_decode_array_of_objects():
     """Test decoding a tabular array."""
     toon_data = "items[2]{sku,qty,price}:\n  A1,2,9.99\n  B2,1,14.5"
@@ -41,7 +26,6 @@ def test_decode_array_of_objects():
     assert result == expected
 
 
-@pytest.mark.skip(reason="Implementation pending")
 def test_decode_primitive_array():
     """Test decoding a primitive array."""
     toon_data = "tags[3]: foo,bar,baz"
@@ -50,7 +34,6 @@ def test_decode_primitive_array():
     assert result == expected
 
 
-@pytest.mark.skip(reason="Implementation pending")
 def test_decode_root_array():
     """Test decoding a root-level array."""
     toon_data = "[3]: 1,2,3"
@@ -59,9 +42,8 @@ def test_decode_root_array():
     assert result == expected
 
 
-@pytest.mark.skip(reason="Implementation pending")
 def test_decode_strict_mode():
     """Test that strict mode validates input."""
     invalid_toon = "items[3]{id,name}:\n  1,Alice\n  2,Bob"  # Length mismatch
-    with pytest.raises(ValueError, match="length"):
+    with pytest.raises(ValueError, match="Expected"):
         decode(invalid_toon, {"strict": True})

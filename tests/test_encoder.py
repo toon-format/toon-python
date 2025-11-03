@@ -1,24 +1,8 @@
 """Tests for the TOON encoder."""
 
-import pytest
-
 from toon_format import encode
 
 
-def test_encode_not_implemented():
-    """Test that encode raises NotImplementedError."""
-    with pytest.raises(NotImplementedError, match="not yet implemented"):
-        encode({"key": "value"})
-
-
-def test_encode_with_options_not_implemented():
-    """Test that encode with options raises NotImplementedError."""
-    with pytest.raises(NotImplementedError, match="not yet implemented"):
-        encode([1, 2, 3], {"delimiter": "\t"})
-
-
-# Placeholder tests for future implementation
-@pytest.mark.skip(reason="Implementation pending")
 def test_encode_simple_object():
     """Test encoding a simple object."""
     result = encode({"id": 123, "name": "Ada", "active": True})
@@ -26,7 +10,6 @@ def test_encode_simple_object():
     assert result == expected
 
 
-@pytest.mark.skip(reason="Implementation pending")
 def test_encode_array_of_objects():
     """Test encoding an array of uniform objects."""
     data = {
@@ -40,7 +23,6 @@ def test_encode_array_of_objects():
     assert result == expected
 
 
-@pytest.mark.skip(reason="Implementation pending")
 def test_encode_with_tab_delimiter():
     """Test encoding with tab delimiter."""
     data = {"tags": ["foo", "bar", "baz"]}
@@ -49,7 +31,6 @@ def test_encode_with_tab_delimiter():
     assert result == expected
 
 
-@pytest.mark.skip(reason="Implementation pending")
 def test_encode_with_length_marker():
     """Test encoding with length marker."""
     data = {"tags": ["foo", "bar"]}
