@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, TypeAlias, TypedDict
+from dataclasses import dataclass
+from typing import Literal, TypeAlias, TypedDict
 
 # JSON-compatible types
 JsonPrimitive: TypeAlias = str | int | float | bool | None
@@ -35,3 +36,24 @@ class DecodeOptions(TypedDict, total=False):
 
     indent: int
     strict: bool
+
+
+# Internal types for decoder/encoder (exposed for type checking)
+Depth: TypeAlias = int
+
+
+@dataclass
+class ResolvedDecodeOptions:
+    """Resolved decode options with defaults applied."""
+
+    indent: int
+    strict: bool
+
+
+@dataclass
+class ResolvedEncodeOptions:
+    """Resolved encode options with defaults applied."""
+
+    indent: int
+    delimiter: str
+    length_marker: str | bool
