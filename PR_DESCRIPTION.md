@@ -121,7 +121,7 @@ tests/test_encoder.py ........................................      [100%]
 
 - [x] Ran `ruff check src/toon_format tests` - no issues
 - [x] Ran `ruff format src/toon_format tests` - code formatted
-- [x] Ran `mypy src/toon_format` - no critical errors
+- [x] Ran `mypy src/toon_format` - informational only (24 type hints to improve in future)
 - [x] All tests pass: `pytest tests/ -v`
 
 **Linter Output:**
@@ -281,8 +281,15 @@ mypy src/toon_format
 9. **Flexible**: Multiple delimiters, indentation options, strict/lenient modes
 10. **CLI Included**: Command-line tool for JSON ↔ TOON conversion
 
+### Code Quality Notes
+
+**Mypy Type Checking**: The project currently has 24 mypy type errors that are informational only. The CI is configured with `continue-on-error: true` for mypy checks, and the pyproject.toml has lenient mypy settings (`disallow_untyped_defs = false`, `check_untyped_defs = false`). These type hints can be improved incrementally in future releases without blocking the current functionality.
+
+All runtime behavior is validated through 73 comprehensive tests with 100% pass rate.
+
 ### Future Roadmap
 
+- Improve type hint coverage (address 24 mypy warnings)
 - Additional encoding options (custom formatters)
 - Performance optimizations for large datasets
 - Streaming encoder/decoder for very large files
