@@ -64,7 +64,7 @@ We support Python 3.11 through 3.14t (including free-threaded Python).
 
 ## SPEC Compliance
 
-All implementations must comply with the [TOON specification](https://github.com/johannschopplich/toon/blob/main/SPEC.md).
+All implementations must comply with the [TOON specification](https://github.com/toon-format/spec/blob/main/SPEC.md).
 
 Before submitting changes that affect encoding/decoding behavior:
 1. Verify against the official SPEC.md

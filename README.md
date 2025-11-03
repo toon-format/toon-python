@@ -149,9 +149,12 @@ print(toon_str)
 
 Converts a TOON-formatted string back to Python values.
 
-**Parameters:**
-- `input_str` (str): TOON-formatted string to parse
-- `options` (DecodeOptions, optional): Decoding options
+
+- [TOON Specification](https://github.com/toon-format/spec/blob/main/SPEC.md)
+- [Main Repository](https://github.com/toon-format/toon)
+- [Benchmarks & Performance](https://github.com/toon-format/toon#benchmarks)
+- [Other Language Implementations](https://github.com/toon-format/toon#other-implementations)
+
 
 **Returns:** Python value (dict, list, or primitive)
 
@@ -173,12 +176,6 @@ print(data)
 
 ```python
 from toon_format import encode
-
-encode(data, {
-    "indent": 2,           # Spaces per indentation level (default: 2)
-    "delimiter": ",",      # Delimiter for arrays: "," | "\t" | "|" (default: ",")
-    "lengthMarker": "#"    # Optional marker prefix: "#" | False (default: False)
-})
 ```
 
 ### Decoding Options
