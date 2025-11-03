@@ -99,3 +99,5 @@ Temporary Items
 # uv
 .uv/
 uv.lock
+
+./PR_DESCRIPTION.md
