@@ -3,17 +3,17 @@
 A compact, human-readable serialization format designed for passing structured data to Large Language Models with significantly reduced token usage.
 
 [![Tests](https://github.com/toon-format/toon-python/actions/workflows/test.yml/badge.svg)](https://github.com/toon-format/toon-python/actions)
-[![PyPI](https://img.shields.io/pypi/v/python-toon.svg)](https://pypi.org/project/python-toon/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/python-toon.svg)](https://pypi.org/project/python-toon/)
+[![PyPI](https://img.shields.io/pypi/v/toon_format.svg)](https://pypi.org/project/toon_format/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/toon_format.svg)](https://pypi.org/project/toon_format/)
 
 ## Installation
 
 ```bash
 # With pip
-pip install python-toon
+pip install toon_format
 
 # With uv (recommended)
-uv pip install python-toon
+uv pip install toon_format
 ```
 
 ## What is TOON?

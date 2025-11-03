@@ -51,13 +51,11 @@ body:
       description: |
         Please provide:
         - Python version
-        - python-toon version (from `pip show python-toon`)
-        - toon-format version
+        - toon_format version (from `pip show toon_format`)
         - Operating system
       placeholder: |
         - Python 3.12.0
-        - python-toon 1.0.0
-        - toon-format 1.0.0
+        - toon_format 1.0.0
         - macOS 14.0
     validations:
       required: true

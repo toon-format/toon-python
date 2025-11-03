@@ -4,7 +4,7 @@
 
 This PR establishes the official Python implementation of the TOON (Token-Oriented Object Notation) format. TOON is a compact, human-readable serialization format designed for passing structured data to Large Language Models with 30-60% token reduction compared to JSON.
 
-This release migrates the complete implementation from the pytoon repository, adds comprehensive CI/CD infrastructure, and establishes the package as `python-toon` on PyPI.
+This release migrates the complete implementation from the pytoon repository, adds comprehensive CI/CD infrastructure, and establishes the package as `toon_format` on PyPI.
 
 ## Type of Change
 
@@ -30,7 +30,7 @@ Initial release - no related issues.
 - Value normalization for Python-specific types (Decimal, datetime, etc.)
 
 ### Package Configuration
-- Package name: `python-toon` (PyPI)
+- Package name: `toon_format` (PyPI)
 - Module name: `toon_format` (Python import)
 - Version: 1.0.0
 - Python support: 3.8-3.14 (including 3.14t free-threaded)
@@ -231,7 +231,7 @@ Reduction: 52.0%
 ## Additional Context
 
 ### Package Details
-- **PyPI Package**: `python-toon`
+- **PyPI Package**: `toon_format`
 - **Import Path**: `toon_format`
 - **CLI Command**: `toon`
 - **License**: MIT
@@ -242,10 +242,10 @@ Reduction: 52.0%
 
 ```bash
 # With pip
-pip install python-toon
+pip install toon_format
 
 # With uv (recommended)
-uv pip install python-toon
+uv pip install toon_format
 ```
 
 ### Development Setup

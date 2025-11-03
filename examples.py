@@ -1,4 +1,4 @@
-"""Examples demonstrating python-toon usage."""
+"""Examples demonstrating toon_format usage."""
 
 from toon_format import encode
 

@@ -1,5 +1,5 @@
 [project]
-name = "python-toon"
+name = "toon_format"
 version = "1.0.0"
 description = "A compact, human-readable serialization format designed for passing structured data to Large Language Models with significantly reduced token usage"
 readme = "README.md"
