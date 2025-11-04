@@ -1,11 +1,11 @@
 """TOON decoder implementation following v1.2 spec."""
 
-import re
 from typing import Any, Dict, List, Optional, Tuple
 
+from ._literal_utils import is_boolean_or_null_literal, is_numeric_literal
+from ._string_utils import unescape_string as _unescape_string
 from .constants import (
     BACKSLASH,
-    CARRIAGE_RETURN,
     CLOSE_BRACE,
     CLOSE_BRACKET,
     COLON,
@@ -13,8 +13,6 @@ from .constants import (
     DOUBLE_QUOTE,
     FALSE_LITERAL,
     LIST_ITEM_MARKER,
-    NEWLINE,
-    NULL_LITERAL,
     OPEN_BRACE,
     OPEN_BRACKET,
     PIPE,
@@ -86,30 +84,10 @@ def unescape_string(value: str) -> str:
     Raises:
         ToonDecodeError: If escape sequence is invalid
     """
-    result = []
-    i = 0
-    while i < len(value):
-        if value[i] == BACKSLASH:
-            if i + 1 >= len(value):
-                raise ToonDecodeError("Unterminated string: missing closing quote")
-            next_char = value[i + 1]
-            if next_char == BACKSLASH:
-                result.append(BACKSLASH)
-            elif next_char == DOUBLE_QUOTE:
-                result.append(DOUBLE_QUOTE)
-            elif next_char == "n":
-                result.append(NEWLINE)
-            elif next_char == "r":
-                result.append(CARRIAGE_RETURN)
-            elif next_char == "t":
-                result.append(TAB)
-            else:
-                raise ToonDecodeError(f"Invalid escape sequence: \\{next_char}")
-            i += 2
-        else:
-            result.append(value[i])
-            i += 1
-    return "".join(result)
+    try:
+        return _unescape_string(value)
+    except ValueError as e:
+        raise ToonDecodeError(str(e)) from e
 
 
 def parse_primitive(token: str) -> JsonValue:
@@ -132,23 +110,16 @@ def parse_primitive(token: str) -> JsonValue:
             raise ToonDecodeError("Unterminated string: missing closing quote")
         return unescape_string(token[1:-1])
 
-    # Boolean literals
-    if token == TRUE_LITERAL:
-        return True
-    if token == FALSE_LITERAL:
-        return False
-    if token == NULL_LITERAL:
-        return None
+    # Boolean and null literals
+    if is_boolean_or_null_literal(token):
+        if token == TRUE_LITERAL:
+            return True
+        if token == FALSE_LITERAL:
+            return False
+        return None  # NULL_LITERAL
 
-    # Try to parse as number
-    # Must handle: 42, -3.14, 1e-6, -1E+9
-    # Must reject leading zeros like "05", "0001"
-    if token:
-        # Check for forbidden leading zeros
-        if re.match(r"^0\d+$", token):
-            # Leading zero like "05" -> string
-            return token
-
+    # Try to parse as number using utility function
+    if token and is_numeric_literal(token):
         try:
             # Try int first
             if "." not in token and "e" not in token.lower():
@@ -158,7 +129,7 @@ def parse_primitive(token: str) -> JsonValue:
         except ValueError:
             pass
 
-    # Otherwise it's an unquoted string
+    # Otherwise it's an unquoted string (including octal-like "0123")
     return token
 
 
@@ -206,7 +177,9 @@ def parse_delimited_values(line: str, delimiter: str) -> List[str]:
     return tokens
 
 
-def parse_header(line: str) -> Optional[Tuple[Optional[str], int, str, Optional[List[str]]]]:
+def parse_header(
+    line: str,
+) -> Optional[Tuple[Optional[str], int, str, Optional[List[str]]]]:
     """Parse an array header.
 
     Args:
@@ -519,7 +492,10 @@ def decode_array_from_header(
 
     if inline_content:
         # Inline primitive array
-        return decode_inline_array(inline_content, delimiter, length, strict), header_idx + 1
+        return (
+            decode_inline_array(inline_content, delimiter, length, strict),
+            header_idx + 1,
+        )
 
     # Non-inline array
     if fields is not None:

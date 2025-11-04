@@ -6,7 +6,7 @@ from .types import Depth
 
 
 class LineWriter:
-    """Manages indented text output."""
+    """Manages indented text output with optimized indent caching."""
 
     def __init__(self, indent_size: int) -> None:
         """Initialize the line writer.
@@ -15,7 +15,11 @@ class LineWriter:
             indent_size: Number of spaces per indentation level
         """
         self._lines: List[str] = []
-        self._indentation_string = " " * indent_size
+        # Ensure nested structures remain distinguishable even for indent=0
+        normalized_indent = indent_size if indent_size > 0 else 1
+        self._indentation_string = " " * normalized_indent
+        self._indent_cache: dict[int, str] = {0: ""}
+        self._indent_size = indent_size
 
     def push(self, depth: Depth, content: str) -> None:
         """Add a line with appropriate indentation.
@@ -24,8 +28,15 @@ class LineWriter:
             depth: Indentation depth level
             content: Content to add
         """
-        indent = self._indentation_string * depth
-        self._lines.append(f"{indent}{content}")
+        # Use cached indent string for performance
+        if depth not in self._indent_cache:
+            if self._indent_size == 0:
+                # indent=0 uses minimal spacing to preserve structure
+                self._indent_cache[depth] = " " * depth
+            else:
+                self._indent_cache[depth] = self._indentation_string * depth
+        indent = self._indent_cache[depth]
+        self._lines.append(indent + content)
 
     def to_string(self) -> str:
         """Return all lines joined with newlines.

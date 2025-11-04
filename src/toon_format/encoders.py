@@ -12,12 +12,22 @@ from .normalize import (
     is_json_primitive,
 )
 from .primitives import encode_key, encode_primitive, format_header, join_encoded_values
-from .types import Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ResolvedEncodeOptions
+from .types import (
+    Depth,
+    JsonArray,
+    JsonObject,
+    JsonPrimitive,
+    JsonValue,
+    ResolvedEncodeOptions,
+)
 from .writer import LineWriter
 
 
 def encode_value(
-    value: JsonValue, options: ResolvedEncodeOptions, writer: LineWriter, depth: Depth = 0
+    value: JsonValue,
+    options: ResolvedEncodeOptions,
+    writer: LineWriter,
+    depth: Depth = 0,
 ) -> None:
     """Encode a value to TOON format.
 
@@ -59,7 +69,11 @@ def encode_object(
 
 
 def encode_key_value_pair(
-    key: str, value: JsonValue, options: ResolvedEncodeOptions, writer: LineWriter, depth: Depth
+    key: str,
+    value: JsonValue,
+    options: ResolvedEncodeOptions,
+    writer: LineWriter,
+    depth: Depth,
 ) -> None:
     """Encode a key-value pair.
 
@@ -257,7 +271,10 @@ def encode_mixed_array_as_list_items(
 
     for item in arr:
         if is_json_primitive(item):
-            writer.push(depth + 1, f"{LIST_ITEM_PREFIX}{encode_primitive(item, options.delimiter)}")
+            writer.push(
+                depth + 1,
+                f"{LIST_ITEM_PREFIX}{encode_primitive(item, options.delimiter)}",
+            )
         elif is_json_object(item):
             encode_object_as_list_item(item, options, writer, depth + 1)
         elif is_json_array(item):

@@ -3,24 +3,37 @@
 import re
 from typing import List, Literal, Optional, Union
 
+from ._string_utils import escape_string
+from ._validation import is_safe_unquoted, is_valid_unquoted_key
 from .constants import (
-    BACKSLASH,
-    CARRIAGE_RETURN,
     CLOSE_BRACE,
     CLOSE_BRACKET,
     COLON,
     COMMA,
+    CONTROL_CHARS_REGEX,
     DOUBLE_QUOTE,
     FALSE_LITERAL,
-    LIST_ITEM_MARKER,
-    NEWLINE,
     NULL_LITERAL,
+    NUMERIC_REGEX,
+    OCTAL_REGEX,
     OPEN_BRACE,
     OPEN_BRACKET,
-    TAB,
+    STRUCTURAL_CHARS_REGEX,
     TRUE_LITERAL,
+    VALID_KEY_REGEX,
 )
+from .logging_config import get_logger
 from .types import Delimiter, JsonPrimitive
+
+# Precompiled patterns for performance
+_STRUCTURAL_CHARS_PATTERN = re.compile(STRUCTURAL_CHARS_REGEX)
+_CONTROL_CHARS_PATTERN = re.compile(CONTROL_CHARS_REGEX)
+_NUMERIC_PATTERN = re.compile(NUMERIC_REGEX, re.IGNORECASE)
+_OCTAL_PATTERN = re.compile(OCTAL_REGEX)
+_VALID_KEY_PATTERN = re.compile(VALID_KEY_REGEX, re.IGNORECASE)
+
+
+logger = get_logger(__name__)
 
 
 def encode_primitive(value: JsonPrimitive, delimiter: str = COMMA) -> str:
@@ -44,75 +57,7 @@ def encode_primitive(value: JsonPrimitive, delimiter: str = COMMA) -> str:
     return str(value)
 
 
-def escape_string(value: str) -> str:
-    """Escape special characters in a string.
-
-    Args:
-        value: String to escape
-
-    Returns:
-        Escaped string
-    """
-    result = value
-    result = result.replace(BACKSLASH, BACKSLASH + BACKSLASH)
-    result = result.replace(DOUBLE_QUOTE, BACKSLASH + DOUBLE_QUOTE)
-    result = result.replace(NEWLINE, BACKSLASH + "n")
-    result = result.replace(CARRIAGE_RETURN, BACKSLASH + "r")
-    result = result.replace(TAB, BACKSLASH + "t")
-    return result
-
-
-def is_safe_unquoted(value: str, delimiter: str = COMMA) -> bool:
-    """Check if a string can be safely unquoted.
-
-    Args:
-        value: String to check
-        delimiter: Current delimiter being used
-
-    Returns:
-        True if string doesn't need quotes
-    """
-    if not value:
-        return False
-
-    # Check for leading/trailing whitespace
-    if value != value.strip():
-        return False
-
-    # Check for reserved literals
-    if value in (NULL_LITERAL, TRUE_LITERAL, FALSE_LITERAL):
-        return False
-
-    # Check if it looks like a number
-    try:
-        float(value)
-        return False
-    except ValueError:
-        pass
-
-    # Check if starts with list marker (hyphen)
-    if value.startswith(LIST_ITEM_MARKER):
-        return False
-
-    # Check for structural characters (including current delimiter)
-    unsafe_chars = [
-        COLON,
-        delimiter,  # Current delimiter
-        OPEN_BRACKET,
-        CLOSE_BRACKET,
-        OPEN_BRACE,
-        CLOSE_BRACE,
-        DOUBLE_QUOTE,
-        BACKSLASH,
-        NEWLINE,
-        CARRIAGE_RETURN,
-        TAB,
-    ]
-
-    if any(char in value for char in unsafe_chars):
-        return False
-
-    return True
+# Note: escape_string and is_safe_unquoted are now imported from _string_utils and _validation
 
 
 def encode_string_literal(value: str, delimiter: str = COMMA) -> str:
@@ -140,7 +85,7 @@ def encode_key(key: str) -> str:
         Encoded key
     """
     # Keys matching /^[A-Z_][\w.]*$/i don't require quotes
-    if re.match(r"^[A-Z_][\w.]*$", key, re.IGNORECASE):
+    if is_valid_unquoted_key(key):
         return key
     return f"{DOUBLE_QUOTE}{escape_string(key)}{DOUBLE_QUOTE}"
 
