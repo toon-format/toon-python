@@ -1,4 +1,11 @@
-"""Command-line interface for TOON encoding/decoding."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Command-line interface for TOON encoding/decoding.
+
+Provides the `toon` command-line tool for converting between JSON and TOON formats.
+Supports auto-detection based on file extensions and content, with options for
+delimiters, indentation, and validation modes.
+"""
 
 import argparse
 import json

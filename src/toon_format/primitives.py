@@ -1,4 +1,11 @@
-"""Primitive encoding utilities."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Primitive value encoding utilities.
+
+Handles encoding of primitive values (strings, numbers, booleans, null) and
+array headers. Implements quoting rules, escape sequences, and header formatting
+for inline and tabular array formats.
+"""
 
 import re
 from typing import List, Literal, Optional, Union
@@ -51,7 +58,22 @@ def encode_primitive(value: JsonPrimitive, delimiter: str = COMMA) -> str:
     if isinstance(value, bool):
         return TRUE_LITERAL if value else FALSE_LITERAL
     if isinstance(value, (int, float)):
-        return str(value)
+        # Format numbers in decimal form without scientific notation
+        # Per spec Section 2: numbers must be rendered without exponent notation
+        if isinstance(value, int):
+            return str(value)
+        # For floats, use Python's default conversion first
+        formatted = str(value)
+        # Check if Python used scientific notation
+        if "e" in formatted or "E" in formatted:
+            # Convert to fixed-point decimal notation
+            # Use format with enough precision, then strip trailing zeros
+            from decimal import Decimal
+
+            # Convert through Decimal to get exact decimal representation
+            dec = Decimal(str(value))
+            formatted = format(dec, "f")
+        return formatted
     if isinstance(value, str):
         return encode_string_literal(value, delimiter)
     return str(value)
@@ -128,20 +150,19 @@ def format_header(
     # Build fields if provided
     fields_str = ""
     if fields:
-        fields_str = f"{OPEN_BRACE}{delimiter.join(fields)}{CLOSE_BRACE}"
+        # Encode each field name as a key (may need quoting per Section 7.3)
+        encoded_fields = [encode_key(field) for field in fields]
+        fields_str = f"{OPEN_BRACE}{delimiter.join(encoded_fields)}{CLOSE_BRACE}"
 
     # Build length string with delimiter when needed
-    # Rules:
-    # - WITH fields: always include delimiter in bracket: [N,] or [N|] or [N\t]
-    # - WITHOUT fields: only include if delimiter is not comma: [N] vs [N|]
-    if fields:
-        # Tabular format: always show delimiter after length
-        length_str = f"{OPEN_BRACKET}{marker_prefix}{length}{delimiter}{CLOSE_BRACKET}"
-    elif delimiter != COMMA:
-        # Primitive array with non-comma delimiter: show delimiter
+    # Rules per TOON spec: delimiter is optional in bracket [N<delim?>]
+    # - Only include delimiter if it's NOT comma (comma is the default)
+    # - This applies to both tabular and primitive arrays
+    if delimiter != COMMA:
+        # Non-comma delimiter: show delimiter in bracket
         length_str = f"{OPEN_BRACKET}{marker_prefix}{length}{delimiter}{CLOSE_BRACKET}"
     else:
-        # Primitive array with comma delimiter: just [length]
+        # Comma delimiter (default): just [length]
         length_str = f"{OPEN_BRACKET}{marker_prefix}{length}{CLOSE_BRACKET}"
 
     # Combine parts

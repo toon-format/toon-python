@@ -1,5 +1,6 @@
-"""
-Token analysis utilities for TOON format.
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Token analysis utilities for TOON format.
 
 This module provides utilities for counting tokens and comparing
 token efficiency between JSON and TOON formats. Useful for:

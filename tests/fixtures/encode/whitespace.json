@@ -1,0 +1,29 @@
+{
+  "version": "1.3",
+  "category": "encode",
+  "description": "Whitespace and formatting invariants - no trailing spaces, no trailing newlines",
+  "tests": [
+    {
+      "name": "produces no trailing newline at end of output",
+      "input": {
+        "id": 123
+      },
+      "expected": "id: 123",
+      "specSection": "4",
+      "note": "Output should not end with newline character"
+    },
+    {
+      "name": "maintains proper indentation for nested structures",
+      "input": {
+        "user": {
+          "id": 123,
+          "name": "Ada"
+        },
+        "items": ["a", "b"]
+      },
+      "expected": "user:\n  id: 123\n  name: Ada\nitems[2]: a,b",
+      "specSection": "4",
+      "note": "2-space indentation, no trailing spaces on any line"
+    }
+  ]
+}

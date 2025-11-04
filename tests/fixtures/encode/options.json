@@ -1,0 +1,88 @@
+{
+  "version": "1.3",
+  "category": "encode",
+  "description": "Encoding options - lengthMarker option and combinations with delimiters",
+  "tests": [
+    {
+      "name": "adds length marker to primitive arrays",
+      "input": {
+        "tags": ["reading", "gaming", "coding"]
+      },
+      "expected": "tags[#3]: reading,gaming,coding",
+      "options": {
+        "lengthMarker": "#"
+      },
+      "specSection": "3"
+    },
+    {
+      "name": "adds length marker to empty arrays",
+      "input": {
+        "items": []
+      },
+      "expected": "items[#0]:",
+      "options": {
+        "lengthMarker": "#"
+      },
+      "specSection": "3"
+    },
+    {
+      "name": "adds length marker to tabular arrays",
+      "input": {
+        "items": [
+          { "sku": "A1", "qty": 2, "price": 9.99 },
+          { "sku": "B2", "qty": 1, "price": 14.5 }
+        ]
+      },
+      "expected": "items[#2]{sku,qty,price}:\n  A1,2,9.99\n  B2,1,14.5",
+      "options": {
+        "lengthMarker": "#"
+      },
+      "specSection": "3"
+    },
+    {
+      "name": "adds length marker to nested arrays",
+      "input": {
+        "pairs": [["a", "b"], ["c", "d"]]
+      },
+      "expected": "pairs[#2]:\n  - [#2]: a,b\n  - [#2]: c,d",
+      "options": {
+        "lengthMarker": "#"
+      },
+      "specSection": "3"
+    },
+    {
+      "name": "combines length marker with pipe delimiter",
+      "input": {
+        "tags": ["reading", "gaming", "coding"]
+      },
+      "expected": "tags[#3|]: reading|gaming|coding",
+      "options": {
+        "lengthMarker": "#",
+        "delimiter": "|"
+      },
+      "specSection": "3"
+    },
+    {
+      "name": "combines length marker with tab delimiter",
+      "input": {
+        "tags": ["reading", "gaming", "coding"]
+      },
+      "expected": "tags[#3\t]: reading\tgaming\tcoding",
+      "options": {
+        "lengthMarker": "#",
+        "delimiter": "\t"
+      },
+      "specSection": "3"
+    },
+    {
+      "name": "default lengthMarker is empty (no marker)",
+      "input": {
+        "tags": ["reading", "gaming", "coding"]
+      },
+      "expected": "tags[3]: reading,gaming,coding",
+      "options": {},
+      "specSection": "3",
+      "note": "Default behavior without lengthMarker option"
+    }
+  ]
+}

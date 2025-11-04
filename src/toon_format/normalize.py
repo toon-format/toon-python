@@ -1,4 +1,15 @@
-"""Value normalization for TOON encoding."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Value normalization for TOON encoding.
+
+Converts Python-specific types to JSON-compatible values before encoding:
+- datetime/date → ISO 8601 strings
+- Decimal → float
+- tuple/set/frozenset → sorted lists
+- Infinity/NaN → null
+- Functions/callables → null
+- Negative zero → zero
+"""
 
 import math
 import sys
@@ -67,10 +78,9 @@ def normalize_value(value: Any) -> JsonValue:
         return value
 
     if isinstance(value, int):
-        # Convert very large integers (beyond JS safe integer range) to string
-        if abs(value) > _MAX_SAFE_INTEGER:
-            logger.debug(f"Converting large integer to string: {value} (exceeds 2^53-1)")
-            return str(value)
+        # Python integers have arbitrary precision and are encoded directly
+        # Note: JavaScript BigInt types are converted to strings during normalization
+        # (per spec Section 3), but Python ints don't need this conversion
         return value
 
     if isinstance(value, float):
@@ -115,13 +125,15 @@ def normalize_value(value: Any) -> JsonValue:
         logger.debug(f"Converting tuple to list: {len(value)} items")
         return [normalize_value(item) for item in value]
 
-    if isinstance(value, set):
-        logger.debug(f"Converting set to sorted list: {len(value)} items")
+    if isinstance(value, (set, frozenset)):
+        logger.debug(f"Converting {type(value).__name__} to sorted list: {len(value)} items")
         try:
             return [normalize_value(item) for item in sorted(value)]
         except TypeError:
-            # Fall back to stable conversion for heterogeneous sets
-            logger.debug("Set contains heterogeneous types, using repr() for sorting")
+            # Fall back to stable conversion for heterogeneous sets/frozensets
+            logger.debug(
+                f"{type(value).__name__} contains heterogeneous types, using repr() for sorting"
+            )
             return [normalize_value(item) for item in sorted(value, key=lambda x: repr(x))]
 
     # Handle generic mapping types (Map-like) and dicts

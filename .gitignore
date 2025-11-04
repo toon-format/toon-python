@@ -1,6 +1,3 @@
-# Reference repositories
-!ptoon-reference/
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -104,3 +101,5 @@ Temporary Items
 uv.lock
 
 PR_DESCRIPTION.md
+AGENTS.md
+.augment/

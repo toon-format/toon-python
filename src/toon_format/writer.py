@@ -1,4 +1,10 @@
-"""Line writer for managing indented output."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Line writer for managing indented TOON output.
+
+Provides LineWriter class that manages indented text generation with optimized
+indent string caching for performance.
+"""
 
 from typing import List
 

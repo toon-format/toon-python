@@ -1,4 +1,11 @@
-"""Core TOON encoding functionality."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Core TOON encoding functionality.
+
+This module provides the main `encode()` function for converting Python values
+to TOON format strings. Handles option resolution and coordinates the encoding
+pipeline: normalization → encoding → writing.
+"""
 
 from typing import Any, Optional
 

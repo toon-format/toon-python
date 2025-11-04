@@ -1,0 +1,197 @@
+{
+  "version": "1.3",
+  "category": "decode",
+  "description": "Strict mode indentation validation - non-multiple indentation, tab characters, custom indent sizes",
+  "tests": [
+    {
+      "name": "throws when object field has non-multiple indentation (3 spaces with indent=2)",
+      "input": "a:\n   b: 1",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "indent": 2,
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "throws when list item has non-multiple indentation (3 spaces with indent=2)",
+      "input": "items[2]:\n   - id: 1\n   - id: 2",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "indent": 2,
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "throws with custom indent size when non-multiple (3 spaces with indent=4)",
+      "input": "a:\n   b: 1",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "indent": 4,
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "accepts correct indentation with custom indent size (4 spaces with indent=4)",
+      "input": "a:\n    b: 1",
+      "expected": {
+        "a": {
+          "b": 1
+        }
+      },
+      "options": {
+        "indent": 4,
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "throws when tab character used in indentation",
+      "input": "a:\n\tb: 1",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "throws when mixed tabs and spaces in indentation",
+      "input": "a:\n \tb: 1",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "throws when tab at start of line",
+      "input": "\ta: 1",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "accepts tabs in quoted string values",
+      "input": "text: \"hello\tworld\"",
+      "expected": {
+        "text": "hello\tworld"
+      },
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "accepts tabs in quoted keys",
+      "input": "\"key\ttab\": value",
+      "expected": {
+        "key\ttab": "value"
+      },
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "accepts tabs in quoted array elements",
+      "input": "items[2]: \"a\tb\",\"c\td\"",
+      "expected": {
+        "items": ["a\tb", "c\td"]
+      },
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "accepts non-multiple indentation when strict=false",
+      "input": "a:\n   b: 1",
+      "expected": {
+        "a": {
+          "b": 1
+        }
+      },
+      "options": {
+        "indent": 2,
+        "strict": false
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "accepts tab indentation when strict=false (tabs ignored, depth=0)",
+      "input": "a:\n\tb: 1",
+      "expected": {
+        "a": {},
+        "b": 1
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "9",
+      "note": "Tabs are ignored in indentation counting, so b appears at root level"
+    },
+    {
+      "name": "accepts deeply nested non-multiples when strict=false",
+      "input": "a:\n   b:\n     c: 1",
+      "expected": {
+        "a": {
+          "b": {
+            "c": 1
+          }
+        }
+      },
+      "options": {
+        "indent": 2,
+        "strict": false
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "empty lines do not trigger validation errors",
+      "input": "a: 1\n\nb: 2",
+      "expected": {
+        "a": 1,
+        "b": 2
+      },
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "root-level content (0 indentation) is always valid",
+      "input": "a: 1\nb: 2\nc: 3",
+      "expected": {
+        "a": 1,
+        "b": 2,
+        "c": 3
+      },
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    },
+    {
+      "name": "lines with only spaces are not validated if empty",
+      "input": "a: 1\n   \nb: 2",
+      "expected": {
+        "a": 1,
+        "b": 2
+      },
+      "options": {
+        "strict": true
+      },
+      "specSection": "9"
+    }
+  ]
+}

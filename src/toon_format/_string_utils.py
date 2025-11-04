@@ -1,3 +1,5 @@
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
 """String utilities for TOON encoding and decoding.
 
 This module provides shared string processing functions used by both

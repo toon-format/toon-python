@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://toon-format.org/schemas/test-fixture.json",
+  "title": "TOON Test Fixture",
+  "description": "Schema for language-agnostic TOON test fixtures",
+  "type": "object",
+  "required": ["version", "category", "description", "tests"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "TOON specification version these tests target",
+      "pattern": "^\\d+\\.\\d+$",
+      "examples": ["1.0", "1.3"]
+    },
+    "category": {
+      "type": "string",
+      "enum": ["encode", "decode"],
+      "description": "Test category: encode (JSON → TOON) or decode (TOON → JSON)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of what this fixture file tests",
+      "minLength": 1,
+      "examples": ["Primitives - String Encoding", "Tabular Arrays - Decoding"]
+    },
+    "tests": {
+      "type": "array",
+      "description": "Array of test cases",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "input", "expected"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Descriptive test name explaining what is being validated",
+            "minLength": 1,
+            "examples": [
+              "encodes safe strings without quotes",
+              "throws on array length mismatch"
+            ]
+          },
+          "input": {
+            "description": "Input value - JSON value for encode tests, TOON string for decode tests"
+          },
+          "expected": {
+            "description": "Expected output - TOON string for encode tests, JSON value for decode tests"
+          },
+          "shouldError": {
+            "type": "boolean",
+            "description": "If true, this test expects an error to be thrown",
+            "default": false
+          },
+          "options": {
+            "type": "object",
+            "description": "Encoding or decoding options",
+            "properties": {
+              "delimiter": {
+                "type": "string",
+                "enum": [",", "\t", "|"],
+                "description": "Array delimiter (encode only)",
+                "default": ","
+              },
+              "indent": {
+                "type": "integer",
+                "description": "Number of spaces per indentation level",
+                "minimum": 1,
+                "default": 2
+              },
+              "lengthMarker": {
+                "type": "string",
+                "enum": ["#", ""],
+                "description": "Optional marker to prefix array lengths (encode only)",
+                "default": ""
+              },
+              "strict": {
+                "type": "boolean",
+                "description": "Enable strict validation (decode only)",
+                "default": true
+              }
+            },
+            "additionalProperties": false
+          },
+          "specSection": {
+            "type": "string",
+            "description": "Reference to relevant specification section",
+            "pattern": "^§?\\d+(\\.\\d+)*$",
+            "examples": ["6", "7.2", "§7.2", "9"]
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional note explaining special cases or edge case behavior"
+          },
+          "minSpecVersion": {
+            "type": "string",
+            "description": "Minimum specification version required for this test",
+            "pattern": "^\\d+\\.\\d+$",
+            "examples": ["1.0", "1.3"]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

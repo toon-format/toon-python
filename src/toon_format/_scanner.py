@@ -1,8 +1,10 @@
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
 """Scanner for parsing TOON input into lines with depth information.
 
 This module implements the first stage of the TOON decoding pipeline:
 scanning the input text and converting it into structured line objects
-with depth and indentation metadata.
+with depth and indentation metadata. Handles strict and lenient parsing modes.
 """
 
 from dataclasses import dataclass
@@ -28,6 +30,15 @@ class ParsedLine:
     indent: int
     content: str
     line_num: int
+
+    @property
+    def is_blank(self) -> bool:
+        """Check if this line is blank (only whitespace).
+
+        Returns:
+            True if the line contains only whitespace
+        """
+        return not self.content.strip()
 
 
 @dataclass
@@ -148,6 +159,22 @@ class LineCursor:
         """
         return self.peek_at_depth(target_depth) is not None
 
+    def skip_deeper_than(self, depth: int) -> None:
+        """Skip all lines that are deeper than the given depth.
+
+        This is useful for skipping over nested structures after processing them.
+
+        Args:
+            depth: The reference depth. All lines with depth > this will be skipped.
+
+        Example:
+            >>> cursor.skip_deeper_than(1)  # Skip all lines at depth 2, 3, 4, etc.
+        """
+        line = self.peek()
+        while line and line.depth > depth:
+            self.advance()
+            line = self.peek()
+
 
 def to_parsed_lines(
     source: str,
@@ -192,9 +219,12 @@ def to_parsed_lines(
 
         content = raw[indent:]
 
-        # Track blank lines
-        if not content.strip():
-            depth = _compute_depth_from_indent(indent, indent_size)
+        # Compute depth for both blank and non-blank lines
+        depth = _compute_depth_from_indent(indent, indent_size)
+
+        # Track blank lines (but still include them in parsed list for validation)
+        is_blank = not content.strip()
+        if is_blank:
             blank_lines.append(
                 BlankLineInfo(
                     line_num=line_num,
@@ -202,12 +232,11 @@ def to_parsed_lines(
                     depth=depth,
                 )
             )
-            continue
+            # Blank lines are not validated for indentation
+            # But we still add them to parsed list for array blank line detection
 
-        depth = _compute_depth_from_indent(indent, indent_size)
-
-        # Strict mode validation
-        if strict:
+        # Strict mode validation (skip for blank lines)
+        if strict and not is_blank:
             # Find the full leading whitespace region (spaces and tabs)
             ws_end = 0
             while ws_end < len(raw) and (raw[ws_end] == SPACE or raw[ws_end] == TAB):

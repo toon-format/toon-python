@@ -1,7 +1,10 @@
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
 """Utilities for detecting literal token types.
 
 This module provides functions to identify different types of literal
 values in TOON syntax, such as booleans, null, and numeric literals.
+Used during decoding to distinguish between literal values and strings.
 """
 
 from .constants import FALSE_LITERAL, NULL_LITERAL, TRUE_LITERAL

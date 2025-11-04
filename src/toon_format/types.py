@@ -1,4 +1,10 @@
-"""Type definitions for pytoon."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Type definitions for TOON format.
+
+Defines type aliases and TypedDict classes for JSON values, encoding/decoding
+options, and internal types used throughout the package.
+"""
 
 from typing import Any, Dict, List, Literal, TypedDict, Union
 

@@ -1,4 +1,12 @@
-"""Tests for TOON decoder."""
+"""Tests for Python-specific TOON decoder behavior.
+
+This file contains ONLY Python-specific decoder tests that are not covered
+by the official spec fixtures in test_spec_fixtures.py.
+
+For spec compliance testing, see test_spec_fixtures.py (306 official tests).
+For Python type normalization, see test_normalization.py.
+For API testing, see test_api.py.
+"""
 
 import pytest
 
@@ -6,337 +14,129 @@ from toon_format import ToonDecodeError, decode
 from toon_format.types import DecodeOptions
 
 
-class TestBasicDecoding:
-    """Test basic decoding functionality."""
+class TestPythonDecoderAPI:
+    """Test Python-specific decoder API behavior."""
 
-    def test_decode_simple_object(self):
-        """Test decoding a simple object."""
-        toon = """id: 123
-name: Ada
-active: true"""
-        result = decode(toon)
-        assert result == {"id": 123, "name": "Ada", "active": True}
-
-    def test_decode_nested_object(self):
-        """Test decoding a nested object."""
-        toon = """user:
-  id: 123
-  name: Ada"""
-        result = decode(toon)
-        assert result == {"user": {"id": 123, "name": "Ada"}}
-
-    def test_decode_inline_primitive_array(self):
-        """Test decoding an inline primitive array."""
-        toon = "tags[3]: reading,gaming,coding"
-        result = decode(toon)
-        assert result == {"tags": ["reading", "gaming", "coding"]}
-
-    def test_decode_empty_array(self):
-        """Test decoding an empty array."""
-        toon = "items[0]:"
-        result = decode(toon)
-        assert result == {"items": []}
-
-    def test_decode_tabular_array(self):
-        """Test decoding a tabular array."""
-        toon = """items[2]{sku,qty,price}:
-  A1,2,9.99
-  B2,1,14.5"""
-        result = decode(toon)
-        assert result == {
-            "items": [
-                {"sku": "A1", "qty": 2, "price": 9.99},
-                {"sku": "B2", "qty": 1, "price": 14.5},
-            ]
-        }
-
-    def test_decode_list_array_with_objects(self):
-        """Test decoding a list array with objects."""
-        toon = """items[2]:
-  - id: 1
-    name: First
-  - id: 2
-    name: Second"""
-        result = decode(toon)
-        assert result == {
-            "items": [
-                {"id": 1, "name": "First"},
-                {"id": 2, "name": "Second"},
-            ]
-        }
-
-    def test_decode_list_array_with_primitives(self):
-        """Test decoding a list array with primitives."""
-        toon = """items[3]:
-  - 1
-  - foo
-  - true"""
-        result = decode(toon)
-        assert result == {"items": [1, "foo", True]}
-
-    def test_decode_root_array(self):
-        """Test decoding a root array."""
-        toon = "[3]: a,b,c"
-        result = decode(toon)
-        assert result == ["a", "b", "c"]
-
-    def test_decode_root_primitive(self):
-        """Test decoding a root primitive."""
-        toon = "hello world"
-        result = decode(toon)
-        assert result == "hello world"
-
-    def test_decode_quoted_strings(self):
-        """Test decoding quoted strings."""
-        toon = 'name: "hello, world"'
-        result = decode(toon)
-        assert result == {"name": "hello, world"}
-
-    def test_decode_escaped_strings(self):
-        """Test decoding escaped strings."""
-        toon = r'text: "line1\nline2"'
-        result = decode(toon)
-        assert result == {"text": "line1\nline2"}
-
-    def test_decode_booleans_and_null(self):
-        """Test decoding booleans and null."""
-        toon = """active: true
-inactive: false
-missing: null"""
-        result = decode(toon)
-        assert result == {"active": True, "inactive": False, "missing": None}
-
-    def test_decode_numbers(self):
-        """Test decoding various number formats."""
-        toon = """int: 42
-negative: -10
-float: 3.14
-exponent: 1e-6"""
-        result = decode(toon)
-        assert result == {
-            "int": 42,
-            "negative": -10,
-            "float": 3.14,
-            "exponent": 1e-6,
-        }
-
-
-class TestDelimiters:
-    """Test different delimiter types."""
-
-    def test_decode_tab_delimiter_primitive_array(self):
-        """Test tab-delimited primitive array."""
-        toon = "tags[3\t]: reading\tgaming\tcoding"
-        result = decode(toon)
-        assert result == {"tags": ["reading", "gaming", "coding"]}
-
-    def test_decode_tab_delimiter_tabular(self):
-        """Test tab-delimited tabular array."""
-        toon = """items[2\t]{sku\tqty}:
-  A1\t5
-  B2\t3"""
-        result = decode(toon)
-        assert result == {
-            "items": [
-                {"sku": "A1", "qty": 5},
-                {"sku": "B2", "qty": 3},
-            ]
-        }
-
-    def test_decode_pipe_delimiter_primitive_array(self):
-        """Test pipe-delimited primitive array."""
-        toon = "tags[3|]: reading|gaming|coding"
-        result = decode(toon)
-        assert result == {"tags": ["reading", "gaming", "coding"]}
-
-    def test_decode_pipe_delimiter_tabular(self):
-        """Test pipe-delimited tabular array."""
-        toon = """items[2|]{sku|qty}:
-  A1|5
-  B2|3"""
-        result = decode(toon)
-        assert result == {
-            "items": [
-                {"sku": "A1", "qty": 5},
-                {"sku": "B2", "qty": 3},
-            ]
-        }
-
-
-class TestLengthMarker:
-    """Test length marker support."""
-
-    def test_decode_with_length_marker(self):
-        """Test decoding with # length marker."""
-        toon = "tags[#3]: a,b,c"
-        result = decode(toon)
-        assert result == {"tags": ["a", "b", "c"]}
-
-    def test_decode_tabular_with_length_marker(self):
-        """Test tabular array with # length marker."""
-        toon = """items[#2]{id,name}:
-  1,Alice
-  2,Bob"""
-        result = decode(toon)
-        assert result == {
-            "items": [
-                {"id": 1, "name": "Alice"},
-                {"id": 2, "name": "Bob"},
-            ]
-        }
-
-
-class TestStrictMode:
-    """Test strict mode validation."""
-
-    def test_strict_array_length_mismatch(self):
-        """Test that strict mode errors on length mismatch."""
-        toon = "items[3]: a,b"  # Declared 3, only 2 values
-        with pytest.raises(ToonDecodeError, match="Expected 3 values"):
-            decode(toon)
-
-    def test_non_strict_array_length_mismatch(self):
-        """Test that non-strict mode allows length mismatch."""
-        toon = "items[3]: a,b"
+    def test_decode_with_lenient_mode(self):
+        """Test that lenient mode allows spec violations (Python-specific option)."""
+        toon = "items[5]: a,b,c"  # Declared 5, only 3 values
         options = DecodeOptions(strict=False)
         result = decode(toon, options)
-        assert result == {"items": ["a", "b"]}
+        # Lenient mode accepts the mismatch
+        assert result == {"items": ["a", "b", "c"]}
 
-    def test_strict_indentation_error(self):
-        """Test that strict mode errors on bad indentation."""
-        toon = """user:
-   id: 1"""  # 3 spaces instead of 2
-        with pytest.raises(ToonDecodeError, match="exact multiple"):
-            decode(toon)
+    def test_decode_with_custom_indent_size(self):
+        """Test Python API accepts custom indent size."""
+        toon = """parent:
+    child:
+        value: 42"""  # 4-space indent
+        options = DecodeOptions(indent=4)
+        result = decode(toon, options)
+        assert result == {"parent": {"child": {"value": 42}}}
 
-    def test_strict_tabular_row_width_mismatch(self):
-        """Test that strict mode errors on row width mismatch."""
-        toon = """items[2]{a,b,c}:
-  1,2,3
-  4,5"""  # Second row has only 2 values instead of 3
-        with pytest.raises(ToonDecodeError, match="Expected 3 values"):
-            decode(toon)
-
-
-class TestEdgeCases:
-    """Test edge cases and error handling."""
-
-    def test_decode_empty_string_value(self):
-        """Test decoding empty string values."""
-        toon = 'text: ""'
+    def test_decode_returns_python_dict(self):
+        """Ensure decode returns native Python dict, not custom type."""
+        toon = "id: 123"
         result = decode(toon)
-        assert result == {"text": ""}
+        assert isinstance(result, dict)
+        assert type(result) == dict  # Not a subclass
 
-    def test_decode_quoted_keywords(self):
-        """Test that quoted keywords remain strings."""
-        toon = """items[3]: "true","false","null" """
+    def test_decode_returns_python_list(self):
+        """Ensure decode returns native Python list for arrays."""
+        toon = "[3]: 1,2,3"
         result = decode(toon)
-        assert result == {"items": ["true", "false", "null"]}
+        assert isinstance(result, list)
+        assert type(result) == list  # Not a subclass
 
-    def test_decode_quoted_numbers(self):
-        """Test that quoted numbers remain strings."""
-        toon = """items[2]: "42","3.14" """
-        result = decode(toon)
-        assert result == {"items": ["42", "3.14"]}
 
-    def test_invalid_escape_sequence(self):
-        """Test that invalid escape sequences error."""
-        toon = r'text: "invalid\x"'
-        with pytest.raises(ToonDecodeError, match="Invalid escape"):
-            decode(toon)
+class TestPythonErrorHandling:
+    """Test Python-specific error handling behavior."""
 
-    def test_unterminated_string(self):
-        """Test that unterminated strings error."""
+    def test_error_type_is_toon_decode_error(self):
+        """Verify errors raise ToonDecodeError, not generic exceptions."""
         toon = 'text: "unterminated'
-        with pytest.raises(ToonDecodeError, match="Unterminated"):
+        with pytest.raises(ToonDecodeError):
             decode(toon)
 
-    def test_missing_colon(self):
-        """Test that missing colon errors in strict mode."""
-        toon = """key: value
-invalid line without colon"""
-        with pytest.raises(ToonDecodeError, match="Missing colon"):
+    def test_error_is_exception_subclass(self):
+        """ToonDecodeError should be catchable as Exception."""
+        toon = 'text: "unterminated'
+        with pytest.raises(Exception):  # Should also catch as base Exception
+            decode(toon)
+
+    def test_strict_mode_default_is_true(self):
+        """Default strict mode should be True (fail on violations)."""
+        toon = "items[5]: a,b,c"  # Length mismatch
+        # Without options, should use strict=True by default
+        with pytest.raises(ToonDecodeError):
             decode(toon)
 
 
-class TestComplexStructures:
-    """Test complex nested structures."""
+class TestSpecEdgeCases:
+    """Tests for spec edge cases that must be handled correctly."""
 
-    def test_nested_tabular_in_list(self):
-        """Test tabular array inside a list item."""
-        toon = """items[1]:
-  - users[2]{id,name}:
-    1,Alice
-    2,Bob
-    status: active"""
+    def test_leading_zero_treated_as_string(self):
+        """Leading zeros like '05', '0001' should decode as strings (Section 4)."""
+        toon = "code: 05"
         result = decode(toon)
-        assert result == {
-            "items": [
-                {
-                    "users": [
-                        {"id": 1, "name": "Alice"},
-                        {"id": 2, "name": "Bob"},
-                    ],
-                    "status": "active",
-                }
-            ]
-        }
+        assert result == {"code": "05"}
+        assert isinstance(result["code"], str)
 
-    def test_array_of_arrays(self):
-        """Test array of arrays."""
-        toon = """pairs[2]:
-  - [2]: 1,2
-  - [2]: 3,4"""
+    def test_leading_zero_in_array(self):
+        """Leading zeros in arrays should be strings."""
+        toon = "codes[3]: 01,02,03"
         result = decode(toon)
-        assert result == {"pairs": [[1, 2], [3, 4]]}
+        assert result == {"codes": ["01", "02", "03"]}
+        assert all(isinstance(v, str) for v in result["codes"])
 
-    def test_deeply_nested_objects(self):
-        """Test deeply nested object structures."""
-        toon = """root:
-  level1:
-    level2:
-      level3:
-        value: deep"""
+    def test_single_zero_is_number(self):
+        """Single '0' is a valid number, not a leading zero case."""
+        toon = "value: 0"
         result = decode(toon)
-        assert result == {"root": {"level1": {"level2": {"level3": {"value": "deep"}}}}}
+        assert result == {"value": 0}
+        assert isinstance(result["value"], int)
 
+    def test_zero_point_zero_is_number(self):
+        """'0.0' is a valid number."""
+        toon = "value: 0.0"
+        result = decode(toon)
+        assert result == {"value": 0.0}
+        assert isinstance(result["value"], (int, float))
 
-class TestRoundtrip:
-    """Test encoding and decoding roundtrip."""
+    def test_exponent_notation_accepted(self):
+        """Decoder MUST accept exponent forms like 1e-6, -1E+9 (Section 4)."""
+        toon = """a: 1e-6
+b: -1E+9
+c: 2.5e3
+d: -3.14E-2"""
+        result = decode(toon)
+        assert result["a"] == 1e-6
+        assert result["b"] == -1e9
+        assert result["c"] == 2.5e3
+        assert result["d"] == -3.14e-2
 
-    def test_roundtrip_simple(self):
-        """Test simple roundtrip."""
-        from toon_format import encode
+    def test_exponent_notation_in_array(self):
+        """Exponent notation in arrays."""
+        toon = "values[3]: 1e2,2e-1,3E+4"
+        result = decode(toon)
+        assert result["values"] == [1e2, 2e-1, 3e4]
 
-        original = {"id": 123, "name": "Ada", "active": True}
-        toon = encode(original)
-        decoded = decode(toon)
-        assert decoded == original
+    def test_array_order_preserved(self):
+        """Array order MUST be preserved (Section 2)."""
+        toon = "items[5]: 5,1,9,2,7"
+        result = decode(toon)
+        assert result["items"] == [5, 1, 9, 2, 7]
+        # Verify order is exact, not sorted
+        assert result["items"] != [1, 2, 5, 7, 9]
 
-    def test_roundtrip_tabular(self):
-        """Test tabular array roundtrip."""
-        from toon_format import encode
-
-        original = {
-            "items": [
-                {"sku": "A1", "qty": 2, "price": 9.99},
-                {"sku": "B2", "qty": 1, "price": 14.5},
-            ]
-        }
-        toon = encode(original)
-        decoded = decode(toon)
-        assert decoded == original
-
-    def test_roundtrip_nested(self):
-        """Test nested structure roundtrip."""
-        from toon_format import encode
-
-        original = {
-            "user": {
-                "id": 123,
-                "profile": {"name": "Ada", "tags": ["dev", "ops"]},
-            }
-        }
-        toon = encode(original)
-        decoded = decode(toon)
-        assert decoded == original
+    def test_object_key_order_preserved(self):
+        """Object key order MUST be preserved (Section 2)."""
+        toon = """z: 1
+a: 2
+m: 3
+b: 4"""
+        result = decode(toon)
+        keys = list(result.keys())
+        assert keys == ["z", "a", "m", "b"]
+        # Verify order is not alphabetical
+        assert keys != ["a", "b", "m", "z"]

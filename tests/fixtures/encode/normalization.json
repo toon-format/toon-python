@@ -1,0 +1,107 @@
+{
+  "version": "1.3",
+  "category": "encode",
+  "description": "Non-JSON type normalization - BigInt, Date, undefined, NaN, Infinity, functions, symbols",
+  "tests": [
+    {
+      "name": "converts BigInt to number",
+      "input": 123,
+      "expected": "123",
+      "specSection": "5",
+      "note": "BigInt(123) in JavaScript becomes 123"
+    },
+    {
+      "name": "converts BigInt in object to number",
+      "input": {
+        "id": 456
+      },
+      "expected": "id: 456",
+      "specSection": "5",
+      "note": "BigInt(456) in JavaScript becomes 456"
+    },
+    {
+      "name": "converts Date to ISO string",
+      "input": "2025-01-01T00:00:00.000Z",
+      "expected": "\"2025-01-01T00:00:00.000Z\"",
+      "specSection": "5",
+      "note": "new Date('2025-01-01T00:00:00.000Z') becomes quoted ISO string"
+    },
+    {
+      "name": "converts Date in object to ISO string",
+      "input": {
+        "created": "2025-01-01T00:00:00.000Z"
+      },
+      "expected": "created: \"2025-01-01T00:00:00.000Z\"",
+      "specSection": "5"
+    },
+    {
+      "name": "converts undefined to null",
+      "input": null,
+      "expected": "null",
+      "specSection": "5",
+      "note": "undefined in JavaScript becomes null"
+    },
+    {
+      "name": "converts undefined in object to null",
+      "input": {
+        "value": null
+      },
+      "expected": "value: null",
+      "specSection": "5",
+      "note": "undefined in JavaScript becomes null"
+    },
+    {
+      "name": "converts Infinity to null",
+      "input": null,
+      "expected": "null",
+      "specSection": "5",
+      "note": "Infinity becomes null"
+    },
+    {
+      "name": "converts negative Infinity to null",
+      "input": null,
+      "expected": "null",
+      "specSection": "5",
+      "note": "-Infinity becomes null"
+    },
+    {
+      "name": "converts NaN to null",
+      "input": null,
+      "expected": "null",
+      "specSection": "5",
+      "note": "Number.NaN becomes null"
+    },
+    {
+      "name": "converts function to null",
+      "input": null,
+      "expected": "null",
+      "specSection": "5",
+      "note": "Functions become null"
+    },
+    {
+      "name": "converts function in object to null",
+      "input": {
+        "fn": null
+      },
+      "expected": "fn: null",
+      "specSection": "5",
+      "note": "Functions become null"
+    },
+    {
+      "name": "converts symbol to null",
+      "input": null,
+      "expected": "null",
+      "specSection": "5",
+      "note": "Symbols become null"
+    },
+    {
+      "name": "converts symbol in object to null",
+      "input": {
+        "sym": null
+      },
+      "expected": "sym: null",
+      "specSection": "5",
+      "note": "Symbols become null"
+    }
+  ]
+}

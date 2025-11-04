@@ -1,11 +1,24 @@
-"""TOON decoder implementation following v1.2 spec."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""TOON decoder implementation following v1.3 spec.
+
+This module provides the main `decode()` function and ToonDecodeError exception
+for converting TOON format strings back to Python values. Supports strict and
+lenient parsing modes, handles all TOON syntax forms (objects, arrays, primitives),
+and validates array lengths and delimiters.
+"""
 
 from typing import Any, Dict, List, Optional, Tuple
 
 from ._literal_utils import is_boolean_or_null_literal, is_numeric_literal
+from ._parsing_utils import (
+    find_first_unquoted,
+    find_unquoted_char,
+    parse_delimited_values,
+)
+from ._scanner import ParsedLine, to_parsed_lines
 from ._string_utils import unescape_string as _unescape_string
 from .constants import (
-    BACKSLASH,
     CLOSE_BRACE,
     CLOSE_BRACKET,
     COLON,
@@ -26,50 +39,6 @@ class ToonDecodeError(Exception):
     """TOON decoding error."""
 
     pass
-
-
-class Line:
-    """Represents a line in the TOON document."""
-
-    def __init__(self, content: str, depth: int, line_number: int):
-        self.content = content
-        self.depth = depth
-        self.line_number = line_number
-        self.is_blank = not content.strip()
-
-
-def compute_depth(line: str, indent_size: int, strict: bool) -> int:
-    """Compute indentation depth for a line.
-
-    Args:
-        line: Line content
-        indent_size: Number of spaces per indentation level
-        strict: Whether to enforce strict indentation rules
-
-    Returns:
-        Indentation depth
-
-    Raises:
-        ToonDecodeError: If indentation is invalid in strict mode
-    """
-    if not line:
-        return 0
-
-    # Count leading spaces
-    leading_spaces = len(line) - len(line.lstrip(" "))
-
-    # Check for tabs in indentation (always error in strict mode)
-    if strict and "\t" in line[:leading_spaces]:
-        raise ToonDecodeError("Tabs are not allowed in indentation")
-
-    # In strict mode, leading spaces must be exact multiple of indent_size
-    if strict:
-        if leading_spaces % indent_size != 0:
-            raise ToonDecodeError(f"Indentation must be an exact multiple of {indent_size} spaces")
-        return leading_spaces // indent_size
-    else:
-        # Non-strict mode: use floor division
-        return leading_spaces // indent_size
 
 
 def unescape_string(value: str) -> str:
@@ -133,50 +102,6 @@ def parse_primitive(token: str) -> JsonValue:
     return token
 
 
-def parse_delimited_values(line: str, delimiter: str) -> List[str]:
-    """Parse delimiter-separated values, respecting quotes.
-
-    Args:
-        line: Line content
-        delimiter: Active delimiter
-
-    Returns:
-        List of token strings
-    """
-    tokens = []
-    current = []
-    in_quotes = False
-    i = 0
-
-    while i < len(line):
-        char = line[i]
-
-        if char == DOUBLE_QUOTE:
-            in_quotes = not in_quotes
-            current.append(char)
-        elif char == BACKSLASH and i + 1 < len(line) and in_quotes:
-            # In quotes, consume escape sequence
-            current.append(char)
-            current.append(line[i + 1])
-            i += 1
-        elif char == delimiter and not in_quotes:
-            # Split on unquoted delimiter
-            tokens.append("".join(current))
-            current = []
-            i += 1
-            continue
-        else:
-            current.append(char)
-
-        i += 1
-
-    # Add final token
-    if current or tokens:  # Include empty final token if there was a delimiter
-        tokens.append("".join(current))
-
-    return tokens
-
-
 def parse_header(
     line: str,
 ) -> Optional[Tuple[Optional[str], int, str, Optional[List[str]]]]:
@@ -193,8 +118,8 @@ def parse_header(
     """
     line = line.strip()
 
-    # Find the bracket segment
-    bracket_start = line.find(OPEN_BRACKET)
+    # Find the bracket segment (respecting quoted strings)
+    bracket_start = find_unquoted_char(line, OPEN_BRACKET)
     if bracket_start == -1:
         return None
 
@@ -205,7 +130,7 @@ def parse_header(
         key = parse_key(key_part) if key_part else None
 
     # Find closing bracket
-    bracket_end = line.find(CLOSE_BRACKET, bracket_start)
+    bracket_end = find_unquoted_char(line, CLOSE_BRACKET, bracket_start)
     if bracket_end == -1:
         return None
 
@@ -242,7 +167,7 @@ def parse_header(
     after_bracket = line[bracket_end + 1 :].strip()
 
     if after_bracket.startswith(OPEN_BRACE):
-        brace_end = after_bracket.find(CLOSE_BRACE)
+        brace_end = find_unquoted_char(after_bracket, CLOSE_BRACE)
         if brace_end == -1:
             raise ToonDecodeError("Unterminated fields segment")
 
@@ -294,24 +219,13 @@ def split_key_value(line: str) -> Tuple[str, str]:
     Raises:
         ToonDecodeError: If no colon found
     """
-    in_quotes = False
-    i = 0
+    colon_idx = find_unquoted_char(line, COLON)
+    if colon_idx == -1:
+        raise ToonDecodeError("Missing colon after key")
 
-    while i < len(line):
-        char = line[i]
-
-        if char == DOUBLE_QUOTE:
-            in_quotes = not in_quotes
-        elif char == BACKSLASH and i + 1 < len(line) and in_quotes:
-            i += 1  # Skip next char
-        elif char == COLON and not in_quotes:
-            key = line[:i].strip()
-            value = line[i + 1 :].strip()
-            return (key, value)
-
-        i += 1
-
-    raise ToonDecodeError("Missing colon after key")
+    key = line[:colon_idx].strip()
+    value = line[colon_idx + 1 :].strip()
+    return (key, value)
 
 
 def decode(input_str: str, options: Optional[DecodeOptions] = None) -> JsonValue:
@@ -333,32 +247,33 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> JsonValue
     indent_size = options.indent
     strict = options.strict
 
-    # Split into lines
-    raw_lines = input_str.split("\n")
+    # Parse lines using scanner module
+    try:
+        parsed_lines, blank_lines_info = to_parsed_lines(input_str, indent_size, strict)
+    except SyntaxError as e:
+        # Convert scanner's SyntaxError to ToonDecodeError
+        raise ToonDecodeError(str(e)) from e
 
-    # Process lines: compute depth and filter blanks outside arrays
-    lines: List[Line] = []
-    for i, raw in enumerate(raw_lines):
-        # Skip trailing newline
-        if i == len(raw_lines) - 1 and not raw.strip():
-            continue
-
-        depth = compute_depth(raw, indent_size, strict)
-        line = Line(raw.strip(), depth, i + 1)
-
-        # Keep all lines for now (we'll handle blank line rules during parsing)
-        if line.content or not strict:
-            lines.append(line)
+    # Convert ParsedLine to have stripped content (decoder expects stripped)
+    # Note: ParsedLine.content keeps whitespace after indent removal, but decoder needs stripped
+    lines: List[ParsedLine] = [
+        ParsedLine(
+            raw=line.raw,
+            depth=line.depth,
+            indent=line.indent,
+            content=line.content.strip(),
+            line_num=line.line_num,
+        )
+        for line in parsed_lines
+    ]
 
     # Remove blank lines outside arrays (Section 12)
     # For simplicity, we'll handle this during parsing
 
-    # Check for empty input
+    # Check for empty input (per spec Section 8: empty/whitespace-only → empty object)
     non_blank_lines = [ln for ln in lines if not ln.is_blank]
     if not non_blank_lines:
-        if strict:
-            raise ToonDecodeError("Empty input")
-        return None
+        return {}
 
     # Determine root form (Section 5)
     first_line = non_blank_lines[0]
@@ -387,7 +302,7 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> JsonValue
 
 
 def decode_object(
-    lines: List[Line], start_idx: int, parent_depth: int, strict: bool
+    lines: List[ParsedLine], start_idx: int, parent_depth: int, strict: bool
 ) -> Dict[str, Any]:
     """Decode an object starting at given line index.
 
@@ -465,7 +380,7 @@ def decode_object(
 
 
 def decode_array_from_header(
-    lines: List[Line],
+    lines: List[ParsedLine],
     header_idx: int,
     header_depth: int,
     header_info: Tuple[Optional[str], int, str, Optional[List[str]]],
@@ -487,11 +402,16 @@ def decode_array_from_header(
     header_line = lines[header_idx].content
 
     # Check if there's inline content after the colon
-    colon_idx = header_line.rfind(COLON)
-    inline_content = header_line[colon_idx + 1 :].strip()
+    # Use split_key_value to find the colon position (respects quoted strings)
+    try:
+        _, inline_content = split_key_value(header_line)
+    except ToonDecodeError:
+        # No colon found (shouldn't happen with valid headers)
+        inline_content = ""
 
-    if inline_content:
-        # Inline primitive array
+    # Inline primitive array (can be empty if length is 0)
+    if inline_content or (not fields and length == 0):
+        # Inline primitive array (handles empty arrays like [0]:)
         return (
             decode_inline_array(inline_content, delimiter, length, strict),
             header_idx + 1,
@@ -509,7 +429,7 @@ def decode_array_from_header(
 
 
 def decode_array(
-    lines: List[Line],
+    lines: List[ParsedLine],
     start_idx: int,
     parent_depth: int,
     header_info: Tuple[Optional[str], int, str, Optional[List[str]]],
@@ -561,7 +481,7 @@ def decode_inline_array(
 
 
 def decode_tabular_array(
-    lines: List[Line],
+    lines: List[ParsedLine],
     start_idx: int,
     header_depth: int,
     fields: List[str],
@@ -593,12 +513,19 @@ def decode_tabular_array(
     while i < len(lines):
         line = lines[i]
 
-        # Check for blank lines in array (error in strict mode)
+        # Handle blank lines
         if line.is_blank:
             if strict:
-                raise ToonDecodeError("Blank lines not allowed inside arrays")
-            i += 1
-            continue
+                # In strict mode: blank lines at or above row depth are errors
+                # Blank lines dedented below row depth mean array has ended
+                if line.depth >= row_depth:
+                    raise ToonDecodeError("Blank lines not allowed inside arrays")
+                else:
+                    break
+            else:
+                # In non-strict mode: ignore all blank lines and continue
+                i += 1
+                continue
 
         # Stop if dedented or different depth
         if line.depth < row_depth:
@@ -637,6 +564,10 @@ def decode_tabular_array(
 def is_row_line(line: str, delimiter: str) -> bool:
     """Check if a line is a tabular row (not a key-value line).
 
+    A line is a tabular row if:
+    - It has no unquoted colon, OR
+    - The first unquoted delimiter appears before the first unquoted colon
+
     Args:
         line: Line content
         delimiter: Active delimiter
@@ -644,41 +575,20 @@ def is_row_line(line: str, delimiter: str) -> bool:
     Returns:
         True if it's a row line
     """
-    # Find first unquoted delimiter and first unquoted colon
-    first_delim_pos = None
-    first_colon_pos = None
-    in_quotes = False
-    i = 0
+    # Find first occurrence of delimiter or colon (single pass optimization)
+    pos, char = find_first_unquoted(line, [delimiter, COLON])
 
-    while i < len(line):
-        char = line[i]
-
-        if char == DOUBLE_QUOTE:
-            in_quotes = not in_quotes
-        elif char == BACKSLASH and i + 1 < len(line) and in_quotes:
-            i += 1
-        elif not in_quotes:
-            if char == delimiter and first_delim_pos is None:
-                first_delim_pos = i
-            if char == COLON and first_colon_pos is None:
-                first_colon_pos = i
-
-        i += 1
-
-    # No unquoted colon -> row
-    if first_colon_pos is None:
+    # No special chars found -> row
+    if pos == -1:
         return True
 
-    # Both present: delimiter before colon -> row
-    if first_delim_pos is not None and first_delim_pos < first_colon_pos:
-        return True
-
-    # Colon before delimiter or no delimiter -> key-value
-    return False
+    # First special char is delimiter -> row
+    # First special char is colon -> key-value
+    return char == delimiter
 
 
 def decode_list_array(
-    lines: List[Line],
+    lines: List[ParsedLine],
     start_idx: int,
     header_depth: int,
     delimiter: str,
@@ -708,12 +618,19 @@ def decode_list_array(
     while i < len(lines):
         line = lines[i]
 
-        # Skip blank lines (error in strict mode)
+        # Handle blank lines
         if line.is_blank:
             if strict:
-                raise ToonDecodeError("Blank lines not allowed inside arrays")
-            i += 1
-            continue
+                # In strict mode: blank lines at or above item depth are errors
+                # Blank lines dedented below item depth mean array has ended
+                if line.depth >= item_depth:
+                    raise ToonDecodeError("Blank lines not allowed inside arrays")
+                else:
+                    break
+            else:
+                # In non-strict mode: ignore all blank lines and continue
+                i += 1
+                continue
 
         # Stop if dedented
         if line.depth < item_depth:
@@ -739,8 +656,8 @@ def decode_list_array(
                 colon_idx = item_content.find(COLON)
                 if colon_idx != -1:
                     inline_part = item_content[colon_idx + 1 :].strip()
-                    if inline_part:
-                        # Inline primitive array
+                    # Inline primitive array (handles empty arrays like [0]:)
+                    if inline_part or length == 0:
                         item_val = decode_inline_array(inline_part, item_delim, length, strict)
                         result.append(item_val)
                         i += 1
@@ -858,7 +775,11 @@ def decode_list_array(
             result.append(obj_item)
         except ToonDecodeError:
             # Not an object, must be a primitive
-            result.append(parse_primitive(item_content))
+            # Special case: empty content after "- " is an empty object
+            if not item_content:
+                result.append({})
+            else:
+                result.append(parse_primitive(item_content))
             i += 1
 
     if strict and len(result) != expected_length:

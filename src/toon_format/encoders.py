@@ -1,4 +1,11 @@
-"""Encoders for different value types."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Type-specific encoders for TOON format.
+
+Provides encoding functions for different value types: objects, arrays (primitive,
+tabular, and list formats), and primitives. Includes format detection logic to
+determine the most efficient TOON representation for arrays.
+"""
 
 from typing import List, Optional, cast
 
@@ -130,6 +137,82 @@ def encode_array(
         encode_mixed_array_as_list_items(arr, options, writer, depth, key)
 
 
+def encode_array_content(
+    arr: JsonArray,
+    options: ResolvedEncodeOptions,
+    writer: LineWriter,
+    depth: Depth,
+) -> None:
+    """Encode array content without header (header already written).
+
+    Args:
+        arr: Array to encode
+        options: Resolved encoding options
+        writer: Line writer for output
+        depth: Current indentation depth for array items
+    """
+    # Handle empty array
+    if not arr:
+        return
+
+    # Check array type and encode accordingly
+    if is_array_of_primitives(arr):
+        # Inline primitive array - write values on same line as header
+        # But header was already written, so we need to append to last line
+        # Actually, we can't modify the last line, so this won't work for inline arrays
+        # For now, encode inline arrays separately
+        encoded_values = [encode_primitive(item, options.delimiter) for item in arr]
+        joined = join_encoded_values(encoded_values, options.delimiter)
+        # Get the last line and append to it
+        # This is tricky - we need to modify the writer to support this
+        # For now, let's just write at current depth
+        # Actually, looking at the expected output, inline arrays should have their content
+        # on the same line as the header. But we already wrote the header.
+        # The solution is to NOT use this function for inline primitive arrays
+        # Instead, we should write them completely inline
+        pass  # Handled differently
+    elif is_array_of_arrays(arr):
+        for item in arr:
+            if is_array_of_primitives(item):
+                encoded_values = [encode_primitive(v, options.delimiter) for v in item]
+                joined = join_encoded_values(encoded_values, options.delimiter)
+                item_header = format_header(
+                    None, len(item), None, options.delimiter, options.lengthMarker
+                )
+                line = f"{LIST_ITEM_PREFIX}{item_header}"
+                if joined:
+                    line += f" {joined}"
+                writer.push(depth, line)
+            else:
+                encode_array(item, options, writer, depth, None)
+    elif is_array_of_objects(arr):
+        tabular_header = detect_tabular_header(arr, options.delimiter)
+        if tabular_header:
+            # Tabular format
+            for obj in arr:
+                row_values = [
+                    encode_primitive(obj[field], options.delimiter) for field in tabular_header
+                ]
+                row = join_encoded_values(row_values, options.delimiter)
+                writer.push(depth, row)
+        else:
+            # List format
+            for item in arr:
+                encode_object_as_list_item(item, options, writer, depth)
+    else:
+        # Mixed array
+        for item in arr:
+            if is_json_primitive(item):
+                writer.push(
+                    depth,
+                    f"{LIST_ITEM_PREFIX}{encode_primitive(item, options.delimiter)}",
+                )
+            elif is_json_object(item):
+                encode_object_as_list_item(item, options, writer, depth)
+            elif is_json_array(item):
+                encode_array(item, options, writer, depth, None)
+
+
 def encode_inline_primitive_array(
     arr: JsonArray,
     options: ResolvedEncodeOptions,
@@ -175,11 +258,15 @@ def encode_array_of_arrays(
         if is_array_of_primitives(item):
             encoded_values = [encode_primitive(v, options.delimiter) for v in item]
             joined = join_encoded_values(encoded_values, options.delimiter)
-            length_marker = options.lengthMarker if options.lengthMarker else ""
-            writer.push(
-                depth + 1,
-                f"{LIST_ITEM_PREFIX}[{length_marker}{len(item)}{options.delimiter}]: {joined}",
+            # Use format_header for correct delimiter handling
+            item_header = format_header(
+                None, len(item), None, options.delimiter, options.lengthMarker
             )
+            # Only add space and content if array is not empty
+            line = f"{LIST_ITEM_PREFIX}{item_header}"
+            if joined:
+                line += f" {joined}"
+            writer.push(depth + 1, line)
         else:
             encode_array(item, options, writer, depth + 1, None)
 
@@ -199,10 +286,11 @@ def detect_tabular_header(arr: List[JsonObject], delimiter: str) -> Optional[Lis
 
     # Get keys from first object
     first_keys = list(arr[0].keys())
+    first_keys_set = set(first_keys)
 
-    # Check all objects have same keys and all values are primitives
+    # Check all objects have same keys (regardless of order) and all values are primitives
     for obj in arr:
-        if list(obj.keys()) != first_keys:
+        if set(obj.keys()) != first_keys_set:
             return None
         if not all(is_json_primitive(value) for value in obj.values()):
             return None
@@ -278,7 +366,33 @@ def encode_mixed_array_as_list_items(
         elif is_json_object(item):
             encode_object_as_list_item(item, options, writer, depth + 1)
         elif is_json_array(item):
-            encode_array(item, options, writer, depth + 1, None)
+            # Arrays as list items need the "- " prefix with their header
+            item_arr = cast(JsonArray, item)
+            if is_array_of_primitives(item_arr):
+                # Inline primitive array: "- [N]: values"
+                encoded_values = [encode_primitive(v, options.delimiter) for v in item_arr]
+                joined = join_encoded_values(encoded_values, options.delimiter)
+                header = format_header(
+                    None, len(item_arr), None, options.delimiter, options.lengthMarker
+                )
+                line = f"{LIST_ITEM_PREFIX}{header}"
+                if joined:
+                    line += f" {joined}"
+                writer.push(depth + 1, line)
+            else:
+                # Non-inline array: "- [N]:" header, then content at depth + 2
+                tabular_fields = None
+                if is_array_of_objects(item_arr):
+                    tabular_fields = detect_tabular_header(item_arr, options.delimiter)
+                header = format_header(
+                    None,
+                    len(item_arr),
+                    tabular_fields,
+                    options.delimiter,
+                    options.lengthMarker,
+                )
+                writer.push(depth + 1, f"{LIST_ITEM_PREFIX}{header}")
+                encode_array_content(item_arr, options, writer, depth + 2)
 
 
 def encode_object_as_list_item(
@@ -303,8 +417,37 @@ def encode_object_as_list_item(
     if is_json_primitive(first_value):
         encoded_val = encode_primitive(first_value, options.delimiter)
         writer.push(depth, f"{LIST_ITEM_PREFIX}{encode_key(first_key)}: {encoded_val}")
+    elif is_json_array(first_value):
+        # Arrays go on the same line as "-" with their header
+        first_arr = cast(JsonArray, first_value)
+        if is_array_of_primitives(first_arr):
+            # Inline primitive array: write header and content on same line
+            encoded_values = [encode_primitive(item, options.delimiter) for item in first_arr]
+            joined = join_encoded_values(encoded_values, options.delimiter)
+            header = format_header(
+                first_key, len(first_arr), None, options.delimiter, options.lengthMarker
+            )
+            line = f"{LIST_ITEM_PREFIX}{header}"
+            if joined:
+                line += f" {joined}"
+            writer.push(depth, line)
+        else:
+            # Non-inline array: write header on hyphen line, content below
+            tabular_fields = None
+            if is_array_of_objects(first_arr):
+                tabular_fields = detect_tabular_header(first_arr, options.delimiter)
+            header = format_header(
+                first_key,
+                len(first_arr),
+                tabular_fields,
+                options.delimiter,
+                options.lengthMarker,
+            )
+            writer.push(depth, f"{LIST_ITEM_PREFIX}{header}")
+            # Now encode the array content at depth + 1
+            encode_array_content(first_arr, options, writer, depth + 1)
     else:
-        # If first value is not primitive, put "-" alone then encode normally
+        # If first value is an object, put "-" alone then encode normally
         writer.push(depth, LIST_ITEM_PREFIX.rstrip())
         encode_key_value_pair(first_key, first_value, options, writer, depth + 1)
 

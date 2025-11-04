@@ -1,4 +1,10 @@
-"""Constants for TOON encoding."""
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Constants for TOON format encoding and decoding.
+
+Defines all string literals, characters, and configuration values used throughout
+the TOON implementation. Centralizes magic values for maintainability.
+"""
 
 from typing import TYPE_CHECKING
 

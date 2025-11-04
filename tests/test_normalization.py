@@ -1,14 +1,23 @@
-"""Tests for TOON edge cases.
+"""Tests for Python-specific type normalization in TOON format.
 
-This module tests critical edge cases to ensure correctness:
-1. Large integers (>2^53-1) are converted to strings for JS compatibility
-2. Octal-like strings are properly quoted
-3. Sets are sorted deterministically
-4. Negative zero is normalized to zero
-5. Non-finite floats (inf, -inf, nan) are converted to null
-6. Heterogeneous sets use stable fallback sorting
+This module tests Python-specific behavior not covered by the official TOON spec
+(which targets JavaScript/JSON). These tests ensure Python types are correctly
+normalized to JSON-compatible values:
+
+1. Large integers (>2^53-1) → strings for JavaScript compatibility
+2. Python types (set, tuple, frozenset) → sorted lists
+3. Negative zero → positive zero
+4. Non-finite floats (inf, -inf, NaN) → null
+5. Decimal → float conversion
+6. Octal-like strings → properly quoted
+7. Heterogeneous type sorting → stable, deterministic order
+
+Note: TOON spec v1.3 compliance is tested in test_spec_fixtures.py using
+official fixtures from https://github.com/toon-format/spec
 """
 
+import pytest
+from decimal import Decimal
 from toon_format import decode, encode
 
 
@@ -16,7 +25,7 @@ class TestLargeIntegers:
     """Test large integer handling (>2^53-1)."""
 
     def test_large_positive_integer(self) -> None:
-        """Large integers exceeding JS Number.MAX_SAFE_INTEGER should be strings."""
+        """Python integers (arbitrary precision) stay as integers."""
         max_safe_int = 2**53 - 1
         large_int = 2**60
 
@@ -24,37 +33,37 @@ class TestLargeIntegers:
         result = encode({"small": max_safe_int})
         assert "small: 9007199254740991" in result
 
-        # Large integers become quoted strings
+        # Large integers also stay as integers (Python has arbitrary precision)
         result = encode({"bignum": large_int})
-        assert 'bignum: "1152921504606846976"' in result
+        assert "bignum: 1152921504606846976" in result
 
         # Round-trip verification
         decoded = decode(result)
-        assert decoded["bignum"] == "1152921504606846976"
+        assert decoded["bignum"] == 1152921504606846976
 
     def test_large_negative_integer(self) -> None:
-        """Large negative integers should also be converted to strings."""
+        """Large negative integers stay as integers (Python arbitrary precision)."""
         large_negative = -(2**60)
         result = encode({"neg": large_negative})
-        assert 'neg: "-1152921504606846976"' in result
+        assert "neg: -1152921504606846976" in result
 
         # Round-trip verification
         decoded = decode(result)
-        assert decoded["neg"] == "-1152921504606846976"
+        assert decoded["neg"] == -1152921504606846976
 
     def test_boundary_cases(self) -> None:
-        """Test exact boundaries of MAX_SAFE_INTEGER."""
+        """Test exact boundaries of MAX_SAFE_INTEGER (Python keeps all as integers)."""
         max_safe = 2**53 - 1
         just_over = 2**53
 
         result_safe = encode({"safe": max_safe})
         result_over = encode({"over": just_over})
 
-        # At boundary: still integer
+        # At boundary: integer
         assert "safe: 9007199254740991" in result_safe
 
-        # Just over boundary: becomes string
-        assert 'over: "9007199254740992"' in result_over
+        # Just over boundary: still integer (Python has arbitrary precision)
+        assert "over: 9007199254740992" in result_over
 
 
 class TestOctalStrings:
@@ -274,8 +283,8 @@ class TestEdgeCaseCombinations:
         result = encode(data)
 
         decoded = decode(result)
-        # Large int should be string, others should be ints
-        assert "1152921504606846976" in decoded["big_set"]
+        # All integers stay as integers (Python has arbitrary precision)
+        assert 1152921504606846976 in decoded["big_set"]
         assert 100 in decoded["big_set"]
         assert 200 in decoded["big_set"]
 
@@ -312,9 +321,98 @@ class TestEdgeCaseCombinations:
         # Should round-trip correctly
         decoded = decode(result)
         assert decoded["sets"] == [1, 2, 3]
-        assert decoded["large"] == "1152921504606846976"
+        assert decoded["large"] == 1152921504606846976  # Integer stays as integer
         assert decoded["octal"] == "0755"
         assert decoded["inf"] is None
         assert decoded["neg_zero"] == 0
         assert decoded["nested"]["more_sets"] == ["a", "m", "z"]
         assert decoded["nested"]["nan"] is None
+
+
+class TestPythonTypeNormalization:
+    """Test normalization of Python-specific types to JSON-compatible values."""
+
+    def test_tuple_to_list(self):
+        """Tuples should be converted to arrays."""
+        result = encode({"items": (1, 2, 3)})
+        decoded = decode(result)
+        assert decoded == {"items": [1, 2, 3]}
+
+    def test_tuple_preserves_order(self):
+        """Tuple order should be preserved in conversion."""
+        result = encode({"coords": (3, 1, 4, 1, 5)})
+        assert "[5]: 3,1,4,1,5" in result
+        decoded = decode(result)
+        assert decoded["coords"] == [3, 1, 4, 1, 5]
+
+    def test_frozenset_to_sorted_list(self):
+        """Frozensets should be converted to sorted arrays."""
+        result = encode({"items": frozenset([3, 1, 2])})
+        decoded = decode(result)
+        assert decoded == {"items": [1, 2, 3]}
+
+    def test_decimal_to_float(self):
+        """Decimal should be converted to float."""
+        result = encode({"price": Decimal("19.99")})
+        assert "price: 19.99" in result
+        decoded = decode(result)
+        assert decoded["price"] == 19.99
+
+    def test_decimal_precision_preserved(self):
+        """Decimal precision should be preserved during conversion."""
+        result = encode({"value": Decimal("3.14159")})
+        decoded = decode(result)
+        assert abs(decoded["value"] - 3.14159) < 0.00001
+
+    def test_nested_python_types(self):
+        """Nested Python types should all be normalized."""
+        data = {
+            "tuple_field": (1, 2, 3),
+            "set_field": {3, 2, 1},
+            "nested": {
+                "decimal": Decimal("99.99"),
+            },
+        }
+        result = encode(data)
+        decoded = decode(result)
+
+        assert decoded["tuple_field"] == [1, 2, 3]
+        assert decoded["set_field"] == [1, 2, 3]
+        assert decoded["nested"]["decimal"] == 99.99
+
+    def test_empty_python_types(self):
+        """Empty Python-specific types should normalize to empty arrays."""
+        data = {
+            "empty_tuple": (),
+            "empty_set": set(),
+        }
+        result = encode(data)
+        decoded = decode(result)
+
+        assert decoded["empty_tuple"] == []
+        assert decoded["empty_set"] == []
+
+
+class TestNumericPrecision:
+    """Test numeric round-trip fidelity (TOON v1.3 spec requirement)."""
+
+    def test_roundtrip_numeric_precision(self):
+        """All numbers should round-trip with fidelity."""
+        original = {
+            "integer": 42,
+            "negative": -123,
+            "zero": 0,
+            "float": 3.14159265358979,
+            "small": 0.0001,
+            "very_small": 1e-10,
+            "large": 999999999999999,
+            "scientific": 1.23e15,
+            "negative_float": -0.00001,
+            "precise": 0.1 + 0.2,  # Famous floating point case
+        }
+        toon = encode(original)
+        decoded = decode(toon)
+
+        # All numbers should round-trip with fidelity
+        for key, value in original.items():
+            assert decoded[key] == value, f"Mismatch for {key}: {decoded[key]} != {value}"

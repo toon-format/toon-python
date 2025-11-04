@@ -42,7 +42,6 @@ dev = [
     "pytest-cov>=4.1.0",
     "ruff>=0.8.0",
     "mypy>=1.8.0",
-    "black>=24.8.0",
 ]
 
 [tool.pytest.ini_options]

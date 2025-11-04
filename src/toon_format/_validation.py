@@ -1,13 +1,22 @@
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
 """Validation utilities for TOON encoding.
 
 This module provides validation functions to determine whether strings,
-keys, and values can be safely encoded without quotes or need quoting.
+keys, and values can be safely encoded without quotes or need quoting
+according to TOON specification rules.
 """
 
 import re
 
 from ._literal_utils import is_boolean_or_null_literal
-from .constants import COMMA, LIST_ITEM_MARKER
+from .constants import (
+    COMMA,
+    LIST_ITEM_MARKER,
+    NUMERIC_REGEX,
+    OCTAL_REGEX,
+    VALID_KEY_REGEX,
+)
 
 
 def is_valid_unquoted_key(key: str) -> bool:
@@ -37,7 +46,7 @@ def is_valid_unquoted_key(key: str) -> bool:
     """
     if not key:
         return False
-    return bool(re.match(r"^[A-Z_][\w.]*$", key, re.IGNORECASE))
+    return bool(re.match(VALID_KEY_REGEX, key, re.IGNORECASE))
 
 
 def is_safe_unquoted(value: str, delimiter: str = COMMA) -> bool:
@@ -136,6 +145,6 @@ def is_numeric_like(value: str) -> bool:
         False
     """
     return bool(
-        re.match(r"^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$", value, re.IGNORECASE)
-        or re.match(r"^0\d+$", value)  # Octal pattern
+        re.match(NUMERIC_REGEX, value, re.IGNORECASE)
+        or re.match(OCTAL_REGEX, value)  # Octal pattern
     )

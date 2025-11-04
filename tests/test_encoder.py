@@ -1,294 +1,200 @@
-"""Tests for TOON encoder."""
+"""Tests for Python-specific TOON encoder behavior.
+
+This file contains ONLY Python-specific encoder tests that are not covered
+by the official spec fixtures in test_spec_fixtures.py.
+
+For spec compliance testing, see test_spec_fixtures.py (306 official tests).
+For Python type normalization, see test_normalization.py.
+For API testing, see test_api.py.
+"""
 
 from toon_format import encode
+from toon_format.types import EncodeOptions
 
 
-class TestPrimitives:
-    """Test encoding of primitive values."""
+class TestPythonEncoderAPI:
+    """Test Python-specific encoder API behavior."""
 
-    def test_null(self) -> None:
-        assert encode(None) == "null"
+    def test_encode_accepts_dict_options(self):
+        """Test that encode accepts options as plain dict (Python convenience)."""
+        result = encode([1, 2, 3], {"delimiter": "\t"})
+        assert result == "[3\t]: 1\t2\t3"
 
-    def test_boolean_true(self) -> None:
-        assert encode(True) == "true"
+    def test_encode_accepts_encode_options_object(self):
+        """Test that encode accepts EncodeOptions typed object."""
+        options = EncodeOptions(delimiter="|", indent=4)
+        result = encode([1, 2, 3], options)
+        assert result == "[3|]: 1|2|3"
 
-    def test_boolean_false(self) -> None:
-        assert encode(False) == "false"
+    def test_encode_returns_python_str(self):
+        """Ensure encode returns native Python str, not bytes or custom type."""
+        result = encode({"id": 123})
+        assert isinstance(result, str)
+        assert type(result) == str  # Not a subclass
 
-    def test_integer(self) -> None:
-        assert encode(42) == "42"
-
-    def test_float(self) -> None:
-        result = encode(3.14)
-        assert result.startswith("3.14")
-
-    def test_string_simple(self) -> None:
-        assert encode("hello") == "hello"
-
-    def test_string_with_spaces(self) -> None:
-        # Spaces don't require quoting unless there are structural characters
-        assert encode("hello world") == "hello world"
-
-    def test_string_empty(self) -> None:
-        assert encode("") == '""'
-
-    def test_string_special_keywords(self) -> None:
-        assert encode("null") == '"null"'
-        assert encode("true") == '"true"'
-        assert encode("false") == '"false"'
-
-    def test_string_with_hyphens(self) -> None:
-        # Strings starting with hyphen must be quoted (list marker conflict)
-        assert encode("-hello") == '"-hello"'
-        assert encode("-") == '"-"'
-        # Strings containing or ending with hyphen don't need quotes
-        assert encode("hello-world") == "hello-world"
-        assert encode("hello-") == "hello-"
+    def test_encode_handles_none_gracefully(self):
+        """Test encoding None doesn't crash (Python-specific edge case)."""
+        result = encode(None)
+        assert result == "null"
+        assert isinstance(result, str)
 
 
-class TestObjects:
-    """Test encoding of objects."""
+class TestPythonTypeHandling:
+    """Test encoding of Python-specific types that require normalization."""
 
-    def test_simple_object(self) -> None:
-        obj = {"name": "Alice", "age": 30}
+    def test_callable_becomes_null(self):
+        """Callables (functions, methods) should normalize to null."""
+
+        def func():
+            pass
+
+        result = encode(func)
+        assert result == "null"
+
+    def test_lambda_becomes_null(self):
+        """Lambda functions should normalize to null."""
+        result = encode(lambda x: x)
+        assert result == "null"
+
+    def test_class_instance_becomes_null(self):
+        """Custom class instances should normalize to null."""
+
+        class CustomClass:
+            pass
+
+        obj = CustomClass()
         result = encode(obj)
-        assert "name: Alice" in result
-        assert "age: 30" in result
+        assert result == "null"
 
-    def test_nested_object(self) -> None:
-        obj = {"user": {"name": "Bob", "city": "NYC"}}
-        result = encode(obj)
-        assert "user:" in result
-        assert "name: Bob" in result
-        assert "city: NYC" in result
+    def test_builtin_function_becomes_null(self):
+        """Built-in functions should normalize to null."""
+        result = encode(len)
+        assert result == "null"
 
-    def test_object_with_null(self) -> None:
-        obj = {"value": None}
+
+class TestNonFiniteNumbers:
+    """Test encoding of non-finite float values (Python-specific)."""
+
+    def test_positive_infinity_becomes_null(self):
+        """float('inf') should encode as null."""
+        result = encode(float("inf"))
+        assert result == "null"
+
+    def test_negative_infinity_becomes_null(self):
+        """float('-inf') should encode as null."""
+        result = encode(float("-inf"))
+        assert result == "null"
+
+    def test_nan_becomes_null(self):
+        """float('nan') should encode as null."""
+        result = encode(float("nan"))
+        assert result == "null"
+
+    def test_infinity_in_object(self):
+        """Infinity in object should encode field as null."""
+        obj = {"value": float("inf")}
         result = encode(obj)
         assert "value: null" in result
 
-    def test_empty_object(self) -> None:
-        result = encode({})
-        assert result == ""
-
-
-class TestPrimitiveArrays:
-    """Test encoding of primitive arrays."""
-
-    def test_number_array(self) -> None:
-        arr = [1, 2, 3, 4, 5]
+    def test_nan_in_array(self):
+        """NaN in array should encode as null."""
+        arr = [1, float("nan"), 3]
         result = encode(arr)
-        # Primitive arrays always include length marker
-        assert result == "[5]: 1,2,3,4,5"
-
-    def test_string_array(self) -> None:
-        arr = ["apple", "banana", "cherry"]
-        result = encode(arr)
-        # Primitive arrays always include length marker
-        assert result == "[3]: apple,banana,cherry"
-
-    def test_mixed_primitive_array(self) -> None:
-        arr = [1, "two", True, None]
-        result = encode(arr)
-        assert "1" in result
-        assert "two" in result
-        assert "true" in result
-        assert "null" in result
-
-    def test_empty_array(self) -> None:
-        result = encode([])
-        # Empty arrays show length marker with colon
-        assert result == "[0]:"
+        assert "[3]: 1,null,3" in result
 
 
-class TestTabularArrays:
-    """Test encoding of tabular (uniform object) arrays."""
+class TestPythonOptionsHandling:
+    """Test Python-specific options handling."""
 
-    def test_simple_tabular(self) -> None:
-        arr = [
-            {"id": 1, "name": "Alice", "age": 30},
-            {"id": 2, "name": "Bob", "age": 25},
-            {"id": 3, "name": "Charlie", "age": 35},
-        ]
-        result = encode(arr)
-        # Should have header with keys
-        assert "{id,name,age}" in result
-        # Should have data rows
-        assert "1,Alice,30" in result
-        assert "2,Bob,25" in result
-        assert "3,Charlie,35" in result
-
-    def test_tabular_with_strings_needing_quotes(self) -> None:
-        arr = [
-            {"name": "Alice Smith", "city": "New York"},
-            {"name": "Bob Jones", "city": "Los Angeles"},
-        ]
-        result = encode(arr)
-        # Spaces don't require quoting in tabular format
-        assert "Alice Smith" in result
-        assert "New York" in result
-
-    def test_tabular_with_length_marker(self) -> None:
-        arr = [
-            {"id": 1, "value": "a"},
-            {"id": 2, "value": "b"},
-        ]
-        result = encode(arr, {"lengthMarker": "#"})
-        # lengthMarker adds # prefix before length
-        assert "[#2,]" in result
-
-
-class TestMixedArrays:
-    """Test encoding of mixed/nested arrays."""
-
-    def test_array_of_mixed_types(self) -> None:
-        arr = [
-            {"name": "Alice"},
-            42,
-            "hello",
-        ]
-        result = encode(arr)
-        # Should use list format with hyphens
-        assert "- " in result
-        assert "name: Alice" in result
-
-    def test_nested_array(self) -> None:
-        arr = [
-            [1, 2, 3],
-            [4, 5, 6],
-        ]
-        result = encode(arr)
-        # Nested arrays use list format with length markers
-        assert "[2]:" in result
-        assert "- " in result
-        assert "[3,]:" in result  # Inner arrays show length with delimiter
-
-
-class TestObjectsWithArrays:
-    """Test objects containing arrays."""
-
-    def test_object_with_primitive_array(self) -> None:
-        obj = {"numbers": [1, 2, 3]}
-        result = encode(obj)
-        # Primitive arrays always include length marker
-        assert "numbers[3]: 1,2,3" in result
-
-    def test_object_with_tabular_array(self) -> None:
-        obj = {
-            "users": [
-                {"id": 1, "name": "Alice"},
-                {"id": 2, "name": "Bob"},
-            ]
-        }
-        result = encode(obj)
-        # Tabular arrays include length with delimiter
-        assert "users[2,]{id,name}:" in result
-        assert "1,Alice" in result
-
-
-class TestDelimiters:
-    """Test different delimiter options."""
-
-    def test_comma_delimiter(self) -> None:
-        arr = [1, 2, 3]
-        result = encode(arr, {"delimiter": ","})
-        assert result == "[3]: 1,2,3"
-
-    def test_tab_delimiter(self) -> None:
-        arr = [1, 2, 3]
-        result = encode(arr, {"delimiter": "\t"})
-        assert result == "[3\t]: 1\t2\t3"
-
-    def test_pipe_delimiter(self) -> None:
-        arr = [1, 2, 3]
-        result = encode(arr, {"delimiter": "|"})
-        assert result == "[3|]: 1|2|3"
-
-    def test_tabular_with_pipe_delimiter(self) -> None:
-        arr = [
-            {"a": 1, "b": 2},
-            {"a": 3, "b": 4},
-        ]
-        result = encode(arr, {"delimiter": "|"})
-        assert "{a|b}" in result
-        assert "1|2" in result
-
-
-class TestIndentation:
-    """Test indentation options."""
-
-    def test_default_indentation(self) -> None:
-        obj = {"parent": {"child": "value"}}
-        result = encode(obj)
-        lines = result.split("\n")
-        # Child should be indented by 2 spaces
-        assert lines[1].startswith("  ")
-
-    def test_custom_indentation(self) -> None:
-        obj = {"parent": {"child": "value"}}
-        result = encode(obj, {"indent": 4})
-        lines = result.split("\n")
-        # Child should be indented by 4 spaces
-        assert lines[1].startswith("    ")
-
-
-class TestComplexStructures:
-    """Test complex nested structures."""
-
-    def test_deep_nesting(self) -> None:
-        obj = {
-            "level1": {
-                "level2": {
-                    "level3": {"value": "deep"},
-                }
-            }
-        }
-        result = encode(obj)
-        assert "level1:" in result
-        assert "level2:" in result
-        assert "level3:" in result
-        assert "value: deep" in result
-
-    def test_mixed_structure(self) -> None:
-        obj = {
-            "metadata": {"version": 1, "author": "test"},
-            "items": [
-                {"id": 1, "name": "Item1"},
-                {"id": 2, "name": "Item2"},
-            ],
-            "tags": ["alpha", "beta", "gamma"],
-        }
-        result = encode(obj)
-        assert "metadata:" in result
-        assert "version: 1" in result
-        # Tabular arrays include length with delimiter
-        assert "items[2,]{id,name}:" in result
-        # Primitive arrays include length marker
-        assert "tags[3]: alpha,beta,gamma" in result
-
-
-class TestEdgeCases:
-    """Test edge cases and special values."""
-
-    def test_infinity(self) -> None:
-        assert encode(float("inf")) == "null"
-        assert encode(float("-inf")) == "null"
-
-    def test_nan(self) -> None:
-        assert encode(float("nan")) == "null"
-
-    def test_callable(self) -> None:
-        def func() -> None:
+    def test_invalid_option_type_handling(self):
+        """Test that invalid options don't cause crashes."""
+        # Should either accept or raise a clear error, not crash
+        try:
+            result = encode([1, 2, 3], {"delimiter": 123})  # Invalid type
+            # If accepted, verify output exists
+            assert result is not None
+        except (TypeError, ValueError, AttributeError):
+            # Also acceptable to reject invalid types
             pass
 
-        assert encode(func) == "null"
+    def test_options_with_none_values(self):
+        """Test that None option values are handled gracefully."""
+        # Should use defaults for None values or raise clear error
+        try:
+            result = encode([1, 2, 3], {"delimiter": None})
+            assert result is not None
+        except (TypeError, ValueError, AttributeError):
+            # Also acceptable to reject None
+            pass
 
-    def test_none_in_object(self) -> None:
-        obj = {"key": None}
-        result = encode(obj)
-        assert "key: null" in result
+    def test_encode_with_extra_unknown_options(self):
+        """Test that unknown options are ignored (forward compatibility)."""
+        # Unknown options should be ignored, not cause errors
+        result = encode([1, 2, 3], {"delimiter": ",", "unknown_option": "value"})
+        assert result == "[3]: 1,2,3"
 
-    def test_empty_string_in_array(self) -> None:
-        arr = ["", "hello", ""]
-        result = encode(arr)
-        assert '""' in result
+
+class TestNumberPrecisionSpec:
+    """Tests for number precision requirements per Section 2 of spec."""
+
+    def test_no_scientific_notation_in_output(self):
+        """Encoders MUST NOT use scientific notation (Section 2)."""
+        # Large numbers should be written in full decimal form
+        data = {"big": 1000000}
+        result = encode(data)
+        assert "1000000" in result
+        assert "1e6" not in result.lower()
+        assert "1e+6" not in result.lower()
+
+    def test_small_decimals_no_scientific_notation(self):
+        """Small decimals should not use scientific notation."""
+        data = {"small": 0.000001}
+        result = encode(data)
+        assert "0.000001" in result
+        assert "1e-6" not in result.lower()
+
+    def test_round_trip_precision_preserved(self):
+        """Numbers must preserve round-trip fidelity (Section 2)."""
+        original = {
+            "float": 3.14159265358979,
+            "small": 0.1 + 0.2,
+            "large": 999999999999999,
+        }
+        toon = encode(original)
+        from toon_format import decode
+
+        decoded = decode(toon)
+
+        # Should round-trip with fidelity
+        assert decoded["float"] == original["float"]
+        assert decoded["small"] == original["small"]
+        assert decoded["large"] == original["large"]
+
+    def test_negative_zero_normalized(self):
+        """-0 MUST be normalized to 0 (Section 2)."""
+        data = {"value": -0.0}
+        result = encode(data)
+        # Should not contain "-0"
+        assert "-0" not in result
+        # Should contain positive 0
+        assert "value: 0" in result
+
+    def test_negative_zero_in_array(self):
+        """-0 in arrays should be normalized."""
+        data = [-0.0, 0.0, 1.0]
+        result = encode(data)
+        # Should not have -0
+        assert "-0" not in result
+
+    def test_key_order_preserved(self):
+        """Object key order MUST be preserved (Section 2)."""
+        from collections import OrderedDict
+
+        # Use OrderedDict to ensure specific order
+        data = OrderedDict([("z", 1), ("a", 2), ("m", 3)])
+        result = encode(data)
+        lines = result.split("\n")
+        # Verify order in output
+        assert "z:" in lines[0]
+        assert "a:" in lines[1]
+        assert "m:" in lines[2]

@@ -1,8 +1,10 @@
-"""
-Centralized logging configuration for toon_format.
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""Centralized logging configuration for toon_format.
 
 This module provides consistent logging infrastructure across all toon_format
-modules with support for the TOON_FORMAT_DEBUG environment variable.
+modules with support for the TOON_FORMAT_DEBUG environment variable for
+enabling debug-level logging.
 """
 
 import logging

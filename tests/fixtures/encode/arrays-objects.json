@@ -1,0 +1,138 @@
+{
+  "version": "1.3",
+  "category": "encode",
+  "description": "Arrays of objects encoding - list format for non-uniform objects and complex structures",
+  "tests": [
+    {
+      "name": "uses list format for objects with different fields",
+      "input": {
+        "items": [
+          { "id": 1, "name": "First" },
+          { "id": 2, "name": "Second", "extra": true }
+        ]
+      },
+      "expected": "items[2]:\n  - id: 1\n    name: First\n  - id: 2\n    name: Second\n    extra: true",
+      "specSection": "7"
+    },
+    {
+      "name": "uses list format for objects with nested values",
+      "input": {
+        "items": [
+          { "id": 1, "nested": { "x": 1 } }
+        ]
+      },
+      "expected": "items[1]:\n  - id: 1\n    nested:\n      x: 1",
+      "specSection": "7"
+    },
+    {
+      "name": "preserves field order in list items - array first",
+      "input": {
+        "items": [{ "nums": [1, 2, 3], "name": "test" }]
+      },
+      "expected": "items[1]:\n  - nums[3]: 1,2,3\n    name: test",
+      "specSection": "7"
+    },
+    {
+      "name": "preserves field order in list items - primitive first",
+      "input": {
+        "items": [{ "name": "test", "nums": [1, 2, 3] }]
+      },
+      "expected": "items[1]:\n  - name: test\n    nums[3]: 1,2,3",
+      "specSection": "7"
+    },
+    {
+      "name": "uses list format for objects containing arrays of arrays",
+      "input": {
+        "items": [
+          { "matrix": [[1, 2], [3, 4]], "name": "grid" }
+        ]
+      },
+      "expected": "items[1]:\n  - matrix[2]:\n    - [2]: 1,2\n    - [2]: 3,4\n    name: grid",
+      "specSection": "7"
+    },
+    {
+      "name": "uses tabular format for nested uniform object arrays",
+      "input": {
+        "items": [
+          { "users": [{ "id": 1, "name": "Ada" }, { "id": 2, "name": "Bob" }], "status": "active" }
+        ]
+      },
+      "expected": "items[1]:\n  - users[2]{id,name}:\n    1,Ada\n    2,Bob\n    status: active",
+      "specSection": "7"
+    },
+    {
+      "name": "uses list format for nested object arrays with mismatched keys",
+      "input": {
+        "items": [
+          { "users": [{ "id": 1, "name": "Ada" }, { "id": 2 }], "status": "active" }
+        ]
+      },
+      "expected": "items[1]:\n  - users[2]:\n    - id: 1\n      name: Ada\n    - id: 2\n    status: active",
+      "specSection": "7"
+    },
+    {
+      "name": "uses list format for objects with multiple array fields",
+      "input": {
+        "items": [{ "nums": [1, 2], "tags": ["a", "b"], "name": "test" }]
+      },
+      "expected": "items[1]:\n  - nums[2]: 1,2\n    tags[2]: a,b\n    name: test",
+      "specSection": "7"
+    },
+    {
+      "name": "uses list format for objects with only array fields",
+      "input": {
+        "items": [{ "nums": [1, 2, 3], "tags": ["a", "b"] }]
+      },
+      "expected": "items[1]:\n  - nums[3]: 1,2,3\n    tags[2]: a,b",
+      "specSection": "7"
+    },
+    {
+      "name": "encodes objects with empty arrays in list format",
+      "input": {
+        "items": [
+          { "name": "test", "data": [] }
+        ]
+      },
+      "expected": "items[1]:\n  - name: test\n    data[0]:",
+      "specSection": "7"
+    },
+    {
+      "name": "places first field of nested tabular arrays on hyphen line",
+      "input": {
+        "items": [{ "users": [{ "id": 1 }, { "id": 2 }], "note": "x" }]
+      },
+      "expected": "items[1]:\n  - users[2]{id}:\n    1\n    2\n    note: x",
+      "specSection": "7"
+    },
+    {
+      "name": "places empty arrays on hyphen line when first",
+      "input": {
+        "items": [{ "data": [], "name": "x" }]
+      },
+      "expected": "items[1]:\n  - data[0]:\n    name: x",
+      "specSection": "7"
+    },
+    {
+      "name": "uses field order from first object for tabular headers",
+      "input": {
+        "items": [
+          { "a": 1, "b": 2, "c": 3 },
+          { "c": 30, "b": 20, "a": 10 }
+        ]
+      },
+      "expected": "items[2]{a,b,c}:\n  1,2,3\n  10,20,30",
+      "specSection": "7.2"
+    },
+    {
+      "name": "uses list format when one object has nested column",
+      "input": {
+        "items": [
+          { "id": 1, "data": "string" },
+          { "id": 2, "data": { "nested": true } }
+        ]
+      },
+      "expected": "items[2]:\n  - id: 1\n    data: string\n  - id: 2\n    data:\n      nested: true",
+      "specSection": "7"
+    }
+  ]
+}

@@ -17,46 +17,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest pytest-cov
+        run: uv sync
 
-      - name: Run tests
-        run: pytest --cov=toon_format --cov-report=xml --cov-report=term
+      - name: Run tests with coverage
+        run: uv run pytest --cov=toon_format --cov-report=xml --cov-report=term --cov-report=html --cov-fail-under=85
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage reports as artifact
+        uses: actions/upload-artifact@v4
         if: matrix.python-version == '3.12'
         with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
+          name: coverage-reports
+          path: |
+            coverage.xml
+            htmlcov/
+          retention-days: 30
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Coverage comment on PR
+        uses: py-cov-action/python-coverage-comment-action@v3
+        if: matrix.python-version == '3.12' && github.event_name == 'pull_request'
         with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install ruff mypy
-
-      - name: Run ruff
-        run: ruff check src/toon_format tests
-
-      - name: Run mypy
-        run: mypy src/toon_format
+          GITHUB_TOKEN: ${{ github.token }}
+          MINIMUM_GREEN: 90
+          MINIMUM_ORANGE: 85

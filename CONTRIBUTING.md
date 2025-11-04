@@ -33,7 +33,7 @@ uv run pytest --cov=src/toon_format --cov-report=term-missing
 
 ### Python Version Support
 
-We support Python 3.11 through 3.14t (including free-threaded Python).
+We support Python 3.8 and above (including Python 3.13 and 3.14).
 
 ### Type Safety
 
@@ -55,11 +55,14 @@ We support Python 3.11 through 3.14t (including free-threaded Python).
 ### Testing
 
 - All new features must include tests
-- Aim for high test coverage (80%+)
+- Maintain test coverage at **85%+ (enforced in CI)**
 - Tests should cover edge cases and spec compliance
 - Run the full test suite:
   ```bash
   uv run pytest tests/
+
+  # Run with coverage report
+  uv run pytest --cov=toon_format --cov-report=term --cov-fail-under=85
   ```
 
 ## SPEC Compliance

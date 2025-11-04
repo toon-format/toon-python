@@ -1,0 +1,189 @@
+{
+  "version": "1.3",
+  "category": "decode",
+  "description": "Primitive value decoding - strings, numbers, booleans, null, unescaping",
+  "tests": [
+    {
+      "name": "parses safe unquoted string",
+      "input": "hello",
+      "expected": "hello",
+      "specSection": "5"
+    },
+    {
+      "name": "parses unquoted string with underscore and numbers",
+      "input": "Ada_99",
+      "expected": "Ada_99",
+      "specSection": "5"
+    },
+    {
+      "name": "parses empty quoted string",
+      "input": "\"\"",
+      "expected": "",
+      "specSection": "5"
+    },
+    {
+      "name": "parses quoted string with newline escape",
+      "input": "\"line1\\nline2\"",
+      "expected": "line1\nline2",
+      "specSection": "5"
+    },
+    {
+      "name": "parses quoted string with tab escape",
+      "input": "\"tab\\there\"",
+      "expected": "tab\there",
+      "specSection": "5"
+    },
+    {
+      "name": "parses quoted string with carriage return escape",
+      "input": "\"return\\rcarriage\"",
+      "expected": "return\rcarriage",
+      "specSection": "5"
+    },
+    {
+      "name": "parses quoted string with backslash escape",
+      "input": "\"C:\\\\Users\\\\path\"",
+      "expected": "C:\\Users\\path",
+      "specSection": "5"
+    },
+    {
+      "name": "parses quoted string with escaped quotes",
+      "input": "\"say \\\"hello\\\"\"",
+      "expected": "say \"hello\"",
+      "specSection": "5"
+    },
+    {
+      "name": "parses Unicode string",
+      "input": "café",
+      "expected": "café",
+      "specSection": "5"
+    },
+    {
+      "name": "parses Chinese characters",
+      "input": "你好",
+      "expected": "你好",
+      "specSection": "5"
+    },
+    {
+      "name": "parses emoji",
+      "input": "🚀",
+      "expected": "🚀",
+      "specSection": "5"
+    },
+    {
+      "name": "parses string with emoji and spaces",
+      "input": "hello 👋 world",
+      "expected": "hello 👋 world",
+      "specSection": "5"
+    },
+    {
+      "name": "parses positive integer",
+      "input": "42",
+      "expected": 42,
+      "specSection": "5"
+    },
+    {
+      "name": "parses decimal number",
+      "input": "3.14",
+      "expected": 3.14,
+      "specSection": "5"
+    },
+    {
+      "name": "parses negative integer",
+      "input": "-7",
+      "expected": -7,
+      "specSection": "5"
+    },
+    {
+      "name": "parses true",
+      "input": "true",
+      "expected": true,
+      "specSection": "5"
+    },
+    {
+      "name": "parses false",
+      "input": "false",
+      "expected": false,
+      "specSection": "5"
+    },
+    {
+      "name": "parses null",
+      "input": "null",
+      "expected": null,
+      "specSection": "5"
+    },
+    {
+      "name": "treats unquoted leading-zero number as string",
+      "input": "05",
+      "expected": "05",
+      "specSection": "5",
+      "note": "Leading zeros make it a string"
+    },
+    {
+      "name": "treats unquoted multi-leading-zero as string",
+      "input": "007",
+      "expected": "007",
+      "specSection": "5"
+    },
+    {
+      "name": "treats unquoted octal-like as string",
+      "input": "0123",
+      "expected": "0123",
+      "specSection": "5"
+    },
+    {
+      "name": "treats leading-zero in object value as string",
+      "input": "a: 05",
+      "expected": { "a": "05" },
+      "specSection": "5"
+    },
+    {
+      "name": "treats leading-zeros in array as strings",
+      "input": "nums[3]: 05,007,0123",
+      "expected": { "nums": ["05", "007", "0123"] },
+      "specSection": "5"
+    },
+    {
+      "name": "respects ambiguity quoting for true",
+      "input": "\"true\"",
+      "expected": "true",
+      "specSection": "5",
+      "note": "Quoted primitive remains string"
+    },
+    {
+      "name": "respects ambiguity quoting for false",
+      "input": "\"false\"",
+      "expected": "false",
+      "specSection": "5"
+    },
+    {
+      "name": "respects ambiguity quoting for null",
+      "input": "\"null\"",
+      "expected": "null",
+      "specSection": "5"
+    },
+    {
+      "name": "respects ambiguity quoting for integer",
+      "input": "\"42\"",
+      "expected": "42",
+      "specSection": "5"
+    },
+    {
+      "name": "respects ambiguity quoting for negative decimal",
+      "input": "\"-3.14\"",
+      "expected": "-3.14",
+      "specSection": "5"
+    },
+    {
+      "name": "respects ambiguity quoting for scientific notation",
+      "input": "\"1e-6\"",
+      "expected": "1e-6",
+      "specSection": "5"
+    },
+    {
+      "name": "respects ambiguity quoting for leading-zero",
+      "input": "\"05\"",
+      "expected": "05",
+      "specSection": "5"
+    }
+  ]
+}

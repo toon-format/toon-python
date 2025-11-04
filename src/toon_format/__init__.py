@@ -1,8 +1,23 @@
-"""
-pytoon - Token-Oriented Object Notation for Python
+# Copyright (c) 2025 TOON Format Organization
+# SPDX-License-Identifier: MIT
+"""TOON Format for Python.
 
-A compact data format optimized for transmitting structured information to LLMs
-with 30-60% fewer tokens than JSON.
+Token-Oriented Object Notation (TOON) is a compact, human-readable serialization
+format optimized for LLM contexts. Achieves 30-60% token reduction vs JSON while
+maintaining readability and structure.
+
+This package provides encoding and decoding functionality with 100% compatibility
+with the official TOON specification (v1.3).
+
+Example:
+    >>> from toon_format import encode, decode
+    >>> data = {"name": "Alice", "age": 30}
+    >>> toon = encode(data)
+    >>> print(toon)
+    name: Alice
+    age: 30
+    >>> decode(toon)
+    {'name': 'Alice', 'age': 30}
 """
 
 from .decoder import ToonDecodeError, decode
