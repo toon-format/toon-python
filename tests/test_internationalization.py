@@ -4,7 +4,6 @@ Tests Unicode support, emoji handling, and UTF-8 encoding per
 TOON specification Section 16 (Internationalization).
 """
 
-
 from toon_format import decode, encode
 
 

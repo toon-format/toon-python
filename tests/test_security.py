@@ -4,7 +4,6 @@ Tests resource exhaustion, malicious input handling, and security considerations
 from the TOON specification Section 15.
 """
 
-
 import pytest
 
 from toon_format import decode, encode
