@@ -261,7 +261,7 @@ Count tokens in a text string using tiktoken.
 - `RuntimeError`: If tiktoken is not installed
 
 **Requirements:**
-- Install tiktoken: `pip install tiktoken` or `pip install toon-format[benchmark]`
+- Install tiktoken: `uv add tiktoken` or `uv add toon_format[benchmark]`
 
 **Example:**
 
@@ -351,91 +351,6 @@ print(compare_formats(data))
 
 ---
 
-## Measuring Token Efficiency
-
-Use the utility functions to measure and compare token usage between JSON and TOON formats.
-
-### Quick Token Count
-
-```python
-from toon_format import encode, count_tokens
-
-data = {"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}
-
-# Count tokens in TOON format
-toon_str = encode(data)
-tokens = count_tokens(toon_str)
-print(f"TOON uses {tokens} tokens")
-# TOON uses 28 tokens
-```
-
-### Compare Formats
-
-```python
-from toon_format import estimate_savings
-
-data = {
-    "employees": [
-        {"id": 1, "name": "Alice", "dept": "Engineering"},
-        {"id": 2, "name": "Bob", "dept": "Sales"},
-        {"id": 3, "name": "Charlie", "dept": "Marketing"}
-    ]
-}
-
-result = estimate_savings(data)
-print(f"JSON: {result['json_tokens']} tokens")
-print(f"TOON: {result['toon_tokens']} tokens")
-print(f"Savings: {result['savings_percent']:.1f}%")
-# JSON: 89 tokens
-# TOON: 52 tokens
-# Savings: 41.6%
-```
-
-### Visual Comparison
-
-```python
-from toon_format import compare_formats
-
-data = {
-    "products": [
-        {"sku": "A100", "price": 29.99, "stock": 50},
-        {"sku": "B200", "price": 49.99, "stock": 30}
-    ]
-}
-
-print(compare_formats(data))
-# Format Comparison
-# ────────────────────────────────────────────────
-# Format      Tokens    Size (chars)
-# JSON            67             145
-# TOON            38              89
-# ────────────────────────────────────────────────
-# Savings: 29 tokens (43.3%)
-```
-
-### Using Different Encodings
-
-```python
-from toon_format import count_tokens
-
-text = "Hello, world!"
-
-# GPT-5 / GPT-5-mini (default)
-tokens_gpt5 = count_tokens(text, encoding="o200k_base")
-
-# GPT-3.5 / GPT-4
-tokens_gpt4 = count_tokens(text, encoding="cl100k_base")
-
-# Older models
-tokens_old = count_tokens(text, encoding="p50k_base")
-
-print(f"GPT-5: {tokens_gpt5} tokens")
-print(f"GPT-4: {tokens_gpt4} tokens")
-print(f"Older: {tokens_old} tokens")
-```
-
----
-
 ## Advanced Usage
 
 ### Working with Large Integers
@@ -506,17 +421,12 @@ from typing import Any, Dict, List, Union
 from toon_format import encode, decode
 from toon_format.types import EncodeOptions, DecodeOptions, JsonValue
 
-# Type-safe usage - EncodeOptions is a TypedDict, use dict syntax
+# Type-safe usage
 data: Dict[str, Any] = {"key": "value"}
-options: EncodeOptions = {"delimiter": ",", "indent": 2}
+options: EncodeOptions = EncodeOptions(delimiter=",")
 result: str = encode(data, options)
 
 decoded: JsonValue = decode(result)
-
-# DecodeOptions is a class, can be instantiated or use dict
-decode_opts = DecodeOptions(indent=2, strict=True)
-# Or use dict for decode too
-decode(result, {"indent": 2, "strict": True})
 ```
 
 ---

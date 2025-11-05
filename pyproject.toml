@@ -1,6 +1,6 @@
 [project]
 name = "toon_format"
-version = "1.0.0"
+version = "0.9.0-beta.1"
 description = "A compact, human-readable serialization format designed for passing structured data to Large Language Models with significantly reduced token usage"
 readme = "README.md"
 authors = [

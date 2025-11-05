@@ -1,17 +1,22 @@
 # TOON Format for Python
 
 [![Tests](https://github.com/toon-format/toon-python/actions/workflows/test.yml/badge.svg)](https://github.com/toon-format/toon-python/actions)
-[![PyPI](https://img.shields.io/pypi/v/toon_format.svg)](https://pypi.org/project/toon_format/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/toon_format.svg)](https://pypi.org/project/toon_format/)
 
-Compact, human-readable serialization format for LLM contexts with **30-60% token reduction** vs JSON. Combines YAML-like indentation with CSV-like tabular arrays. 100% compatible with the [official TOON specification](https://github.com/toon-format/spec).
+> **⚠️ Beta Status (v0.9.x):** This library is in active development and working towards spec compliance. Not yet published to PyPI. API may change before 1.0.0 release.
 
-**Key Features:** Minimal syntax • Tabular arrays for uniform data • Array length validation • Python 3.8+ • Battle-tested.
+Compact, human-readable serialization format for LLM contexts with **30-60% token reduction** vs JSON. Combines YAML-like indentation with CSV-like tabular arrays. Working towards full compatibility with the [official TOON specification](https://github.com/toon-format/spec).
+
+**Key Features:** Minimal syntax • Tabular arrays for uniform data • Array length validation • Python 3.8+ • Comprehensive test coverage.
 
 ```bash
-pip install toon_format
-# or (recommended)
-uv add toon_format
+# Not yet published to PyPI - install from source:
+git clone https://github.com/toon-format/toon-python.git
+cd toon-python
+uv sync
+
+# Or install directly from GitHub:
+pip install git+https://github.com/toon-format/toon-python.git
 ```
 
 ## Quick Start
@@ -100,7 +105,7 @@ toon_str = encode(data)
 tokens = count_tokens(toon_str)  # Uses tiktoken (gpt5/gpt5-mini)
 ```
 
-**Requires tiktoken:** `pip install tiktoken` or `pip install toon-format[benchmark]`
+**Requires tiktoken:** `uv add tiktoken` (benchmark features are optional)
 
 ## Format Specification
 
@@ -123,7 +128,7 @@ git clone https://github.com/toon-format/toon-python.git
 cd toon-python
 uv sync
 
-# Run tests (battle-tested: 792 tests, 91% coverage, 85% enforced)
+# Run tests (792 tests, 91% coverage, 85% enforced)
 uv run pytest --cov=toon_format --cov-report=term
 
 # Code quality
@@ -132,7 +137,16 @@ uv run ruff format src/ tests/       # Format
 uv run mypy src/                     # Type check
 ```
 
-**CI/CD:** GitHub Actions • Python 3.8-3.12 • Coverage enforcement • Dependabot • PR coverage comments
+**CI/CD:** GitHub Actions • Python 3.8-3.14 • Coverage enforcement • PR coverage comments
+
+## Project Status & Roadmap
+
+Following semantic versioning towards 1.0.0:
+
+- **v0.8.x** - Initial code set, tests, documentation ✅
+- **v0.9.x** - Serializer improvements, spec compliance testing, publishing setup (current)
+- **v1.0.0-rc.x** - Release candidates for production readiness
+- **v1.0.0** - First stable release with full spec compliance
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
