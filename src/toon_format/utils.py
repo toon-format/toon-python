@@ -14,7 +14,7 @@ Functions:
     compare_formats: Generate formatted comparison table
 
 Requirements:
-    tiktoken: Install with `pip install tiktoken`
+    tiktoken: Install with `uv add tiktoken` or `uv add toon_format[benchmark]`
 
 Example:
     >>> import toon_format
@@ -36,7 +36,7 @@ __all__ = ["count_tokens", "estimate_savings", "compare_formats"]
 
 _TIKTOKEN_MISSING_MSG = (
     "tiktoken is required for token counting. "
-    "Install with: pip install tiktoken or pip install toon-format[benchmark]"
+    "Install with: uv add tiktoken or uv add toon_format[benchmark]"
 )
 
 
@@ -80,7 +80,7 @@ def count_tokens(text: str, encoding: str = "o200k_base") -> int:
         4
 
     Note:
-        Requires tiktoken to be installed: pip install tiktoken
+        Requires tiktoken to be installed: uv add tiktoken or uv add toon_format[benchmark]
     """
     if encoding == "o200k_base":
         enc = _get_tokenizer()
