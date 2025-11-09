@@ -1,0 +1,27 @@
+ARG UV_VERSION=0.8.13
+
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
+
+FROM mcr.microsoft.com/devcontainers/base:bookworm
+
+COPY --from=uv /uv /uvx /bin/
+
+# Python environment variables for development
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONIOENCODING=utf-8 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    UV_NO_CACHE=1 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
+USER vscode
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+WORKDIR /app
+
+HEALTHCHECK --interval=60s --timeout=5s --start-period=60s --retries=3 \
+    CMD test -d /app && whoami || exit 1

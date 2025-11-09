@@ -74,6 +74,10 @@ venv.bak/
 .claude/
 CLAUDE.md
 
+# DevContainer local overrides
+.devcontainer/devcontainer.local.json
+.devcontainer/.env
+
 # macOS
 .DS_Store
 .AppleDouble

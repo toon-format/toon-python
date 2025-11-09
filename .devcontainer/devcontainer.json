@@ -1,0 +1,30 @@
+{
+  // To customize this for your local environment without committing changes,
+  // create a .devcontainer/devcontainer.local.json file (it's gitignored).
+  // See .devcontainer/README.md for examples.
+  "name": "toon-python (devcontainer)",
+  "build": {
+    "dockerfile": "Dockerfile.dev",
+    "context": ".."
+  },
+  "workspaceFolder": "/app",
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "remoteEnv": {
+    // Python environment variables (can be overridden in devcontainer.local.json)
+    // These supplement the ENV vars set in Dockerfile.dev
+  },
+  "postCreateCommand": "uv sync --all-groups",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/app/.venv/bin/python"
+      }
+    }
+  }
+}
