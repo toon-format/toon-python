@@ -6,6 +6,8 @@ Converts Python-specific types to JSON-compatible values before encoding:
 - datetime/date → ISO 8601 strings
 - Decimal → float
 - tuple/set/frozenset → sorted lists
+- bytes/bytearray → base64 encoded strings
+- pathlib.Path → string representation
 - Infinity/NaN → null
 - Functions/callables → null
 - Negative zero → zero
@@ -16,6 +18,7 @@ import sys
 from collections.abc import Mapping
 from datetime import date, datetime
 from decimal import Decimal
+from pathlib import Path, PurePath
 from typing import Any
 
 # TypeGuard was added in Python 3.10, use typing_extensions for older versions
@@ -39,6 +42,7 @@ def normalize_value(value: Any) -> JsonValue:
     Converts Python-specific types to JSON-compatible equivalents:
     - datetime objects → ISO 8601 strings
     - sets → sorted lists
+    - pathlib.Path → string representation
     - Large integers (>2^53-1) → strings (for JS compatibility)
     - Non-finite floats (inf, -inf, NaN) → null
     - Negative zero → positive zero
@@ -64,10 +68,16 @@ def normalize_value(value: Any) -> JsonValue:
         >>> normalize_value(2**60)  # Large integer
         '1152921504606846976'
 
+        >>> from pathlib import Path
+        >>> normalize_value(Path('/tmp/file.txt'))
+        '/tmp/file.txt'
+
     Note:
         - Recursive: normalizes nested structures
         - Sets are sorted for deterministic output
         - Heterogeneous sets sorted by repr() if natural sorting fails
+        - bytes/bytearray are base64 encoded
+        - Path objects are converted to their string representation
     """
     if value is None:
         return None
@@ -99,6 +109,11 @@ def normalize_value(value: Any) -> JsonValue:
             logger.debug(f"Converting non-finite Decimal to null: {value}")
             return None
         return float(value)
+
+    # Handle pathlib.Path objects -> string representation
+    if isinstance(value, PurePath):
+        logger.debug(f"Converting {type(value).__name__} to string: {value}")
+        return str(value)
 
     if isinstance(value, datetime):
         try:

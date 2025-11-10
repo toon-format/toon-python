@@ -17,6 +17,7 @@ official fixtures from https://github.com/toon-format/spec
 """
 
 from decimal import Decimal
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 from toon_format import decode, encode
 
@@ -416,3 +417,70 @@ class TestNumericPrecision:
         # All numbers should round-trip with fidelity
         for key, value in original.items():
             assert decoded[key] == value, f"Mismatch for {key}: {decoded[key]} != {value}"
+
+
+class TestPathNormalization:
+    """Test pathlib.Path normalization to strings."""
+
+    def test_path_to_string(self):
+        """pathlib.Path should be converted to string."""
+        data = {"file": Path("/tmp/test.txt")}
+        result = encode(data)
+        decoded = decode(result)
+
+        assert decoded["file"] == "/tmp/test.txt"
+
+    def test_relative_path(self):
+        """Relative paths should be preserved."""
+        data = {"rel": Path("./relative/path.txt")}
+        result = encode(data)
+        decoded = decode(result)
+
+        # Path normalization may vary, but should be a string
+        assert isinstance(decoded["rel"], str)
+        assert "relative" in decoded["rel"]
+        assert "path.txt" in decoded["rel"]
+
+    def test_pure_path(self):
+        """PurePath objects should also be normalized."""
+        data = {
+            "posix": PurePosixPath("/usr/bin/python"),
+            "windows": PureWindowsPath("C:\\Windows\\System32"),
+        }
+        result = encode(data)
+        decoded = decode(result)
+
+        assert decoded["posix"] == "/usr/bin/python"
+        assert decoded["windows"] == "C:\\Windows\\System32"
+
+    def test_path_in_array(self):
+        """Path objects in arrays should be normalized."""
+        from pathlib import Path
+
+        data = {"paths": [Path("/tmp/a"), Path("/tmp/b"), Path("/tmp/c")]}
+        result = encode(data)
+        decoded = decode(result)
+
+        assert decoded["paths"] == ["/tmp/a", "/tmp/b", "/tmp/c"]
+
+    def test_path_in_nested_structure(self):
+        """Path objects in nested structures should be normalized."""
+        from pathlib import Path
+
+        data = {
+            "project": {
+                "root": Path("/home/user/project"),
+                "src": Path("/home/user/project/src"),
+                "files": [
+                    {"name": "main.py", "path": Path("/home/user/project/src/main.py")},
+                    {"name": "test.py", "path": Path("/home/user/project/src/test.py")},
+                ],
+            }
+        }
+        result = encode(data)
+        decoded = decode(result)
+
+        assert decoded["project"]["root"] == "/home/user/project"
+        assert decoded["project"]["src"] == "/home/user/project/src"
+        assert decoded["project"]["files"][0]["path"] == "/home/user/project/src/main.py"
+        assert decoded["project"]["files"][1]["path"] == "/home/user/project/src/test.py"
