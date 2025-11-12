@@ -49,9 +49,13 @@ Or as a module:
 python -m toon_mcp.server
 ```
 
-### Configuring in Claude Desktop
+### Configuring MCP Clients
 
-Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%/Claude/claude_desktop_config.json` on Windows):
+This server works with any MCP-compatible client. Below is an example configuration for Claude Desktop.
+
+**Claude Desktop Example:**
+
+Add to your configuration file (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%/Claude/claude_desktop_config.json` on Windows):
 
 ```json
 {
@@ -77,6 +81,10 @@ Or if running from source:
   }
 }
 ```
+
+**Other MCP Clients:**
+
+Refer to your MCP client's documentation for specific configuration format. The server follows the standard MCP protocol and should work with any compliant client.
 
 ## Available Tools
 
@@ -169,18 +177,8 @@ toon-pythonMCP/
 │   └── toon_mcp/            # MCP server
 │       ├── __init__.py
 │       └── server.py        # FastMCP server implementation
-├── examples/
-│   └── test_encoding.py     # Example usage
 ├── run_server.py            # Standalone runner
 └── pyproject.toml
-```
-
-### Testing
-
-Run the example script to test encoding/decoding:
-
-```bash
-python examples/test_encoding.py
 ```
 
 ## License
