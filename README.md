@@ -31,7 +31,7 @@ encode({"name": "Alice", "age": 30})
 
 # Tabular array (uniform objects)
 encode([{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}])
-# [2,]{id,name}:
+# [2]{id,name}:
 #   1,Alice
 #   2,Bob
 
