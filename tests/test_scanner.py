@@ -241,3 +241,62 @@ class TestToParsedLines:
         # Should not raise error for blank line with invalid indentation
         assert len(blanks) == 1
         assert blanks[0].line_num == 2
+
+
+class TestCRLFHandling:
+    """Tests for CRLF and CR normalization."""
+
+    def test_crlf_normalization(self):
+        """Test Windows CRLF line endings are normalized to LF."""
+        source = "name: Alice\r\nage: 30\r\n"
+        lines, blanks = to_parsed_lines(source, 2, False)
+        # Verify no \r remains in content
+        assert "\r" not in lines[0].content
+        assert "\r" not in lines[1].content
+        assert lines[0].content == "name: Alice"
+        assert lines[1].content == "age: 30"
+        assert len(lines) == 3  # name, age, and trailing empty line
+
+    def test_standalone_cr_normalization(self):
+        """Test old Mac CR line endings are normalized to LF."""
+        source = "name: Alice\rage: 30\r"
+        lines, blanks = to_parsed_lines(source, 2, False)
+        # Verify no \r remains in content
+        assert "\r" not in lines[0].content
+        assert "\r" not in lines[1].content
+        assert lines[0].content == "name: Alice"
+        assert lines[1].content == "age: 30"
+        assert len(lines) == 3  # name, age, and trailing empty line
+
+    def test_mixed_line_endings(self):
+        """Test mixed line endings are all normalized."""
+        source = "line1\r\nline2\nline3\rline4"
+        lines, blanks = to_parsed_lines(source, 2, False)
+        assert len(lines) == 4
+        for line in lines:
+            assert "\r" not in line.content
+        assert lines[0].content == "line1"
+        assert lines[1].content == "line2"
+        assert lines[2].content == "line3"
+        assert lines[3].content == "line4"
+
+    def test_crlf_with_indentation(self):
+        """Test CRLF handling preserves indentation."""
+        source = "parent:\r\n  child: value\r\n"
+        lines, blanks = to_parsed_lines(source, 2, False)
+        assert lines[0].content == "parent:"
+        assert lines[0].depth == 0
+        assert lines[1].content == "child: value"
+        assert lines[1].depth == 1
+        assert lines[1].indent == 2
+
+    def test_crlf_in_strict_mode(self):
+        """Test CRLF normalization works in strict mode."""
+        source = "name: Alice\r\n  age: 30\r\n"
+        lines, blanks = to_parsed_lines(source, 2, True)
+        # Should not raise error and should properly normalize
+        assert len(lines) == 3
+        assert "\r" not in lines[0].content
+        assert "\r" not in lines[1].content
+        assert lines[1].depth == 1
+
