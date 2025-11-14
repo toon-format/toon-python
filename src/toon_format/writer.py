@@ -6,7 +6,7 @@ Provides LineWriter class that manages indented text generation with optimized
 indent string caching for performance.
 """
 
-from typing import List
+from typing import Dict, List
 
 from .types import Depth
 
@@ -24,7 +24,7 @@ class LineWriter:
         # Ensure nested structures remain distinguishable even for indent=0
         normalized_indent = indent_size if indent_size > 0 else 1
         self._indentation_string = " " * normalized_indent
-        self._indent_cache: dict[int, str] = {0: ""}
+        self._indent_cache: Dict[int, str] = {0: ""}
         self._indent_size = indent_size
 
     def push(self, depth: Depth, content: str) -> None:

@@ -1,0 +1,32 @@
+{
+  // Example local devcontainer configuration
+  // Copy this to devcontainer.local.json and customize as needed
+  // This file is gitignored and won't be committed
+  
+  "remoteEnv": {
+    // Override Python environment variables
+    // Uncomment and modify any of these to override defaults from Dockerfile.dev:
+    
+    // "PYTHONUNBUFFERED": "0",
+    // "PYTHONDONTWRITEBYTECODE": "0",
+    // "PYTHONIOENCODING": "utf-8",
+    // "PIP_NO_CACHE_DIR": "0",
+    // "PIP_DISABLE_PIP_VERSION_CHECK": "0",
+    // "UV_NO_CACHE": "0",
+    // "UV_PROJECT_ENVIRONMENT": "/custom/path/.venv",
+    // "LANG": "en_US.UTF-8",
+    // "LC_ALL": "en_US.UTF-8",
+    
+    // Add custom environment variables for local development:
+    // "DEBUG": "1",
+    // "LOG_LEVEL": "DEBUG"
+  },
+  
+  // You can also override other devcontainer settings:
+  // "features": {},
+  // "customizations": {
+  //   "vscode": {
+  //     "extensions": []
+  //   }
+  // }
+}

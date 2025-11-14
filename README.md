@@ -204,6 +204,13 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 - [🐛 Issues](https://github.com/toon-format/toon-python/issues) - Bug reports and features
 - [🤝 Contributing](CONTRIBUTING.md) - Contribution guidelines
 
+## Contributors
+
+- [Xavi Vinaixa](https://github.com/xaviviro)
+- [David Pirogov](https://github.com/davidpirogov)
+- [Justar](https://github.com/Justar96)
+- [Johann Schopplich](https://github.com/johannschopplich)
+
 ## License
 
-MIT License - see [LICENSE](LICENSE)
+MIT License – see [LICENSE](LICENSE) for details

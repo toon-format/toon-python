@@ -25,7 +25,7 @@ Example:
 
 import functools
 import json
-from typing import Any
+from typing import Any, Dict
 
 # Import encode from parent package (defined in __init__.py before this module is imported)
 # __init__.py defines encode() before importing utils, so this is safe
@@ -91,7 +91,7 @@ def count_tokens(text: str, encoding: str = "o200k_base") -> int:
     return len(enc.encode(text))
 
 
-def estimate_savings(data: Any, encoding: str = "o200k_base") -> dict[str, Any]:
+def estimate_savings(data: Any, encoding: str = "o200k_base") -> Dict[str, Any]:
     """Compare token counts between JSON and TOON formats.
 
     Args:

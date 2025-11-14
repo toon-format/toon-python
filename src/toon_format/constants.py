@@ -6,7 +6,7 @@ Defines all string literals, characters, and configuration values used throughou
 the TOON implementation. Centralizes magic values for maintainability.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from .types import Delimiter
@@ -45,7 +45,7 @@ TAB: "Delimiter" = "\t"
 # endregion
 
 # region Delimiters
-DELIMITERS: dict[str, "Delimiter"] = {
+DELIMITERS: Dict[str, "Delimiter"] = {
     "comma": COMMA,
     "tab": TAB,
     "pipe": PIPE,
