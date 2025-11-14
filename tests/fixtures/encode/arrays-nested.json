@@ -94,6 +94,14 @@
       },
       "expected": "items[2]:\n  - a: 1\n  - [2]: 1,2",
       "specSection": "7.3"
+    },
+    {
+      "name": "encodes array of nested objects",
+      "input": {
+        "items": [{ "a": { "b": 1 }}, { "c": 2 }]
+      },
+      "expected": "items[2]:\n  - a:\n      b: 1\n  - c: 2",
+      "specSection": "10"
     }
   ]
 }
