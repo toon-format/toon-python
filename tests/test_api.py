@@ -292,14 +292,8 @@ class TestRoundtrip:
         assert decoded == original
 
 
-class TestDecodeJSONIndentation:
-    """Test decode() JSON indentation feature (Issue #10).
-    
-    Comprehensive tests for the json_indent feature are in TestDecodeJSONIndentationWithSpecFixtures,
-    which validates against official TOON specification fixtures.
-    """
-
-    pass
+# Comprehensive tests for the json_indent feature are in TestDecodeJSONIndentationWithSpecFixtures,
+# which validates against official TOON specification fixtures from the TOON spec repository.
 
 
 def _get_sample_decode_fixtures() -> List[tuple]:
@@ -380,9 +374,8 @@ class TestDecodeJSONIndentationWithSpecFixtures:
 
         # Different indent sizes should produce different strings (unless single line)
         if "\n" in result_2 and "\n" in result_4:
-            # Multi-line results should differ in formatting
-            # (indentation characters will be different)
-            assert result_2 != result_4 or result_2.count(" ") == result_4.count(" ")
+            # Multi-line results should differ in formatting and whitespace count
+            assert result_2 != result_4 and result_2.count(" ") != result_4.count(" ")
 
     def test_json_indent_consistency_with_plain_decode(self):
         """Verify that json_indent=None produces same data as plain decode."""

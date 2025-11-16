@@ -9,7 +9,7 @@ and validates array lengths and delimiters.
 """
 
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ._literal_utils import is_boolean_or_null_literal, is_numeric_literal
 from ._parsing_utils import (
@@ -229,7 +229,7 @@ def split_key_value(line: str) -> Tuple[str, str]:
     return (key, value)
 
 
-def decode(input_str: str, options: Optional[DecodeOptions] = None) -> Any:
+def decode(input_str: str, options: Optional[DecodeOptions] = None) -> Union[JsonValue, str]:
     """Decode a TOON-formatted string to a Python value.
 
     This function parses TOON format and returns the decoded data. By default,
