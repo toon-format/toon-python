@@ -286,3 +286,98 @@ class TestRoundtrip:
         toon = encode(original, {"lengthMarker": "#"})
         decoded = decode(toon)
         assert decoded == original
+
+
+class TestDecodeJSONIndentation:
+    """Test decode() JSON indentation feature (Issue #10)."""
+
+    def test_decode_with_json_indent_returns_string(self):
+        """decode() with json_indent should return JSON string."""
+        toon = "id: 123\nname: Alice"
+        options = DecodeOptions(json_indent=2)
+        result = decode(toon, options)
+        assert isinstance(result, str)
+        # Verify it's valid JSON
+        import json
+
+        parsed = json.loads(result)
+        assert parsed == {"id": 123, "name": "Alice"}
+
+    def test_decode_with_json_indent_2(self):
+        """decode() with json_indent=2 should format with 2 spaces."""
+        toon = "id: 123\nname: Alice"
+        result = decode(toon, DecodeOptions(json_indent=2))
+        expected = '{\n  "id": 123,\n  "name": "Alice"\n}'
+        assert result == expected
+
+    def test_decode_with_json_indent_4(self):
+        """decode() with json_indent=4 should format with 4 spaces."""
+        toon = "id: 123\nname: Alice"
+        result = decode(toon, DecodeOptions(json_indent=4))
+        expected = '{\n    "id": 123,\n    "name": "Alice"\n}'
+        assert result == expected
+
+    def test_decode_with_json_indent_nested(self):
+        """decode() with json_indent should handle nested structures."""
+        toon = "user:\n  name: Alice\n  age: 30"
+        result = decode(toon, DecodeOptions(json_indent=2))
+        expected = '{\n  "user": {\n    "name": "Alice",\n    "age": 30\n  }\n}'
+        assert result == expected
+
+    def test_decode_with_json_indent_array(self):
+        """decode() with json_indent should handle arrays."""
+        toon = "items[2]: apple,banana"
+        result = decode(toon, DecodeOptions(json_indent=2))
+        expected = '{\n  "items": [\n    "apple",\n    "banana"\n  ]\n}'
+        assert result == expected
+
+    def test_decode_with_json_indent_none_returns_object(self):
+        """decode() with json_indent=None should return Python object."""
+        toon = "id: 123\nname: Alice"
+        options = DecodeOptions(json_indent=None)
+        result = decode(toon, options)
+        assert isinstance(result, dict)
+        assert result == {"id": 123, "name": "Alice"}
+
+    def test_decode_with_json_indent_default_returns_object(self):
+        """decode() without json_indent should return Python object (default)."""
+        toon = "id: 123\nname: Alice"
+        result = decode(toon)
+        assert isinstance(result, dict)
+        assert result == {"id": 123, "name": "Alice"}
+
+    def test_decode_json_indent_with_unicode(self):
+        """decode() with json_indent should preserve unicode characters."""
+        toon = 'name: "José"'
+        result = decode(toon, DecodeOptions(json_indent=2))
+        assert "José" in result
+        import json
+
+        parsed = json.loads(result)
+        assert parsed["name"] == "José"
+
+    def test_decode_json_indent_empty_object(self):
+        """decode() with json_indent on empty input should return empty object JSON."""
+        result = decode("", DecodeOptions(json_indent=2))
+        assert result == "{}"
+
+    def test_decode_json_indent_single_primitive(self):
+        """decode() with json_indent on single primitive should return JSON number."""
+        result = decode("42", DecodeOptions(json_indent=2))
+        assert result == "42"
+
+    def test_decode_json_indent_complex_nested(self):
+        """decode() with json_indent should handle complex nested structures."""
+        toon = """users[2]{id,name}:
+  1,Alice
+  2,Bob
+metadata:
+  version: 1
+  active: true"""
+        result = decode(toon, DecodeOptions(json_indent=2))
+        import json
+
+        parsed = json.loads(result)
+        assert parsed["users"][0] == {"id": 1, "name": "Alice"}
+        assert parsed["metadata"]["version"] == 1
+        assert parsed["metadata"]["active"] is True

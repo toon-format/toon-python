@@ -8,6 +8,7 @@ lenient parsing modes, handles all TOON syntax forms (objects, arrays, primitive
 and validates array lengths and delimiters.
 """
 
+import json
 from typing import Any, Dict, List, Optional, Tuple
 
 from ._literal_utils import is_boolean_or_null_literal, is_numeric_literal
@@ -228,18 +229,38 @@ def split_key_value(line: str) -> Tuple[str, str]:
     return (key, value)
 
 
-def decode(input_str: str, options: Optional[DecodeOptions] = None) -> JsonValue:
+def decode(input_str: str, options: Optional[DecodeOptions] = None) -> Any:
     """Decode a TOON-formatted string to a Python value.
 
+    This function parses TOON format and returns the decoded data. By default,
+    it returns a Python object (dict, list, str, int, float, bool, or None).
+
+    The DecodeOptions.json_indent parameter is a Python-specific feature that
+    enables returning a JSON-formatted string instead of a Python object.
+    This is useful for applications that need pretty-printed JSON output.
+
     Args:
-        input_str: TOON-formatted string
-        options: Optional decoding options
+        input_str: TOON-formatted string to decode
+        options: Optional DecodeOptions with indent, strict, and json_indent
+                 settings. If not provided, defaults are used (indent=2,
+                 strict=True, json_indent=None).
 
     Returns:
-        Decoded Python value
+        By default (json_indent=None): Decoded Python value (object, array,
+            string, number, boolean, or null).
+        When json_indent is set: A JSON-formatted string with the specified
+            indentation level. Example: DecodeOptions(json_indent=2) returns
+            pretty-printed JSON with 2-space indentation.
 
     Raises:
-        ToonDecodeError: If input is malformed
+        ToonDecodeError: If input is malformed or violates strict-mode rules
+
+    Example:
+        >>> toon = "name: Alice\\nage: 30"
+        >>> decode(toon)
+        {'name': 'Alice', 'age': 30}
+        >>> decode(toon, DecodeOptions(json_indent=2))
+        '{\\n  "name": "Alice",\\n  "age": 30\\n}'
     """
     if options is None:
         options = DecodeOptions()
@@ -273,32 +294,41 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> JsonValue
     # Check for empty input (per spec Section 8: empty/whitespace-only → empty object)
     non_blank_lines = [ln for ln in lines if not ln.is_blank]
     if not non_blank_lines:
-        return {}
+        result: Any = {}
+    else:
+        # Determine root form (Section 5)
+        first_line = non_blank_lines[0]
 
-    # Determine root form (Section 5)
-    first_line = non_blank_lines[0]
+        # Check if it's a root array header
+        header_info = parse_header(first_line.content)
+        if header_info is not None and header_info[0] is None:  # No key = root array
+            # Root array
+            result = decode_array(lines, 0, 0, header_info, strict)
+        else:
+            # Check if it's a single primitive
+            if len(non_blank_lines) == 1:
+                line_content = first_line.content
+                # Check if it's not a key-value line
+                try:
+                    split_key_value(line_content)
+                    # It's a key-value, so root object
+                    result = decode_object(lines, 0, 0, strict)
+                except ToonDecodeError:
+                    # Not a key-value, check if it's a header
+                    if header_info is None:
+                        # Single primitive
+                        result = parse_primitive(line_content)
+                    else:
+                        result = decode_object(lines, 0, 0, strict)
+            else:
+                # Otherwise, root object
+                result = decode_object(lines, 0, 0, strict)
 
-    # Check if it's a root array header
-    header_info = parse_header(first_line.content)
-    if header_info is not None and header_info[0] is None:  # No key = root array
-        # Root array
-        return decode_array(lines, 0, 0, header_info, strict)
+    # If json_indent is specified, return JSON-formatted string
+    if options.json_indent is not None:
+        return json.dumps(result, indent=options.json_indent, ensure_ascii=False)
 
-    # Check if it's a single primitive
-    if len(non_blank_lines) == 1:
-        line_content = first_line.content
-        # Check if it's not a key-value line
-        try:
-            split_key_value(line_content)
-            # It's a key-value, so root object
-        except ToonDecodeError:
-            # Not a key-value, check if it's a header
-            if header_info is None:
-                # Single primitive
-                return parse_primitive(line_content)
-
-    # Otherwise, root object
-    return decode_object(lines, 0, 0, strict)
+    return result
 
 
 def decode_object(
