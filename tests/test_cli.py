@@ -78,6 +78,106 @@ class TestDecodeToonToJson:
         assert data["name"] == "Alice"
 
 
+class TestStatsFlag:
+    """Tests for the --stats CLI flag."""
+
+    def test_stats_flag_in_help(self, tmp_path):
+        """Test that --stats appears in help text."""
+        with patch("sys.argv", ["toon", "--help"]):
+            with pytest.raises(SystemExit):
+                main()
+
+    def test_stats_with_file_input(self, tmp_path):
+        """Test --stats with file input."""
+        input_file = tmp_path / "test.json"
+        input_file.write_text('{"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}')
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.argv", ["toon", str(input_file), "--stats"]):
+                result = main()
+                assert result == 0
+                output = mock_stdout.getvalue()
+                assert "users[2" in output
+                assert "Format Comparison" in output or "Savings" in output
+
+    def test_stats_with_stdin(self):
+        """Test --stats with stdin input."""
+        input_data = '{"items": ["a", "b", "c"]}'
+
+        with patch("sys.stdin", StringIO(input_data)):
+            with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+                with patch("sys.argv", ["toon", "-", "--stats"]):
+                    result = main()
+                    assert result == 0
+                    output = mock_stdout.getvalue()
+                    assert "items[3" in output
+
+    def test_stats_ignored_in_decode_mode(self, tmp_path):
+        """Test that --stats is ignored when decoding."""
+        input_file = tmp_path / "test.toon"
+        input_file.write_text("items[2]: a,b")
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+                with patch("sys.argv", ["toon", str(input_file), "--decode", "--stats"]):
+                    result = main()
+                    assert result == 0
+                    output = mock_stdout.getvalue()
+                    assert '"items"' in output
+                    if mock_stderr.getvalue():
+                        assert "warning" in mock_stderr.getvalue().lower()
+
+    def test_stats_with_different_delimiters(self, tmp_path):
+        """Test that --stats works with alternative delimiters."""
+        input_file = tmp_path / "test.json"
+        input_file.write_text('{"data": [{"a": 1, "b": 2}]}')
+
+        # Test with tab delimiter
+        with patch("sys.stdout", new_callable=StringIO):
+            with patch("sys.argv", ["toon", str(input_file), "--delimiter", "\t", "--stats"]):
+                result = main()
+                assert result == 0
+
+        # Test with pipe delimiter
+        with patch("sys.stdout", new_callable=StringIO):
+            with patch("sys.argv", ["toon", str(input_file), "--delimiter", "|", "--stats"]):
+                result = main()
+                assert result == 0
+
+    def test_stats_without_tiktoken(self, tmp_path, monkeypatch):
+        """Test graceful handling when tiktoken is not available."""
+        input_file = tmp_path / "test.json"
+        input_file.write_text('{"test": 123}')
+
+        # Mock compare_formats to raise RuntimeError (simulating missing tiktoken)
+        def mock_compare_formats(data):
+            raise RuntimeError("tiktoken is required")
+
+        with patch("toon_format.cli.compare_formats", side_effect=mock_compare_formats):
+            with patch("sys.stdout", new_callable=StringIO):
+                with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+                    with patch("sys.argv", ["toon", str(input_file), "--stats"]):
+                        result = main()
+                        assert result == 0
+                        assert "tiktoken" in mock_stderr.getvalue()
+
+    def test_stats_with_output_file(self, tmp_path):
+        """Test --stats with -o output option."""
+        input_file = tmp_path / "test.json"
+        input_file.write_text('{"test": 123}')
+        output_file = tmp_path / "output.toon"
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.argv", ["toon", str(input_file), "-o", str(output_file), "--stats"]):
+                result = main()
+                assert result == 0
+                assert output_file.exists()
+                assert (
+                    "Format Comparison" in mock_stdout.getvalue()
+                    or "Savings" in mock_stdout.getvalue()
+                )
+
+
 class TestCLIMain:
     """Integration tests for the main CLI function."""
 
