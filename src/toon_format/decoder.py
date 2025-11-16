@@ -330,7 +330,7 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> Union[Jso
     # If json_indent is specified, return JSON-formatted string
     if options.json_indent is not None:
         if options.json_indent < 0:
-            raise ValueError(f"json_indent must be non-negative, got {options.json_indent}")
+            raise ToonDecodeError(f"json_indent must be non-negative, got {options.json_indent}")
         return json.dumps(result, indent=options.json_indent, ensure_ascii=False)
 
     return result
