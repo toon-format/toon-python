@@ -384,7 +384,7 @@ class TestDecodeJSONIndentationWithSpecFixtures:
         if "\n" in result_2 and "\n" in result_4:
             # Multi-line results should differ in formatting
             # (indentation characters will be different)
-            assert result_2 != result_4 or result_2.count(" ") == result_4.count(" ")
+            assert result_2 != result_4 and result_2.count(" ") != result_4.count(" ")
 
     def test_json_indent_consistency_with_plain_decode(self):
         """Verify that json_indent=None produces same data as plain decode."""
