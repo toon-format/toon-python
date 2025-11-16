@@ -9,6 +9,25 @@ Compact, human-readable serialization format for LLM contexts with **30-60% toke
 
 **Key Features:** Minimal syntax • Tabular arrays for uniform data • Array length validation • Python 3.8+ • Comprehensive test coverage.
 
+## CSV Utilities
+
+TOON also provides CSV parsing and writing utilities:
+
+```python
+from toon_format import csv
+
+# Parse a YAML-like text to CSVs
+csvs = csv.parser.parse_to_csv('''
+users [2] {id, name}:
+	1, Alice
+	2, Bob
+''')
+print(csvs["users"])
+# id,name\n1,Alice\n2,Bob\n
+# Write CSVs to disk and zip
+csv.writer.write_csvs(csvs, out_dir="csvs", zip_name="csvs.zip")
+```
+
 ```bash
 # Beta published to PyPI - install from source:
 git clone https://github.com/toon-format/toon-python.git

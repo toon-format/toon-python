@@ -4,6 +4,55 @@ Complete API documentation for toon_format Python package.
 
 ## Core Functions
 
+## CSV Parsing & Writing
+
+### `csv.parser.parse_to_csv(encoded: str) -> Dict[str, str]`
+
+Parse YAML-like indented text into one or more CSV strings. Returns a dict mapping names/paths to CSV text.
+
+**Parameters:**
+- `encoded` (str): Structured text (objects, arrays, key-value pairs)
+
+**Returns:** `Dict[str, str]` - Mapping of names/paths to CSV-formatted strings
+
+**Example:**
+
+```python
+from toon_format import csv
+csvs = csv.parser.parse_to_csv('''
+users [2] {id, name}:
+    1, Alice
+    2, Bob
+''')
+print(csvs["users"])
+# id,name\n1,Alice\n2,Bob\n
+```
+
+---
+
+### `csv.writer.write_csvs(csvs: Dict[str, str], out_dir: str = 'toon_csvs', zip_name: str = 'toon_csvs.zip', bom: bool = True, flat: bool = True)`
+
+Write CSV strings to disk and optionally zip them.
+
+**Parameters:**
+- `csvs` (Dict[str, str]): Mapping of names/paths to CSV text
+- `out_dir` (str): Output directory for CSV files
+- `zip_name` (str): Name of the ZIP archive to create
+- `bom` (bool): Write UTF-8 BOM (default True)
+- `flat` (bool): If True, all files in one dir; if False, use dot-paths as subdirs
+
+**Returns:** `(out_path, zip_path)` - Paths to output dir and zip file
+
+**Example:**
+
+```python
+from toon_format import csv
+csvs = {"users": "id,name\n1,Alice\n2,Bob\n"}
+csv.writer.write_csvs(csvs, out_dir="csvs", zip_name="csvs.zip")
+```
+
+---
+
 ### `encode(value, options=None)`
 
 Converts a Python value to TOON format string.
