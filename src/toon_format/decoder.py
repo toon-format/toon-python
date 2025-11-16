@@ -259,8 +259,11 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> Union[Jso
         >>> toon = "name: Alice\\nage: 30"
         >>> decode(toon)
         {'name': 'Alice', 'age': 30}
-        >>> decode(toon, DecodeOptions(json_indent=2))
-        '{\\n  "name": "Alice",\\n  "age": 30\\n}'
+        >>> print(decode(toon, DecodeOptions(json_indent=2)))
+        {
+          "name": "Alice",
+          "age": 30
+        }
     """
     if options is None:
         options = DecodeOptions()
