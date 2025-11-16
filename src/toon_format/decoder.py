@@ -254,6 +254,7 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> Union[Jso
 
     Raises:
         ToonDecodeError: If input is malformed or violates strict-mode rules
+        ValueError: If json_indent is negative
 
     Example:
         >>> toon = "name: Alice\\nage: 30"
