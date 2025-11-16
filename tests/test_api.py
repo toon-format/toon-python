@@ -10,6 +10,8 @@ Spec compliance is tested in test_spec_fixtures.py using official fixtures.
 Python type normalization is tested in test_normalization.py.
 """
 
+import json
+
 import pytest
 
 from toon_format import ToonDecodeError, decode, encode
@@ -297,9 +299,6 @@ class TestDecodeJSONIndentation:
         options = DecodeOptions(json_indent=2)
         result = decode(toon, options)
         assert isinstance(result, str)
-        # Verify it's valid JSON
-        import json
-
         parsed = json.loads(result)
         assert parsed == {"id": 123, "name": "Alice"}
 
@@ -351,8 +350,6 @@ class TestDecodeJSONIndentation:
         toon = 'name: "José"'
         result = decode(toon, DecodeOptions(json_indent=2))
         assert "José" in result
-        import json
-
         parsed = json.loads(result)
         assert parsed["name"] == "José"
 
@@ -375,8 +372,6 @@ metadata:
   version: 1
   active: true"""
         result = decode(toon, DecodeOptions(json_indent=2))
-        import json
-
         parsed = json.loads(result)
         assert parsed["users"][0] == {"id": 1, "name": "Alice"}
         assert parsed["metadata"]["version"] == 1
