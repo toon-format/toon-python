@@ -292,13 +292,15 @@ class TestRoundtrip:
         assert decoded == original
 
 
+# TODO: Add targeted unit tests for decode()'s json_indent feature here.
+#       See Issue #10. For now, comprehensive tests are in TestDecodeJSONIndentationWithSpecFixtures.
+@pytest.mark.skip(reason="Placeholder for targeted decode() JSON indentation tests. See TODO above.")
 class TestDecodeJSONIndentation:
     """Test decode() JSON indentation feature (Issue #10).
     
     Comprehensive tests for the json_indent feature are in TestDecodeJSONIndentationWithSpecFixtures,
     which validates against official TOON specification fixtures.
     """
-
     pass
 
 
