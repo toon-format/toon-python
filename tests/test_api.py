@@ -11,13 +11,13 @@ Python type normalization is tested in test_normalization.py.
 """
 
 import json
-from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
 
 from toon_format import ToonDecodeError, decode, encode
 from toon_format.types import DecodeOptions, EncodeOptions
+from tests.test_spec_fixtures import get_all_decode_fixtures
 
 
 class TestEncodeAPI:
@@ -302,32 +302,21 @@ class TestDecodeJSONIndentation:
     pass
 
 
-def _load_fixture_file(filepath: Path) -> Dict[str, Any]:
-    """Load a fixture JSON file."""
-    with open(filepath, encoding="utf-8") as f:
-        return json.load(f)
-
-
 def _get_sample_decode_fixtures() -> List[tuple]:
-    """Get a sample of decode test cases from fixture files for json_indent testing."""
-    fixtures_dir = Path(__file__).parent / "fixtures" / "decode"
+    """Get a sample of decode test cases from fixture files for json_indent testing.
+    
+    Selects a few representative test cases from the official TOON spec fixtures.
+    """
+    all_fixtures = get_all_decode_fixtures()
+    
+    # Select a few representative test cases from different fixture categories
+    selected_files = {"primitives.json", "arrays-primitive.json", "objects.json"}
     test_cases = []
-
-    # Select a few representative fixture files
-    fixture_files = [
-        "primitives.json",
-        "arrays-primitive.json",
-        "objects.json",
-    ]
-
-    for filename in fixture_files:
-        fixture_path = fixtures_dir / filename
-        if fixture_path.exists():
-            fixture_data = _load_fixture_file(fixture_path)
-            for idx, test in enumerate(fixture_data.get("tests", [])[:3]):  # Sample 3 from each
-                test_id = f"{filename}::{test['name']}"
-                test_cases.append((test_id, test))
-
+    
+    for test_id, test_data, fixture_name in all_fixtures:
+        if f"{fixture_name}.json" in selected_files and len(test_cases) < 9:
+            test_cases.append((test_id, test_data))
+    
     return test_cases
 
 
