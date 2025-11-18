@@ -315,8 +315,6 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> Union[Jso
                 # Check if it's not a key-value line
                 try:
                     split_key_value(line_content)
-                    # It's a key-value, so root object
-                    result = decode_object(lines, 0, 0, strict)
                 except ToonDecodeError:
                     # Not a key-value, check if it's a header
                     if header_info is None:
@@ -324,6 +322,9 @@ def decode(input_str: str, options: Optional[DecodeOptions] = None) -> Union[Jso
                         result = parse_primitive(line_content)
                     else:
                         result = decode_object(lines, 0, 0, strict)
+                else:
+                    # It's a key-value, so root object
+                    result = decode_object(lines, 0, 0, strict)
             else:
                 # Otherwise, root object
                 result = decode_object(lines, 0, 0, strict)

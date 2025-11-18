@@ -15,9 +15,9 @@ from typing import Any, Dict, List
 
 import pytest
 
+from tests.test_spec_fixtures import get_all_decode_fixtures
 from toon_format import ToonDecodeError, decode, encode
 from toon_format.types import DecodeOptions, EncodeOptions
-from tests.test_spec_fixtures import get_all_decode_fixtures
 
 
 class TestEncodeAPI:
@@ -293,38 +293,43 @@ class TestRoundtrip:
 
 
 # TODO: Add targeted unit tests for decode()'s json_indent feature here.
-#       See Issue #10. For now, comprehensive tests are in TestDecodeJSONIndentationWithSpecFixtures.
-@pytest.mark.skip(reason="Placeholder for targeted decode() JSON indentation tests. See TODO above.")
+#       See Issue #10. For now, comprehensive tests are in
+#       TestDecodeJSONIndentationWithSpecFixtures.
+@pytest.mark.skip(
+    reason="Placeholder for targeted decode() JSON indentation tests. See TODO above."
+)
 class TestDecodeJSONIndentation:
     """Test decode() JSON indentation feature (Issue #10).
-    
-    Comprehensive tests for the json_indent feature are in TestDecodeJSONIndentationWithSpecFixtures,
-    which validates against official TOON specification fixtures.
+
+    Comprehensive tests for the json_indent feature are in
+    TestDecodeJSONIndentationWithSpecFixtures, which validates against official
+    TOON specification fixtures.
     """
+
     pass
 
 
 def _get_sample_decode_fixtures() -> List[tuple]:
     """Get a sample of decode test cases from fixture files for json_indent testing.
-    
+
     Selects a few representative test cases from the official TOON spec fixtures.
     """
     all_fixtures = get_all_decode_fixtures()
-    
+
     # Select a few representative test cases from different fixture categories
     selected_files = {"primitives.json", "arrays-primitive.json", "objects.json"}
     test_cases = []
-    
+
     for test_id, test_data, fixture_name in all_fixtures:
         if f"{fixture_name}.json" in selected_files and len(test_cases) < 9:
             test_cases.append((test_id, test_data))
-    
+
     return test_cases
 
 
 class TestDecodeJSONIndentationWithSpecFixtures:
     """Test json_indent feature against spec fixtures to ensure comprehensive coverage.
-    
+
     These tests validate that the json_indent feature works correctly with various
     TOON format patterns defined in the official specification fixtures.
     """
@@ -358,9 +363,7 @@ class TestDecodeJSONIndentationWithSpecFixtures:
         )
 
     @pytest.mark.parametrize("test_id,test_data", _get_sample_decode_fixtures())
-    def test_json_indent_with_different_indent_sizes(
-        self, test_id: str, test_data: Dict[str, Any]
-    ):
+    def test_json_indent_with_different_indent_sizes(self, test_id: str, test_data: Dict[str, Any]):
         """Verify that json_indent respects different indent sizes."""
         input_str = test_data["input"]
         expected = test_data.get("expected")
@@ -384,7 +387,9 @@ class TestDecodeJSONIndentationWithSpecFixtures:
         if "\n" in result_2 and "\n" in result_4:
             # Multi-line results should differ in formatting
             # (indentation characters will be different)
-            assert result_2 != result_4, "Different indent sizes should produce different formatting"
+            assert result_2 != result_4, (
+                "Different indent sizes should produce different formatting"
+            )
 
     def test_json_indent_consistency_with_plain_decode(self):
         """Verify that json_indent=None produces same data as plain decode."""
