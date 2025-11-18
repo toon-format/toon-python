@@ -11,7 +11,7 @@ Python type normalization is tested in test_normalization.py.
 """
 
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 import pytest
 
@@ -309,7 +309,7 @@ class TestDecodeJSONIndentation:
     pass
 
 
-def _get_sample_decode_fixtures() -> List[tuple]:
+def _get_sample_decode_fixtures() -> List[Tuple[str, Dict[str, Any]]]:
     """Get a sample of decode test cases from fixture files for json_indent testing.
 
     Selects a few representative test cases from the official TOON spec fixtures.
