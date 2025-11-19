@@ -74,10 +74,12 @@ def parse_primitive(token: str) -> JsonValue:
     token = token.strip()
 
     # Quoted string
-    if token.startswith(DOUBLE_QUOTE):
-        if not token.endswith(DOUBLE_QUOTE) or len(token) < 2:
+    if not token.endswith(DOUBLE_QUOTE) or len(token) < 2:
+        if not match_quotes(token):
             raise ToonDecodeError("Unterminated string: missing closing quote")
-        return unescape_string(token[1:-1])
+        else:
+            print(f"Malformed double quoted string : '{token}'")
+            return unescape_string(token)
 
     # Boolean and null literals
     if is_boolean_or_null_literal(token):
@@ -786,3 +788,21 @@ def decode_list_array(
         raise ToonDecodeError(f"Expected {expected_length} items, but got {len(result)}")
 
     return result, i
+
+def match_quotes(line: str) -> bool:
+    """Check if quotes in the line are properly matched.
+
+    Args:
+        line: Line content
+    Returns:
+        True if quotes are matched, False otherwise
+    """
+
+    double_quote_balance = 0
+
+    for char in line:
+
+        if(char == DOUBLE_QUOTE):
+            double_quote_balance += 1
+
+    return (double_quote_balance % 2 == 0)
