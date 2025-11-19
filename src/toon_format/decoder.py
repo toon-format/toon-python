@@ -79,7 +79,6 @@ def parse_primitive(token: str) -> JsonValue:
             if not match_quotes(token):
                 raise ToonDecodeError("Unterminated string: missing closing quote")
             else:
-                print(f"Malformed double quoted string : '{token}'")
                 return unescape_string(token)
         return unescape_string(token[1:-1])
 
