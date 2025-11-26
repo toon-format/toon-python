@@ -7,7 +7,14 @@
 
 Compact, human-readable serialization format for LLM contexts with **30-60% token reduction** vs JSON. Combines YAML-like indentation with CSV-like tabular arrays. Working towards full compatibility with the [official TOON specification](https://github.com/toon-format/spec).
 
-**Key Features:** Minimal syntax • Tabular arrays for uniform data • Array length validation • Python 3.8+ • Comprehensive test coverage.
+**Key Features:** Minimal syntax • Tabular arrays for uniform data • Array length validation • Python 3.8+ • Comprehensive test coverage
+
+**🚀 Advanced Features (v0.9+):**
+- **Type-Safe Integration**: Pydantic, dataclasses, attrs support
+- **Streaming Processing**: Handle datasets larger than memory
+- **Plugin System**: Custom encoders for NumPy, Pandas, UUID, etc.
+- **Semantic Optimization**: AI-aware token reduction & field ordering
+- **Batch Processing**: Multi-format conversion (JSON/YAML/XML/CSV) with auto-detection
 
 ```bash
 # Beta published to PyPI - install from source:
@@ -38,6 +45,43 @@ encode([{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}])
 # Decode back to Python
 decode("items[2]: apple,banana")
 # {'items': ['apple', 'banana']}
+```
+
+### Advanced Usage (v0.9+)
+
+```python
+# Type-safe with Pydantic
+from pydantic import BaseModel
+from toon_format import encode_model, decode_model
+
+class User(BaseModel):
+    name: str
+    age: int
+
+user = User(name="Alice", age=30)
+toon_str = encode_model(user)
+decoded = decode_model(toon_str, User)
+
+# Streaming for large datasets
+from toon_format.streaming import StreamEncoder
+
+with StreamEncoder("large_data.toon") as encoder:
+    encoder.start_array(fields=["id", "name"])
+    for i in range(1_000_000):
+        encoder.encode_item({"id": i, "name": f"user_{i}"})
+    encoder.end_array()
+
+# Semantic optimization
+from toon_format.semantic import optimize_for_llm
+
+data = {"employee_identifier": 123, "full_name": "Alice"}
+optimized = optimize_for_llm(data, abbreviate_keys=True)
+# Result: {"emp_id": 123, "name": "Alice"}
+
+# Batch convert JSON to TOON
+from toon_format.batch import batch_convert
+
+batch_convert("json_files/", "toon_files/", from_format="json", to_format="toon")
 ```
 
 ## CLI Usage
