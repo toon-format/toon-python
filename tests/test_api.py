@@ -10,8 +10,12 @@ Spec compliance is tested in test_spec_fixtures.py using official fixtures.
 Python type normalization is tested in test_normalization.py.
 """
 
+import json
+from typing import Any, Dict, List, Tuple
+
 import pytest
 
+from tests.test_spec_fixtures import get_all_decode_fixtures
 from toon_format import ToonDecodeError, decode, encode
 from toon_format.types import DecodeOptions, EncodeOptions
 
@@ -286,3 +290,118 @@ class TestRoundtrip:
         toon = encode(original, {"lengthMarker": "#"})
         decoded = decode(toon)
         assert decoded == original
+
+
+# TODO: Add targeted unit tests for decode()'s json_indent feature here.
+#       See Issue #10. For now, comprehensive tests are in
+#       TestDecodeJSONIndentationWithSpecFixtures.
+@pytest.mark.skip(
+    reason="Placeholder for targeted decode() JSON indentation tests. See TODO above."
+)
+class TestDecodeJSONIndentation:
+    """Test decode() JSON indentation feature (Issue #10).
+
+    Comprehensive tests for the json_indent feature are in
+    TestDecodeJSONIndentationWithSpecFixtures, which validates against official
+    TOON specification fixtures.
+    """
+
+    pass
+
+
+def _get_sample_decode_fixtures() -> List[Tuple[str, Dict[str, Any]]]:
+    """Get a sample of decode test cases from fixture files for json_indent testing.
+
+    Selects a few representative test cases from the official TOON spec fixtures.
+    """
+    all_fixtures = get_all_decode_fixtures()
+
+    # Select a few representative test cases from different fixture categories
+    selected_files = {"primitives.json", "arrays-primitive.json", "objects.json"}
+    test_cases = []
+
+    for test_id, test_data, fixture_name in all_fixtures:
+        if f"{fixture_name}.json" in selected_files and len(test_cases) < 9:
+            test_cases.append((test_id, test_data))
+
+    return test_cases
+
+
+class TestDecodeJSONIndentationWithSpecFixtures:
+    """Test json_indent feature against spec fixtures to ensure comprehensive coverage.
+
+    These tests validate that the json_indent feature works correctly with various
+    TOON format patterns defined in the official specification fixtures.
+    """
+
+    @pytest.mark.parametrize("test_id,test_data", _get_sample_decode_fixtures())
+    def test_json_indent_produces_valid_json(self, test_id: str, test_data: Dict[str, Any]):
+        """Verify that json_indent produces valid JSON that can be parsed."""
+        input_str = test_data["input"]
+        expected = test_data.get("expected")
+        should_error = test_data.get("shouldError", False)
+
+        if should_error:
+            pytest.skip(f"Skipping error case: {test_id}")
+            return
+
+        # Decode with json_indent=2
+        result = decode(input_str, DecodeOptions(json_indent=2))
+
+        # Result should be a string (JSON)
+        assert isinstance(result, str), f"Expected string, got {type(result)} for {test_id}"
+
+        # Result should be valid JSON
+        parsed = json.loads(result)
+
+        # Parsed JSON should match the expected output from spec
+        assert parsed == expected, (
+            f"JSON mismatch in {test_id}\n"
+            f"Input: {input_str!r}\n"
+            f"Expected: {expected!r}\n"
+            f"Got: {parsed!r}"
+        )
+
+    @pytest.mark.parametrize("test_id,test_data", _get_sample_decode_fixtures())
+    def test_json_indent_with_different_indent_sizes(self, test_id: str, test_data: Dict[str, Any]):
+        """Verify that json_indent respects different indent sizes."""
+        input_str = test_data["input"]
+        expected = test_data.get("expected")
+        should_error = test_data.get("shouldError", False)
+
+        if should_error:
+            pytest.skip(f"Skipping error case: {test_id}")
+            return
+
+        # Test with indent=2
+        result_2 = decode(input_str, DecodeOptions(json_indent=2))
+        parsed_2 = json.loads(result_2)
+        assert parsed_2 == expected
+
+        # Test with indent=4
+        result_4 = decode(input_str, DecodeOptions(json_indent=4))
+        parsed_4 = json.loads(result_4)
+        assert parsed_4 == expected
+
+        # Different indent sizes should produce different strings (unless single line)
+        if "\n" in result_2 and "\n" in result_4:
+            # Multi-line results should differ in formatting
+            # (indentation characters will be different)
+            assert result_2 != result_4, (
+                "Different indent sizes should produce different formatting"
+            )
+
+    def test_json_indent_consistency_with_plain_decode(self):
+        """Verify that json_indent=None produces same data as plain decode."""
+        toon = "user:\n  name: Alice\n  age: 30"
+
+        # Decode as plain object
+        result_object = decode(toon)
+
+        # Decode with json_indent=None
+        result_none = decode(toon, DecodeOptions(json_indent=None))
+
+        # Both should return the same dict
+        assert result_object == result_none
+        assert isinstance(result_object, dict)
+        assert isinstance(result_none, dict)

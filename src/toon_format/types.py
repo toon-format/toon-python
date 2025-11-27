@@ -52,12 +52,26 @@ class DecodeOptions:
 
     Attributes:
         indent: Number of spaces per indentation level (default: 2)
+                Used for parsing TOON format.
         strict: Enable strict validation (default: True)
+                Enforces spec conformance checks.
+        json_indent: Optional number of spaces for JSON output formatting
+                     (default: None). When set, decode() returns a JSON-formatted
+                     string instead of a Python object. This is a Python-specific
+                     feature for convenient output formatting. When None, returns
+                     a Python object as normal. Pass an integer (e.g., 2 or 4)
+                     to enable pretty-printed JSON output.
     """
 
-    def __init__(self, indent: int = 2, strict: bool = True) -> None:
+    def __init__(
+        self,
+        indent: int = 2,
+        strict: bool = True,
+        json_indent: Union[int, None] = None,
+    ) -> None:
         self.indent = indent
         self.strict = strict
+        self.json_indent = json_indent
 
 
 # Depth type for tracking indentation level
