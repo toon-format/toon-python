@@ -120,6 +120,26 @@ tokens = count_tokens(toon_str)  # Uses tiktoken (gpt5/gpt5-mini)
 
 **Type Normalization:** `Infinity/NaN/Functions` → `null` • `Decimal` → `float` • `datetime` → ISO 8601 • `-0` → `0`
 
+## LangChain Integration
+
+Install with:
+```bash
+pip install "toon-python[langchain]"
+```
+Adds a **completely optional** LangChain integration via the `[langchain]` extra.
+
+### Features
+- `ToonSerializer`: `Document` → TOON (30-60 % token reduction)
+- `ToonOutputParser`: TOON response → Python object
+- Sync + async support
+- 2 unit tests (100 % coverage for new code)
+- README example + optional doc page
+
+## Usage after release
+```bash
+pip install "toon-python[langchain]"
+from toon_format.langchain import ToonSerializer
+```
 ## Development
 
 ```bash
