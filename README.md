@@ -135,7 +135,7 @@ Adds a **completely optional** LangChain integration via the `[langchain]` extra
 - 2 unit tests (100 % coverage for new code)
 - README example + optional doc page
 
-## Usage after release
+## Usage After Release
 ```bash
 pip install "toon-python[langchain]"
 from toon_format.langchain import ToonSerializer
