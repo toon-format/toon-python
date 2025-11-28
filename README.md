@@ -123,12 +123,15 @@ tokens = count_tokens(toon_str)  # Uses tiktoken (gpt5/gpt5-mini)
 ## LangChain Integration
 
 Install with:
+
 ```bash
 pip install "toon-python[langchain]"
 ```
+
 Adds a **completely optional** LangChain integration via the `[langchain]` extra.
 
 ### Features
+
 - `ToonSerializer`: `Document` → TOON (30-60 % token reduction)
 - `ToonOutputParser`: TOON response → Python object
 - Sync + async support
@@ -136,10 +139,24 @@ Adds a **completely optional** LangChain integration via the `[langchain]` extra
 - README example + optional doc page
 
 ## Usage After Release
+
 ```bash
 pip install "toon-python[langchain]"
-from toon_format.langchain import ToonSerializer
 ```
+
+```python
+from toon_format.langchain import ToonSerializer
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+chain = (
+    retriever
+    | ToonSerializer()                     # converts docs → compact TOON
+    | ChatPromptTemplate.from_template("Answer using this data:\n{data}")
+    | ChatOpenAI()
+)
+```
+
 ## Development
 
 ```bash
