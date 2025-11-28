@@ -120,6 +120,44 @@ tokens = count_tokens(toon_str)  # Uses tiktoken (gpt5/gpt5-mini)
 
 **Type Normalization:** `Infinity/NaN/Functions` → `null` • `Decimal` → `float` • `datetime` → ISO 8601 • `-0` → `0`
 
+## Pydantic Integration – (Structured TOON for LLM Outputs)
+
+Adds a **completely optional** Pydantic integration via the `[pydantic]` extra.
+
+```bash
+pip install "toon-python[pydantic]"
+```
+
+### Features
+
+- Schema: 50–60 % smaller than model_json_schema()
+- Zero JSON parsing errors
+- Works with `Instructor`, `Outlines`, `Marvin`, `LangChain agents`, etc.
+- Full Pydantic validation preserved
+
+## Usage After Release
+
+```python
+from toon_format.pydantic import ToonPydanticModel
+
+class User(ToonPydanticModel):
+    name: str
+    age: int
+    email: str | None = None
+
+# Convert schema to TOON for LLM system prompts
+schema_toon = User.schema_to_toon()
+# name:str,age:int,email:str|None
+
+# Parse LLM TOON output into validated Pydantic model  
+toon_output = "name:Ansar,age:25,email:ansar@example.com"
+user = User.from_toon(toon_output)
+
+# user.name → "Ansar"
+# user.age → 25
+# user.email → "ansar@example.com"
+```
+
 ## Development
 
 ```bash
