@@ -207,6 +207,13 @@ def to_parsed_lines(
     if not source.strip():
         return [], []
 
+    # Normalize Windows CRLF line endings to LF
+    # This prevents stray \r characters from appearing in content
+    source = source.replace("\r\n", "\n")
+
+    # Replace any remaining standalone \r characters (old Mac format) with \n
+    source = source.replace("\r", "\n")
+
     lines = source.split("\n")
     parsed: List[ParsedLine] = []
     blank_lines: List[BlankLineInfo] = []
