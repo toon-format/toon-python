@@ -108,3 +108,4 @@ uv.lock
 PR_DESCRIPTION.md
 AGENTS.md
 .augment/
+*.log
