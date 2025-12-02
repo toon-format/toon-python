@@ -1,4 +1,6 @@
 name: Lint
+permissions:
+  contents: read
 
 on:
   push:
@@ -22,12 +24,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Install dependencies
         run: |
           uv sync
-          uv pip install ruff mypy pytest
+          uv add ruff mypy pytest
 
       - name: Run ruff check
         run: uv run ruff check src/ tests/
