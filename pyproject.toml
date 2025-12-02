@@ -95,3 +95,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/toon_format"]
+
+[tool.poetry.extras]
+pydantic = ["pydantic"]
+
+[tool.poetry.group.dev.dependencies]
+pydantic = "*"
