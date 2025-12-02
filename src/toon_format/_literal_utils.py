@@ -51,14 +51,22 @@ def is_numeric_literal(token: str) -> bool:
         True
         >>> is_numeric_literal("0123")  # Leading zero - not valid
         False
+        >>> is_numeric_literal("-01")  # Negative with leading zero - not valid
+        False
         >>> is_numeric_literal("hello")
         False
     """
     if not token:
         return False
 
+    # Handle negative numbers
+    start_idx = 1 if token.startswith("-") else 0
+    if start_idx >= len(token):
+        return False
+
     # Must not have leading zeros (except for `"0"` itself or decimals like `"0.5"`)
-    if len(token) > 1 and token[0] == "0" and token[1] != ".":
+    # Check the first digit after optional minus sign
+    if len(token) > start_idx + 1 and token[start_idx] == "0" and token[start_idx + 1] != ".":
         return False
 
     # Check if it's a valid number
