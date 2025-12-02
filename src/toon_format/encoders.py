@@ -447,9 +447,9 @@ def encode_object_as_list_item(
             # Now encode the array content at depth + 1
             encode_array_content(first_arr, options, writer, depth + 1)
     else:
-        # If first value is an object, put "-" alone then encode normally
-        writer.push(depth, LIST_ITEM_PREFIX.rstrip())
-        encode_key_value_pair(first_key, first_value, options, writer, depth + 1)
+        # If first value is an object, put "- key:" then content at depth + 2
+        writer.push(depth, f"{LIST_ITEM_PREFIX}{first_key}:")
+        encode_value(first_value, options, writer, depth + 2)
 
     # Rest of the keys go normally indented
     for key, value in keys[1:]:
