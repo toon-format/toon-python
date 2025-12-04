@@ -95,3 +95,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/toon_format"]
+
+[tool.poetry.extras]
+langchain = ["langchain-core"]
+
+[tool.poetry.group.dev.dependencies]
+langchain-core = "*"
+langchain-openai = { version = "*", optional = true }
+tiktoken = "*"
