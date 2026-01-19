@@ -55,7 +55,7 @@ We support Python 3.8 and above (including Python 3.13 and 3.14).
 ### Testing
 
 - All new features must include tests
-- Maintain test coverage at **85%+ (enforced in CI)**
+- Maintain test coverage at **85%+ line coverage**
 - Tests should cover edge cases and spec compliance
 - Run the full test suite:
   ```bash
@@ -76,11 +76,13 @@ Before submitting changes that affect encoding/decoding behavior:
 
 ## Pull Request Guidelines
 
-- **Title**: Use a clear, descriptive title (e.g., "Add support for nested arrays", "Fix: Handle edge case in decoder")
+- **Title**: Use a clear, descriptive title
 - **Description**: Explain what changes you made and why
 - **Tests**: Include tests for your changes
-- **Documentation**: Update README or docstrings if needed
+- **Documentation**: Update README or documentation if needed
 - **Commits**: Use clear commit messages ([Conventional Commits](https://www.conventionalcommits.org/) preferred)
+
+Your pull request will use our standard template which guides you through the required information.
 
 ## Communication
 
@@ -88,15 +90,16 @@ Before submitting changes that affect encoding/decoding behavior:
 - **GitHub Discussions**: For questions and general discussion
 - **Pull Requests**: For code reviews and implementation discussion
 
-## Co-Maintainers
+## Maintainers
 
 This is a collaborative project. Current maintainers:
 
-- @bpradana
-- @davidpirogov
-- @xaviviro
+- [@xaviviro](https://github.com/xaviviro)
+- [@davidpirogov](https://github.com/davidpirogov)
+- [@bpradana](https://github.com/bpradana)
+- [@Justar96](https://github.com/Justar96)
 
-All maintainers have equal decision-making power. For major architectural decisions, please open a discussion issue first.
+All maintainers have equal and consensual decision-making power. For major architectural decisions, please open a discussion issue first.
 
 ## License
 
