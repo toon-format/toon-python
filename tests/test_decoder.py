@@ -140,3 +140,217 @@ b: 4"""
         assert keys == ["z", "a", "m", "b"]
         # Verify order is not alphabetical
         assert keys != ["a", "b", "m", "z"]
+
+class TestNestedStructures:
+    """Test cases - complex nested structures."""
+
+    def test_nested_object_with_array(self):
+        """Test decoding nested object containing arrays."""
+        toon = """a:
+  b: "123"
+  c[3]: 1,2,3"""
+        result = decode(toon)
+        assert result == {
+            "a": {
+                "b": "123",
+                "c": [1, 2, 3],
+            }
+        }
+
+    def test_root_array_with_nested_objects(self):
+        """Test decoding root-level array with nested objects."""
+        toon = """[1]:
+  -
+    a: "123" """
+        result = decode(toon)
+        assert isinstance(result, list)
+        assert len(result) == 1
+        assert result[0] == {"a": "123"}
+
+    def test_tabular_array_with_pipe_delimiter(self):
+        """Test tabular array using pipe delimiter."""
+        toon = '''translations[1|]{id|translation}:
+  1|"Stop your grinning, I shouted"'''
+        result = decode(toon)
+        expected = {
+            "translations": [
+                {
+                    "id": 1,
+                    "translation": "Stop your grinning, I shouted",
+                }
+            ]
+        }
+        assert result == expected
+
+    def test_tabular_array_comma_delimiter(self):
+        """Test tabular array with comma delimiter."""
+        toon = """users[2]{id,name}:
+  1,Alice
+  2,Bob"""
+        result = decode(toon)
+        assert result == {
+            "users": [
+                {"id": 1, "name": "Alice"},
+                {"id": 2, "name": "Bob"},
+            ]
+        }
+
+    def test_tabular_array_mixed_types(self):
+        """Test tabular array with mixed data types in rows."""
+        toon = """data[3]{id,active,score}:
+  1,true,95.5
+  2,false,-42
+  3,true,0.0"""
+        result = decode(toon)
+        assert result == {
+            "data": [
+                {"id": 1, "active": True, "score": 95.5},
+                {"id": 2, "active": False, "score": -42},
+                {"id": 3, "active": True, "score": 0.0},
+            ]
+        }
+
+    def test_simple_object_with_primitives(self):
+        """Test simple object with various primitive types."""
+        toon = """name: Alice
+age: 30
+active: true
+score: 95.5"""
+        result = decode(toon)
+        assert result == {
+            "name": "Alice",
+            "age": 30,
+            "active": True,
+            "score": 95.5,
+        }
+
+    def test_empty_input_returns_empty_object(self):
+        """Empty or whitespace-only input should return empty object."""
+        assert decode("") == {}
+        assert decode("   ") == {}
+        assert decode("\n\n") == {}
+
+    def test_single_primitive_value(self):
+        """Single primitive on one line should decode as that primitive."""
+        assert decode("42") == 42
+        assert decode('"hello"') == "hello"
+        assert decode("true") is True
+        assert decode("false") is False
+        assert decode("null") is None
+
+    def test_inline_primitive_array(self):
+        """Inline primitive arrays decode correctly."""
+        toon = "[3]: 1,2,3"
+        result = decode(toon)
+        assert result == [1, 2, 3]
+
+    def test_inline_primitive_array_with_strings(self):
+        """Inline primitive array with quoted strings."""
+        toon = '[3]: "apple","banana","cherry"'
+        result = decode(toon)
+        assert result == ["apple", "banana", "cherry"]
+
+    def test_string_with_escaped_quotes(self):
+        """Strings with escaped quotes should be unescaped."""
+        toon = r'text: "She said \"hello\""'
+        result = decode(toon)
+        assert result == {"text": 'She said "hello"'}
+
+    def test_deeply_nested_objects(self):
+        """Test deeply nested object structures."""
+        toon = """level1:
+  level2:
+    level3:
+      level4:
+        value: 42"""
+        result = decode(toon)
+        assert result == {
+            "level1": {
+                "level2": {
+                    "level3": {
+                        "level4": {"value": 42}
+                    }
+                }
+            }
+        }
+
+    def test_array_in_nested_object(self):
+        """Array nested inside objects at various levels."""
+        toon = """config:
+  items[2]: first,second
+  nested:
+    ids[3]: 1,2,3"""
+        result = decode(toon)
+        assert result == {
+            "config": {
+                "items": ["first", "second"],
+                "nested": {
+                    "ids": [1, 2, 3]
+                },
+            }
+        }
+
+    def test_multiple_arrays_in_object(self):
+        """Object with multiple array fields."""
+        toon = """data:
+  names[2]: Alice,Bob
+  ages[2]: 30,25
+  scores[2]: 95.5,87.0"""
+        result = decode(toon)
+        assert result == {
+            "data": {
+                "names": ["Alice", "Bob"],
+                "ages": [30, 25],
+                "scores": [95.5, 87.0],
+            }
+        }
+
+    def test_quoted_keys(self):
+        """Keys can be quoted to allow special characters."""
+        toon = '''"special-key": value1
+"another.key": value2'''
+        result = decode(toon)
+        assert result == {
+            "special-key": "value1",
+            "another.key": "value2",
+        }
+
+    def test_lenient_mode_allows_length_mismatch(self):
+        """Lenient mode should allow declared length mismatches."""
+        toon = "items[10]: a,b,c"  # Declared 10, got 3
+        result = decode(toon, DecodeOptions(strict=False))
+        assert result == {"items": ["a", "b", "c"]}
+
+    def test_strict_mode_rejects_length_mismatch(self):
+        """Strict mode should reject declared length mismatches."""
+        toon = "items[10]: a,b,c"  # Declared 10, got 3
+        with pytest.raises(ToonDecodeError):
+            decode(toon, DecodeOptions(strict=True))
+
+    def test_list_format_array_with_mixed_items(self):
+        """List format arrays with mixed primitive and object items."""
+        toon = """items[3]:
+  - first
+  - 42
+  - true"""
+        result = decode(toon)
+        assert result == {
+            "items": ["first", 42, True]
+        }
+
+    def test_list_format_array_with_objects(self):
+        """List format array with object items."""
+        toon = """users[2]:
+  -
+    name: Alice
+    age: 30
+  -
+    name: Bob
+    age: 25"""
+        result = decode(toon)
+        assert result == {
+            "users": [
+                {"name": "Alice", "age": 30},
+                {"name": "Bob", "age": 25},
+            ]
+        }
