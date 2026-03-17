@@ -272,6 +272,18 @@ class TestCLIMain:
                 result = main()
                 assert result == 0
 
+    def test_decode_indent_option_affects_output(self, tmp_path):
+        """Ensure --indent controls the JSON formatting."""
+        input_file = tmp_path / "input.toon"
+        input_file.write_text("outer:\n    inner: 1")
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.argv", ["toon", str(input_file), "--decode", "--indent", "4"]):
+                result = main()
+                assert result == 0
+                output = mock_stdout.getvalue()
+                assert '    "inner": 1' in output
+
     def test_error_file_not_found(self):
         """Test error when input file doesn't exist."""
         with patch("sys.stderr", new_callable=StringIO) as mock_stderr:

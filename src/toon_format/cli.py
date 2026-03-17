@@ -210,7 +210,7 @@ def decode_toon_to_json(
     options = DecodeOptions(indent=indent, strict=strict)
     data = decode(toon_text, options)
 
-    return json.dumps(data, indent=2, ensure_ascii=False)
+    return json.dumps(data, indent=indent, ensure_ascii=False)
 
 
 if __name__ == "__main__":
