@@ -51,9 +51,10 @@ echo '{"x": 1}' | toon -            # Stdin/stdout
 # Options
 toon data.json --encode --delimiter "\t" --length-marker
 toon data.toon --decode --no-strict --indent 4
+toon data.toon --check                  # Validate only (exit code)
 ```
 
-**Options:** `-e/--encode` `-d/--decode` `-o/--output` `--delimiter` `--indent` `--length-marker` `--no-strict`
+**Options:** `-e/--encode` `-d/--decode` `-o/--output` `--delimiter` `--indent` `--length-marker` `--no-strict` `--check`
 
 ## API Reference
 
