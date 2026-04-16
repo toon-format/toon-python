@@ -31,13 +31,50 @@ from typing import Any, Dict
 # __init__.py defines encode() before importing utils, so this is safe
 from . import encode
 
-__all__ = ["count_tokens", "estimate_savings", "compare_formats"]
+__all__ = ["count_tokens", "estimate_savings", "compare_formats", "encode_json", "loads"]
 
 
 _TIKTOKEN_MISSING_MSG = (
     "tiktoken is required for token counting. "
     "Install with: uv add tiktoken or uv add toon_format[benchmark]"
 )
+
+
+def loads(json_string: str) -> Any:
+    """Parse JSON string into Python objects.
+
+    This is an alias for `json.loads()` provided for convenience and to ensure
+    a TOON-friendly integration flow where JSON 'null' is correctly converted
+    to Python 'None'.
+
+    Args:
+        json_string: The JSON string to parse.
+
+    Returns:
+        Any: Parsed Python data structure.
+    """
+    return json.loads(json_string)
+
+
+def encode_json(json_string: str) -> str:
+    """Encode a JSON string directly into TOON format.
+
+    Parses the JSON string (converting 'null' to 'None' automatically)
+    and then encodes the resulting Python object into TOON.
+
+    Args:
+        json_string: The JSON string to encode.
+
+    Returns:
+        str: TOON-formatted string.
+
+    Example:
+        >>> import toon_format
+        >>> toon_format.encode_json('{"abc": null}')
+        'abc: null'
+    """
+    data = loads(json_string)
+    return encode(data)
 
 
 def _require_tiktoken():
