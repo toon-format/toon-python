@@ -1,35 +1,28 @@
 # Copyright (c) 2025 TOON Format Organization
 # SPDX-License-Identifier: MIT
-"""Token analysis utilities for TOON format.
+"""Utilities for TOON format.
 
-This module provides utilities for counting tokens and comparing
-token efficiency between JSON and TOON formats. Useful for:
-- Estimating API costs (tokens are the primary cost driver)
-- Optimizing prompt sizes for LLM context windows
-- Benchmarking TOON's token efficiency
+This module provides utilities for:
+- Token analysis and efficiency comparison between JSON and TOON formats
+- JSON integration and null value handling
+- Estimating API costs and optimizing prompt sizes
 
 Functions:
     count_tokens: Count tokens in a text string
     estimate_savings: Compare JSON vs TOON token counts
     compare_formats: Generate formatted comparison table
+    loads: Parse JSON string into Python objects (alias for json.loads)
+    encode_json: Encode a JSON string directly into TOON format
 
 Requirements:
     tiktoken: Install with `uv add tiktoken` or `uv add toon_format[benchmark]`
-
-Example:
-    >>> import toon_format
-    >>> data = {"name": "Alice", "age": 30}
-    >>> result = toon_format.estimate_savings(data)
-    >>> print(f"TOON saves {result['savings_percent']:.1f}% tokens")
 """
 
 import functools
 import json
 from typing import Any, Dict
 
-# Import encode from parent package (defined in __init__.py before this module is imported)
-# __init__.py defines encode() before importing utils, so this is safe
-from . import encode
+from .encoder import encode
 
 __all__ = ["count_tokens", "estimate_savings", "compare_formats", "encode_json", "loads"]
 
