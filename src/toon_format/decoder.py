@@ -156,10 +156,13 @@ def parse_header(
         delimiter = COMMA
         length_str = bracket_content[:-1]
 
-    # Parse length
+    # Parse length - reject non-integer strings (negative values are invalid)
     try:
         length = int(length_str)
     except ValueError:
+        return None
+
+    if length < 0:
         return None
 
     # Check for fields segment
