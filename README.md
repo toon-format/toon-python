@@ -149,13 +149,16 @@ class User(ToonPydanticModel):
 schema_toon = User.schema_to_toon()
 # name:str,age:int,email:str|None
 
-# Parse LLM TOON output into validated Pydantic model  
+# Parse LLM TOON output into validated Pydantic model
 toon_output = "name:Ansar,age:25,email:ansar@example.com"
-user = User.from_toon(toon_output)
+user = User.model_validate_toon(toon_output)
 
 # user.name → "Ansar"
 # user.age → 25
 # user.email → "ansar@example.com"
+
+# Serialize a model instance back to TOON
+toon_str = user.model_dump_toon()
 ```
 
 ## Development
