@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import TypeVar, Type
+from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
-from toon_format import encode, decode
+
+from toon_format import decode, encode
 
 T = TypeVar("T", bound="ToonPydanticModel")
 
@@ -38,7 +39,7 @@ class ToonPydanticModel(BaseModel):
         return encode(data)
 
     @classmethod
-    def model_validate_toon(cls: Type[T], text: str) -> T:
+    def model_validate_toon(cls: type[T], text: str) -> T:
         """
         Parse a raw TOON string (from an LLM) into a fully validated model.
 

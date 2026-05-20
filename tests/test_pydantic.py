@@ -1,5 +1,7 @@
+from typing import Optional
+
 import pytest
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from toon_format.pydantic import ToonPydanticModel
 
@@ -7,7 +9,7 @@ from toon_format.pydantic import ToonPydanticModel
 class User(ToonPydanticModel):
     name: str
     age: int
-    email: str | None = None
+    email: Optional[str] = None
 
 
 def test_schema_to_toon():
