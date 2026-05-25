@@ -14,6 +14,7 @@ from pathlib import Path
 
 from . import decode, encode
 from .types import DecodeOptions, EncodeOptions
+from .utils import compare_formats
 
 
 def main() -> int:
@@ -77,6 +78,12 @@ def main() -> int:
         help="Disable strict validation when decoding",
     )
 
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show token count estimates and savings (encode only)",
+    )
+
     args = parser.parse_args()
 
     # Read input
@@ -125,6 +132,11 @@ def main() -> int:
             except json.JSONDecodeError:
                 mode = "decode"
 
+    # Handle --stats with decode mode
+    if args.stats and mode == "decode":
+        print("Warning: --stats is only available in encode mode", file=sys.stderr)
+        args.stats = False
+
     # Process
     try:
         if mode == "encode":
@@ -134,6 +146,15 @@ def main() -> int:
                 indent=args.indent,
                 length_marker=args.length_marker,
             )
+
+            # Show stats if requested
+            if args.stats:
+                try:
+                    data = json.loads(input_text)
+                    print("\n" + compare_formats(data))
+                except RuntimeError as e:
+                    # tiktoken not installed
+                    print(f"\n {e}", file=sys.stderr)
         else:
             output_text = decode_toon_to_json(
                 input_text,
