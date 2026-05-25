@@ -76,6 +76,11 @@ def main() -> int:
         action="store_true",
         help="Disable strict validation when decoding",
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Validate input only and return exit status without writing output",
+    )
 
     args = parser.parse_args()
 
@@ -97,6 +102,9 @@ def main() -> int:
     # Determine operation mode
     if args.encode and args.decode:
         print("Error: Cannot specify both --encode and --decode", file=sys.stderr)
+        return 1
+    if args.check and args.output:
+        print("Error: Cannot specify both --check and --output", file=sys.stderr)
         return 1
 
     if args.encode:
@@ -145,6 +153,9 @@ def main() -> int:
         return 1
 
     # Write output
+    if args.check:
+        return 0
+
     try:
         if args.output:
             output_path = Path(args.output)

@@ -272,6 +272,70 @@ class TestCLIMain:
                 result = main()
                 assert result == 0
 
+    def test_check_valid_json_returns_zero_without_output(self, tmp_path):
+        """Check mode should validate JSON input and not emit output."""
+        input_file = tmp_path / "input.json"
+        input_file.write_text('{"ok": true}')
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+                with patch("sys.argv", ["toon", str(input_file), "--check"]):
+                    result = main()
+                    assert result == 0
+                    assert mock_stdout.getvalue() == ""
+                    assert mock_stderr.getvalue() == ""
+
+    def test_check_invalid_json_returns_error(self, tmp_path):
+        """Check mode should fail for invalid JSON when encoding."""
+        input_file = tmp_path / "input.json"
+        input_file.write_text('{"broken": invalid}')
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+                with patch("sys.argv", ["toon", str(input_file), "--check"]):
+                    result = main()
+                    assert result == 1
+                    assert mock_stdout.getvalue() == ""
+                    assert "Error during encode" in mock_stderr.getvalue()
+
+    def test_check_valid_toon_returns_zero_without_output(self, tmp_path):
+        """Check mode should validate TOON input and not emit output."""
+        input_file = tmp_path / "input.toon"
+        input_file.write_text("name: Alice\nage: 30")
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+                with patch("sys.argv", ["toon", str(input_file), "--check"]):
+                    result = main()
+                    assert result == 0
+                    assert mock_stdout.getvalue() == ""
+                    assert mock_stderr.getvalue() == ""
+
+    def test_check_invalid_toon_returns_error(self, tmp_path):
+        """Check mode should fail for invalid TOON when decoding."""
+        input_file = tmp_path / "input.toon"
+        input_file.write_text("items[2]: 1")
+
+        with patch("sys.stdout", new_callable=StringIO) as mock_stdout:
+            with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+                with patch("sys.argv", ["toon", str(input_file), "--check"]):
+                    result = main()
+                    assert result == 1
+                    assert mock_stdout.getvalue() == ""
+                    assert "Error during decode" in mock_stderr.getvalue()
+
+    def test_error_check_and_output_together(self, tmp_path):
+        """Check mode cannot be combined with output path."""
+        input_file = tmp_path / "input.json"
+        input_file.write_text('{"test": true}')
+        output_file = tmp_path / "output.toon"
+
+        with patch("sys.stderr", new_callable=StringIO) as mock_stderr:
+            with patch("sys.argv", ["toon", str(input_file), "--check", "-o", str(output_file)]):
+                result = main()
+                assert result == 1
+                assert "Cannot specify both --check and --output" in mock_stderr.getvalue()
+
     def test_decode_indent_option_affects_output(self, tmp_path):
         """Ensure --indent controls the JSON formatting."""
         input_file = tmp_path / "input.toon"
