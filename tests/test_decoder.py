@@ -194,4 +194,3 @@ class TestCRLFDecoding:
         options = DecodeOptions(strict=True)
         result = decode(toon, options)
         assert result == {"name": {"first": "Alice", "age": 30}}
-

@@ -299,4 +299,3 @@ class TestCRLFHandling:
         assert "\r" not in lines[0].content
         assert "\r" not in lines[1].content
         assert lines[1].depth == 1
-
