@@ -140,3 +140,58 @@ b: 4"""
         assert keys == ["z", "a", "m", "b"]
         # Verify order is not alphabetical
         assert keys != ["a", "b", "m", "z"]
+
+
+class TestCRLFDecoding:
+    """Test CRLF (Windows) line ending handling in decoder."""
+
+    def test_decode_object_with_crlf(self):
+        """Test decoding objects with CRLF line endings."""
+        toon = "name: Alice\r\nage: 30\r\n"
+        result = decode(toon)
+        assert result == {"name": "Alice", "age": 30}
+
+    def test_decode_nested_object_with_crlf(self):
+        """Test decoding nested objects with CRLF line endings."""
+        toon = "person:\r\n  name: Alice\r\n  age: 30\r\n"
+        result = decode(toon)
+        assert result == {"person": {"name": "Alice", "age": 30}}
+
+    def test_decode_array_with_crlf(self):
+        """Test decoding arrays with CRLF line endings."""
+        toon = "items[3]:\r\n  - apple\r\n  - banana\r\n  - cherry\r\n"
+        result = decode(toon)
+        assert result == {"items": ["apple", "banana", "cherry"]}
+
+    def test_decode_delimited_array_with_crlf(self):
+        """Test decoding delimited arrays with CRLF line endings."""
+        toon = "items[3]: apple,banana,cherry\r\n"
+        result = decode(toon)
+        assert result == {"items": ["apple", "banana", "cherry"]}
+
+    def test_decode_with_old_mac_cr(self):
+        """Test decoding with old Mac CR line endings."""
+        toon = "name: Alice\rage: 30\r"
+        result = decode(toon)
+        assert result == {"name": "Alice", "age": 30}
+
+    def test_decode_with_mixed_line_endings(self):
+        """Test decoding with mixed line endings."""
+        toon = "name: Alice\r\nage: 30\ncity: NYC\r"
+        result = decode(toon)
+        assert result == {"name": "Alice", "age": 30, "city": "NYC"}
+
+    def test_crlf_does_not_affect_quoted_strings(self):
+        """Test that CRLF normalization doesn't affect escaped \\r in strings."""
+        toon = 'text: "line1\\r\\nline2"\r\n'
+        result = decode(toon)
+        # The string should contain the escaped sequences
+        assert result == {"text": "line1\r\nline2"}
+
+    def test_crlf_in_strict_mode(self):
+        """Test CRLF works correctly in strict mode."""
+        toon = "name:\r\n  first: Alice\r\n  age: 30\r\n"
+        options = DecodeOptions(strict=True)
+        result = decode(toon, options)
+        assert result == {"name": {"first": "Alice", "age": 30}}
+
