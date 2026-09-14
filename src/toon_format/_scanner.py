@@ -211,7 +211,7 @@ def to_parsed_lines(
     # This prevents stray \r characters from appearing in content
     source = source.replace("\r\n", "\n")
 
-    # Strip any remaining standalone \r characters (old Mac format)
+    # Replace any remaining standalone \r characters (old Mac format) with \n
     source = source.replace("\r", "\n")
 
     lines = source.split("\n")
