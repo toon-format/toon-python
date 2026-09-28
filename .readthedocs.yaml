@@ -1,0 +1,19 @@
+# Read the Docs configuration: https://docs.readthedocs.com/platform/stable/config-file/v2.html
+version: 2
+
+build:
+  os: ubuntu-lts-latest
+  tools:
+    python: "3.14"
+
+mkdocs:
+  configuration: mkdocs.yml
+  fail_on_warning: true
+
+python:
+  install:
+    # Same pins as local development: uv reads pyproject.toml and uv.lock.
+    - method: uv
+      command: sync
+      groups:
+        - docs

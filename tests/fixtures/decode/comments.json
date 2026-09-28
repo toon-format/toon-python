@@ -1,0 +1,217 @@
+{
+  "version": "4.0",
+  "category": "decode",
+  "description": "Comment lines – full-line decode-side comments stripped before structural interpretation",
+  "tests": [
+    {
+      "name": "strips comment line between tabular rows without terminating rows",
+      "input": "items[2]{id,name}:\n  1,Ada\n  # note\n  2,Bob",
+      "expected": {
+        "items": [
+          {
+            "id": 1,
+            "name": "Ada"
+          },
+          {
+            "id": 2,
+            "name": "Bob"
+          }
+        ]
+      },
+      "specSection": "5.1",
+      "note": "The comment is not counted as a row and does not end the tabular scope"
+    },
+    {
+      "name": "strips comment line between header and first row",
+      "input": "items[2]{id}:\n  # leading\n  1\n  2",
+      "expected": {
+        "items": [
+          {
+            "id": 1
+          },
+          {
+            "id": 2
+          }
+        ]
+      },
+      "specSection": "5.1"
+    },
+    {
+      "name": "strips comment line whose indentation is not a multiple of indentSize",
+      "input": "a: 1\n   # three leading spaces\nb: 2",
+      "expected": {
+        "a": 1,
+        "b": 2
+      },
+      "specSection": "5.1",
+      "note": "Comment lines are exempt from the §12 strict indentation check"
+    },
+    {
+      "name": "strips outdented comment inside nested object scope without closing it",
+      "input": "user:\n  id: 1\n# outdented note\n  name: Ada",
+      "expected": {
+        "user": {
+          "id": 1,
+          "name": "Ada"
+        }
+      },
+      "specSection": "5.1",
+      "note": "A depth-0 comment between depth-1 fields does not close the object"
+    },
+    {
+      "name": "strips comment inside list array without counting as item",
+      "input": "items[2]:\n  - a\n  # note\n  - b",
+      "expected": {
+        "items": [
+          "a",
+          "b"
+        ]
+      },
+      "specSection": "5.1"
+    },
+    {
+      "name": "strips comment before root array header",
+      "input": "# heading\n[2]: a,b",
+      "expected": [
+        "a",
+        "b"
+      ],
+      "specSection": "5.1",
+      "note": "Root-form discovery runs on the comment-stripped sequence"
+    },
+    {
+      "name": "strips comment containing an unterminated quote without unescaping",
+      "input": "# \"unterminated\na: 1",
+      "expected": {
+        "a": 1
+      },
+      "specSection": "5.1",
+      "note": "Comment text is discarded without interpretation; the quote never reaches the tokenizer"
+    },
+    {
+      "name": "decodes document of only comments to empty object",
+      "input": "# only\n# comments",
+      "expected": {},
+      "specSection": "5.1"
+    },
+    {
+      "name": "decodes comments and blank lines only to empty object",
+      "input": "\n# c\n\n# d\n",
+      "expected": {},
+      "specSection": "5.1"
+    },
+    {
+      "name": "decodes a hash-leading root line as a comment, yielding an empty object",
+      "input": "#hello",
+      "expected": {},
+      "specSection": "5.1",
+      "note": "The only line is a comment, so the document is empty after the pre-pass"
+    },
+    {
+      "name": "throws when a stripped hash-leading row breaks the declared count",
+      "input": "items[2]{id}:\n  #1\n  2",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "14.1",
+      "note": "The first cell makes the whole line a comment; only one row remains for [2]"
+    },
+    {
+      "name": "drops hash-leading row silently in non-strict mode",
+      "input": "items[2]{id}:\n  #1\n  2",
+      "expected": {
+        "items": [
+          {
+            "id": 2
+          }
+        ]
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "5.1",
+      "note": "A hash-leading first cell makes the whole line a comment; non-strict mode drops the row silently"
+    },
+    {
+      "name": "throws on tab-indented hash line, which is not a comment",
+      "input": "a: 1\n\t# not a comment",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "5.1",
+      "note": "Only spaces (U+0020) may precede the #; the tab makes this a regular line, and tabs in indentation error in strict mode (§12)"
+    },
+    {
+      "name": "decodes tab-indented hash row as data in non-strict mode",
+      "input": "items[3]{id}:\n  1\n\t#x\n  2",
+      "expected": {
+        "items": [
+          {
+            "id": 1
+          },
+          {
+            "id": "#x"
+          },
+          {
+            "id": 2
+          }
+        ]
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "5.1",
+      "note": "Comment removal precedes the §12 tab leniency, so the tab keeps the line out of the pre-pass"
+    },
+    {
+      "name": "parses quoted hash-leading first cell as data, not comment",
+      "input": "items[1]{tag}:\n  \"#a\"",
+      "expected": {
+        "items": [
+          {
+            "tag": "#a"
+          }
+        ]
+      },
+      "specSection": "5.1"
+    },
+    {
+      "name": "parses hyphen list item with hash-leading token as string",
+      "input": "items[1]:\n  - #x",
+      "expected": {
+        "items": [
+          "#x"
+        ]
+      },
+      "specSection": "5.1",
+      "note": "\"#\" is not the line's first non-space character; comments are full-line only"
+    },
+    {
+      "name": "parses hash after key-value colon as string value",
+      "input": "note: #x",
+      "expected": {
+        "note": "#x"
+      },
+      "specSection": "5.1",
+      "note": "No inline comments; the unquoted token decodes as the string #x"
+    },
+    {
+      "name": "parses hash mid-value as data, not a trailing comment",
+      "input": "msg: hello # world",
+      "expected": {
+        "msg": "hello # world"
+      },
+      "specSection": "5.1"
+    },
+    {
+      "name": "round-trips quoted hash-leading values in field and inline array positions",
+      "input": "tag: \"#x\"\nlist[2]: \"#a\",b",
+      "expected": {
+        "tag": "#x",
+        "list": [
+          "#a",
+          "b"
+        ]
+      },
+      "specSection": "7.2"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "version": "4.0",
+  "category": "decode",
+  "description": "Whitespace tolerance in decoding – surrounding spaces around delimiters and values",
+  "tests": [
+    {
+      "name": "tolerates spaces around commas in inline arrays",
+      "input": "tags[3]: a , b , c",
+      "expected": {
+        "tags": ["a", "b", "c"]
+      },
+      "specSection": "12",
+      "note": "Trimming removes U+0020 only, never other Unicode whitespace"
+    },
+    {
+      "name": "tolerates spaces around pipes in inline arrays",
+      "input": "tags[3|]: a | b | c",
+      "expected": {
+        "tags": ["a", "b", "c"]
+      },
+      "specSection": "12"
+    },
+    {
+      "name": "tolerates spaces around tabs in inline arrays",
+      "input": "tags[3\t]: a \t b \t c",
+      "expected": {
+        "tags": ["a", "b", "c"]
+      },
+      "specSection": "12"
+    },
+    {
+      "name": "tolerates leading and trailing spaces in tabular row values",
+      "input": "items[2]{id,name}:\n  1 , Ada \n  2 , Bob ",
+      "expected": {
+        "items": [
+          { "id": 1, "name": "Ada" },
+          { "id": 2, "name": "Bob" }
+        ]
+      },
+      "specSection": "12"
+    },
+    {
+      "name": "tolerates spaces around delimiters with quoted values",
+      "input": "items[3]: \"a\" , \"b\" , \"c\"",
+      "expected": {
+        "items": ["a", "b", "c"]
+      },
+      "specSection": "12"
+    },
+    {
+      "name": "parses empty tokens as empty string",
+      "input": "items[3]: a,,c",
+      "expected": {
+        "items": ["a", "", "c"]
+      },
+      "specSection": "9.1"
+    },
+    {
+      "name": "preserves NBSP-leading unquoted value",
+      "input": "k: \u00a0v",
+      "expected": {
+        "k": "\u00a0v"
+      },
+      "specSection": "12",
+      "note": "Token trimming removes U+0020 only; NBSP is part of the token"
+    },
+    {
+      "name": "preserves NBSP around inline array tokens",
+      "input": "items[2]: \u00a0a\u00a0,b",
+      "expected": {
+        "items": ["\u00a0a\u00a0", "b"]
+      },
+      "specSection": "12",
+      "note": "A host trim() that strips the full Unicode whitespace set corrupts this round-trip"
+    },
+    {
+      "name": "decodes CRLF line terminators",
+      "input": "a: 1\r\nb: 2\r\n",
+      "expected": { "a": 1, "b": 2 },
+      "specSection": "12"
+    },
+    {
+      "name": "decodes tabular rows with CRLF line terminators",
+      "input": "items[2]{a,b}:\r\n  1,2\r\n  3,4\r\n",
+      "expected": { "items": [{ "a": 1, "b": 2 }, { "a": 3, "b": 4 }] },
+      "specSection": "12"
+    },
+    {
+      "name": "keeps an escaped carriage return inside a quoted value",
+      "input": "a: \"x\\ry\"\r\n",
+      "expected": { "a": "x\ry" },
+      "specSection": "12",
+      "note": "Only a CR at the end of a line is part of the line terminator"
+    },
+    {
+      "name": "treats a carriage-return-only line as blank",
+      "input": "a: 1\n\r\nb: 2",
+      "expected": { "a": 1, "b": 2 },
+      "specSection": "12"
+    },
+    {
+      "name": "strips a trailing carriage return at end of input",
+      "input": "a: 1\r",
+      "expected": { "a": 1 },
+      "specSection": "12"
+    },
+    {
+      "name": "strips a leading byte-order mark",
+      "input": "\ufeffa: 1",
+      "expected": {
+        "a": 1
+      },
+      "specSection": "12",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "treats a hyphen followed by trailing spaces as the bare marker",
+      "input": "a[1]:\n  - ",
+      "expected": {
+        "a": [
+          {}
+        ]
+      },
+      "specSection": "12",
+      "note": "Trailing spaces are stripped before line classification",
+      "minSpecVersion": "4.1"
+    }
+  ]
+}

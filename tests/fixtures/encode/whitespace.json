@@ -1,7 +1,7 @@
 {
-  "version": "1.3",
+  "version": "4.0",
   "category": "encode",
-  "description": "Whitespace and formatting invariants - no trailing spaces, no trailing newlines",
+  "description": "Whitespace and formatting invariants – no trailing spaces, no trailing newlines",
   "tests": [
     {
       "name": "produces no trailing newline at end of output",
@@ -9,8 +9,7 @@
         "id": 123
       },
       "expected": "id: 123",
-      "specSection": "4",
-      "note": "Output should not end with newline character"
+      "specSection": "12"
     },
     {
       "name": "maintains proper indentation for nested structures",
@@ -22,8 +21,31 @@
         "items": ["a", "b"]
       },
       "expected": "user:\n  id: 123\n  name: Ada\nitems[2]: a,b",
-      "specSection": "4",
-      "note": "2-space indentation, no trailing spaces on any line"
+      "specSection": "12"
+    },
+    {
+      "name": "respects custom indentSize option",
+      "input": {
+        "user": {
+          "name": "Ada",
+          "role": "admin"
+        }
+      },
+      "expected": "user:\n    name: Ada\n    role: admin",
+      "specSection": "12",
+      "options": {
+        "indentSize": 4
+      }
+    },
+    {
+      "name": "leaves non-ASCII whitespace unquoted",
+      "input": {
+        "k": "\u00a0x\u00a0"
+      },
+      "expected": "k: \u00a0x\u00a0",
+      "specSection": "7.2",
+      "note": "The whitespace trigger is U+0020 and U+0009 only",
+      "minSpecVersion": "4.1"
     }
   ]
 }

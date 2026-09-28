@@ -1,0 +1,55 @@
+# Data types
+
+## Encoding
+
+| Python | TOON |
+| --- | --- |
+| `dict` and other mappings | object; keys may be `str`, `int`, `float`, `bool`, or `None`, converted like `json.dumps` does |
+| `list`, `tuple` | array |
+| `set`, `frozenset` | array, sorted |
+| `str` | string, quoted only when needed |
+| `int` | number, exact at any size |
+| `float` | number; `nan` and infinities become `null` |
+| `decimal.Decimal` | number, with every digit preserved |
+| `bool`, `None` | `true`, `false`, `null` |
+| `datetime`, `date`, `time` | ISO 8601 string |
+| `uuid.UUID`, `pathlib.PurePath` | string |
+| `enum.Enum` | its value |
+| dataclass instance | object of its fields |
+| `pydantic.BaseModel` | `model_dump(mode="json")` |
+
+Anything else goes to `default`, or raises `TypeError`.
+
+## Decoding
+
+Decoding produces `dict`, `list`, `str`, `int`, `float`, `bool`, and `None`.
+A number without a fraction or exponent is an `int`; any other number is a
+`float`, unless `parse_float` or `parse_int` says otherwise. Strings are never
+converted back to dates or other types.
+
+## Specification choices
+
+This package targets **TOON 4.1** (`toon.__toon_spec__`). The specification
+asks implementations to document the following choices.
+
+**Numbers.** Integers encode and decode exactly at any size. Floats use the
+shortest representation that round-trips, in plain decimal between 1e-6 and
+1e21 and in exponent form (`1e+21`, `1e-7`) outside it. Integral floats from
+2⁵³ up are written with their exact digits, so that they decode to an equal
+`int`. A decoded number beyond the double range is an error in strict mode and
+`±inf` otherwise. `Decimal` input keeps every digit, and `parse_float=Decimal`
+keeps them when decoding.
+
+**Strings.** A string holding an unpaired surrogate cannot be encoded and
+raises `ValueError`. In strict mode, quoted strings may not contain literal
+control characters other than tab.
+
+**Key order** is preserved, except that tabular rows follow the header's field
+order. With `strict=False`, a duplicate key keeps its first position and its
+last value, as in `json.loads`. No key is special: `__proto__` is an ordinary key.
+
+**Tabs in indentation** are an error in strict mode; otherwise each leading tab
+counts as one level.
+
+**Nesting** deeper than the interpreter's recursion limit raises `ValueError`
+when encoding and `ToonDecodeError` when decoding.

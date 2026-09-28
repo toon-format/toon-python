@@ -1,0 +1,68 @@
+site_name: TOON for Python
+site_description: The official Python implementation of TOON (Token-Oriented Object Notation)
+# Read the Docs sets READTHEDOCS_CANONICAL_URL; the fallback is for local builds.
+site_url: !ENV [READTHEDOCS_CANONICAL_URL, "http://127.0.0.1:8000/"]
+repo_name: toon-format/toon-python
+repo_url: https://github.com/toon-format/toon-python
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - Data types: data-types.md
+  - Migrating from 0.9: migration.md
+  - API reference: api-reference.md
+  - Changelog: https://github.com/toon-format/toon-python/blob/main/CHANGELOG.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            show_signature_annotations: true
+            separate_signature: true
+            merge_init_into_class: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/toon-format/toon-python
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/toon-format/

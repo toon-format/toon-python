@@ -1,64 +1,27 @@
-# Copyright (c) 2025 TOON Format Organization
-# SPDX-License-Identifier: MIT
-"""Type definitions for TOON format.
+"""Option types of the deprecated ``toon_format`` 0.9 API."""
 
-Defines type aliases and TypedDict classes for JSON values, encoding/decoding
-options, and internal types used throughout the package.
-"""
+from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, TypedDict, Union
+from typing import Any, Literal, TypedDict
 
-# JSON-compatible types
-JsonPrimitive = Union[str, int, float, bool, None]
-JsonObject = Dict[str, Any]
-JsonArray = List[Any]
-JsonValue = Union[JsonPrimitive, JsonArray, JsonObject]
+__all__ = ["DecodeOptions", "Delimiter", "DelimiterKey", "EncodeOptions", "JsonValue"]
 
-# Delimiter type
+JsonValue = Any
 Delimiter = str
 DelimiterKey = Literal["comma", "tab", "pipe"]
 
 
 class EncodeOptions(TypedDict, total=False):
-    """Options for TOON encoding.
-
-    Attributes:
-        indent: Number of spaces per indentation level (default: 2)
-        delimiter: Delimiter character for arrays (default: comma)
-        lengthMarker: Optional marker to prefix array lengths (default: False)
-    """
+    """Options for :func:`toon_format.encode`."""
 
     indent: int
     delimiter: Delimiter
-    lengthMarker: Union[Literal["#"], Literal[False]]
-
-
-class ResolvedEncodeOptions:
-    """Resolved encoding options with defaults applied."""
-
-    def __init__(
-        self,
-        indent: int = 2,
-        delimiter: str = ",",
-        length_marker: Union[Literal["#"], Literal[False]] = False,
-    ) -> None:
-        self.indent = indent
-        self.delimiter = delimiter
-        self.lengthMarker: Union[str, Literal[False]] = length_marker
+    lengthMarker: Literal["#"] | Literal[False]
 
 
 class DecodeOptions:
-    """Options for TOON decoding.
-
-    Attributes:
-        indent: Number of spaces per indentation level (default: 2)
-        strict: Enable strict validation (default: True)
-    """
+    """Options for :func:`toon_format.decode`."""
 
     def __init__(self, indent: int = 2, strict: bool = True) -> None:
         self.indent = indent
         self.strict = strict
-
-
-# Depth type for tracking indentation level
-Depth = int

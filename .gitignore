@@ -73,11 +73,6 @@ venv.bak/
 *.swo
 *~
 .claude/
-CLAUDE.md
-
-# DevContainer local overrides
-.devcontainer/devcontainer.local.json
-.devcontainer/.env
 
 # macOS
 .DS_Store
@@ -103,8 +98,8 @@ Temporary Items
 
 # uv
 .uv/
-uv.lock
 
 PR_DESCRIPTION.md
-AGENTS.md
 .augment/
+# MkDocs build output
+site/

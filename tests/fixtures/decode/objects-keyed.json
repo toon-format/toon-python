@@ -1,0 +1,230 @@
+{
+  "version": "4.0",
+  "category": "decode",
+  "description": "Keyed tabular decoding – parsing keyed headers and entry rows into objects",
+  "tests": [
+    {
+      "name": "parses keyed tabular objects",
+      "input": "servers[2:]{host,port}:\n  alpha: a.example.com,8080\n  beta: b.example.com,9090",
+      "expected": {
+        "servers": {
+          "alpha": { "host": "a.example.com", "port": 8080 },
+          "beta": { "host": "b.example.com", "port": 9090 }
+        }
+      },
+      "specSection": "9.5"
+    },
+    {
+      "name": "parses a keyless keyed header as a root object",
+      "input": "[2:]{age,city}:\n  alice: 30,Berlin\n  bob: 25,Oslo",
+      "expected": {
+        "alice": { "age": 30, "city": "Berlin" },
+        "bob": { "age": 25, "city": "Oslo" }
+      },
+      "specSection": "9.5",
+      "note": "Root-form discovery (§5) routes the keyless keyed header to a root object, not a root array"
+    },
+    {
+      "name": "parses nested field groups in keyed headers",
+      "input": "regions[2:]{name,geo{lat,lon}}:\n  eu: Europe,50,10\n  us: America,40,-100",
+      "expected": {
+        "regions": {
+          "eu": { "name": "Europe", "geo": { "lat": 50, "lon": 10 } },
+          "us": { "name": "America", "geo": { "lat": 40, "lon": -100 } }
+        }
+      },
+      "specSection": "9.5"
+    },
+    {
+      "name": "parses keyed headers with the pipe delimiter",
+      "input": "servers[2:|]{host|port}:\n  alpha: a|8080\n  beta: b|9090",
+      "expected": {
+        "servers": {
+          "alpha": { "host": "a", "port": 8080 },
+          "beta": { "host": "b", "port": 9090 }
+        }
+      },
+      "specSection": "9.5"
+    },
+    {
+      "name": "parses keyed headers with the tab delimiter",
+      "input": "servers[2:\t]{host\tport}:\n  alpha: a\t8080\n  beta: b\t9090",
+      "expected": {
+        "servers": {
+          "alpha": { "host": "a", "port": 8080 },
+          "beta": { "host": "b", "port": 9090 }
+        }
+      },
+      "specSection": "9.5"
+    },
+    {
+      "name": "parses quoted entry keys",
+      "input": "ids[2:]{v}:\n  \"42\": 1\n  \"my key\": 2",
+      "expected": {
+        "ids": {
+          "42": { "v": 1 },
+          "my key": { "v": 2 }
+        }
+      },
+      "specSection": "9.5"
+    },
+    {
+      "name": "parses a quoted entry key containing a colon",
+      "input": "m[1:]{v}:\n  \"a:b\": 1",
+      "expected": {
+        "m": {
+          "a:b": { "v": 1 }
+        }
+      },
+      "specSection": "9.5",
+      "note": "The entry-row split is at the first unquoted colon; the quoted colon is key data"
+    },
+    {
+      "name": "treats a key-value line at the header's depth as a sibling after entries end",
+      "input": "data[2:]{x}:\n  a: 1\n  b: 2\ncount: 3",
+      "expected": {
+        "data": {
+          "a": { "x": 1 },
+          "b": { "x": 2 }
+        },
+        "count": 3
+      },
+      "specSection": "9.5",
+      "note": "A keyed scope ends only by dedent or end of input"
+    },
+    {
+      "name": "treats key-value-shaped lines at entry depth as entry rows",
+      "input": "m[2:]{x}:\n  total: 5\n  other: 6",
+      "expected": {
+        "m": {
+          "total": { "x": 5 },
+          "other": { "x": 6 }
+        }
+      },
+      "specSection": "9.5",
+      "note": "Opposite polarity to §9.3: in a tabular array, a colon-before-delimiter line at row depth ends the rows; in a keyed scope it is an entry"
+    },
+    {
+      "name": "splits an entry row at its first unquoted colon before delimiter splitting",
+      "input": "m[1:]{v}:\n  k[2]: 5",
+      "expected": {
+        "m": {
+          "k[2]": { "v": 5 }
+        }
+      },
+      "specSection": "9.5",
+      "note": "The token before the first unquoted colon is the entry key, accepted as a literal key per §7.4 even though an encoder would quote it"
+    },
+    {
+      "name": "decodes the cell token [] as a string, not an empty array",
+      "input": "m[2:]{v}:\n  a: []\n  b: x",
+      "expected": {
+        "m": {
+          "a": { "v": "[]" },
+          "b": { "v": "x" }
+        }
+      },
+      "specSection": "9.5",
+      "note": "The §9.1 empty-array form does not apply inside entry rows"
+    },
+    {
+      "name": "accepts a declared entry count of zero",
+      "input": "m[0:]{v}:",
+      "expected": {
+        "m": {}
+      },
+      "specSection": "9.5",
+      "note": "Encoders never emit keyed headers for fewer than two entries; decoders accept any N with count checks"
+    },
+    {
+      "name": "accepts a single entry row",
+      "input": "m[1:]{v}:\n  a: 1",
+      "expected": {
+        "m": {
+          "a": { "v": 1 }
+        }
+      },
+      "specSection": "9.5"
+    },
+    {
+      "name": "parses quoted cells containing the active delimiter",
+      "input": "m[2:]{t}:\n  a: \"x,y\"\n  b: z",
+      "expected": {
+        "m": {
+          "a": { "t": "x,y" },
+          "b": { "t": "z" }
+        }
+      },
+      "specSection": "9.5"
+    },
+    {
+      "name": "parses a keyed header on a hyphen line",
+      "input": "items[2]:\n  - config[2:]{x}:\n      a: 1\n      b: 2\n    status: ok\n  - status: down",
+      "expected": {
+        "items": [
+          { "config": { "a": { "x": 1 }, "b": { "x": 2 } }, "status": "ok" },
+          { "status": "down" }
+        ]
+      },
+      "specSection": "10"
+    },
+    {
+      "name": "ignores comment lines between entry rows",
+      "input": "m[2:]{v}:\n  a: 1\n# note\n  b: 2",
+      "expected": {
+        "m": {
+          "a": { "v": 1 },
+          "b": { "v": 2 }
+        }
+      },
+      "specSection": "5.1",
+      "note": "Comment removal never ends a keyed scope, and a comment line never counts as an entry"
+    },
+    {
+      "name": "applies LWW for duplicate entry keys in non-strict mode",
+      "input": "m[2:]{v}:\n  a: 1\n  a: 2",
+      "expected": {
+        "m": {
+          "a": { "v": 2 }
+        }
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.3",
+      "note": "Entry keys are sibling keys of the decoded object and resolve last-write-wins"
+    },
+    {
+      "name": "accepts entry keys outside the encoder unquoted-key pattern",
+      "input": "u[2:]{a}:\n  2key: 1\n  foo-bar: 2",
+      "expected": {
+        "u": {
+          "2key": {
+            "a": 1
+          },
+          "foo-bar": {
+            "a": 2
+          }
+        }
+      },
+      "specSection": "7.4",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "skips an entry-depth line without a colon in non-strict mode",
+      "input": "u[2:]{x}:\n  a: 1\n  boom",
+      "expected": {
+        "u": {
+          "a": {
+            "x": 1
+          }
+        }
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "9.5",
+      "minSpecVersion": "4.1"
+    }
+  ]
+}
