@@ -1,5 +1,5 @@
 [project]
-name = "toon-format"
+name = "toon-python"
 version = "1.0.0"
 description = "Official Python implementation of TOON (Token-Oriented Object Notation), a compact, human-readable encoding of the JSON data model for LLM prompts."
 readme = "README.md"
@@ -60,12 +60,17 @@ docs = [
     "mkdocstrings[python]>=1.0.6",
 ]
 
+[tool.uv.workspace]
+# toon-format, the former name, which carries the deprecated toon_format
+# module and its tests.
+members = ["packaging/toon-format"]
+
 [build-system]
 requires = ["uv_build>=0.9,<0.12"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = ["toon", "toon_format"]
+module-name = "toon"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -74,7 +79,7 @@ filterwarnings = ["error"]
 
 [tool.coverage.run]
 branch = true
-source = ["toon", "toon_format"]
+source = ["toon"]
 
 [tool.coverage.report]
 show_missing = true
@@ -109,7 +114,7 @@ known-first-party = ["toon", "toon_format"]
 [tool.mypy]
 python_version = "3.10"
 strict = true
-files = ["src"]
+files = ["src", "packaging/toon-format/src"]
 
 [[tool.mypy.overrides]]
 module = ["tiktoken", "tiktoken.*"]

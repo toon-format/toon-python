@@ -1,14 +1,13 @@
 # Publishes to PyPI with trusted publishing (no API token).
 #
-# PyPI's trusted publisher for "toon-format" is bound to this file name
-# (publish.yml) and to the "pypi" and "testpypi" environments: keep them.
+# Two projects are uploaded: "toon-python" (the repository root) and then
+# "toon-format" (packaging/toon-format), its former name, which depends on it.
+# PyPI's trusted publishers for both are bound to this file name (publish.yml)
+# and to the "pypi" and "testpypi" environments: keep them.
 #
 # - Publishing a GitHub release uploads to PyPI. The release tag must be
 #   "v" followed by the version in pyproject.toml, for example v1.0.0.
 # - Running the workflow by hand uploads to TestPyPI.
-# - The same jobs upload "toon-python" (packaging/toon-python), an alias that
-#   only depends on toon-format. PyPI needs a trusted publisher for that
-#   project too, with this file name and the same environments.
 
 name: Publish
 
@@ -35,18 +34,21 @@ jobs:
             echo "::error::Tag ${GITHUB_REF_NAME} does not match version ${version} in pyproject.toml"
             exit 1
           fi
-      - name: Check that the toon-python alias matches the version
+      - name: Check that toon-format matches the version
         run: |
           version="$(uv version --short)"
-          alias="$(uv version --short --project packaging/toon-python)"
-          if [ "${alias}" != "${version}" ] || ! grep -q "\"toon-format==${version}\"" packaging/toon-python/pyproject.toml; then
-            echo "::error::packaging/toon-python must have version ${version} and depend on toon-format==${version}"
+          alias="$(uv version --short --package toon-format)"
+          pins="$(grep -c "toon-python\(\[[a-z]*\]\)\?==${version}\"" packaging/toon-format/pyproject.toml)"
+          if [ "${alias}" != "${version}" ] || [ "${pins}" != 3 ]; then
+            echo "::error::packaging/toon-format must have version ${version} and pin toon-python==${version} (dependency and both extras)"
             exit 1
           fi
       - run: uv sync --locked
       - run: uv run pytest
-      - run: uv build
-      - run: uv build packaging/toon-python --out-dir alias/
+      - run: uv run --locked --package toon-format pytest
+        working-directory: packaging/toon-format
+      - run: uv build --package toon-python
+      - run: uv build --package toon-format --out-dir alias/
       - uses: actions/upload-artifact@v5
         with:
           name: dist
@@ -63,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/toon-format
+      url: https://pypi.org/p/toon-python
     permissions:
       id-token: write
     steps:
@@ -86,7 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/toon-format
+      url: https://test.pypi.org/p/toon-python
     permissions:
       id-token: write
     steps:

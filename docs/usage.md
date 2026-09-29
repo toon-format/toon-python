@@ -124,7 +124,7 @@ toon data.json --stats               # also print token counts to standard error
 ```
 
 `--stats` compares the token counts of compact JSON, indented JSON, and TOON.
-It needs the `tokens` extra (`pip install "toon-format[tokens]"`) and counts
+It needs the `tokens` extra (`pip install "toon-python[tokens]"`) and counts
 offline with OpenAI's `o200k_base` tokenizer through `tiktoken`, so the counts
 are exact for OpenAI models only. Other models, Claude and Gemini among them,
 use different tokenizers: treat the figures as an estimate for them.
@@ -133,7 +133,7 @@ Run `toon --help` for the other options.
 
 ## Pydantic
 
-With the `toon-format[pydantic]` extra, `toon.dumps` accepts any
+With the `toon-python[pydantic]` extra, `toon.dumps` accepts any
 `pydantic.BaseModel`, and `ToonPydanticModel` adds TOON counterparts of
 pydantic's JSON helpers:
 

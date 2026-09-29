@@ -36,6 +36,6 @@ __toon_spec__ = "4.1"
 """Version of the TOON specification this package implements."""
 
 try:
-    __version__ = version("toon-format")
+    __version__ = version("toon-python")
 except PackageNotFoundError:  # pragma: no cover - running from a source tree
     __version__ = "0.0.0"

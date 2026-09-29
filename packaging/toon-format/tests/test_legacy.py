@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import subprocess
 import sys
 from datetime import date
 from types import ModuleType
@@ -99,3 +100,14 @@ def test_token_utilities_need_tiktoken(
     monkeypatch.setitem(sys.modules, "tiktoken", None)
     with pytest.raises(RuntimeError, match="tiktoken is required"):
         toon_format.count_tokens("x", encoding="cl100k_base")
+
+
+def test_python_m() -> None:
+    result = subprocess.run(
+        [sys.executable, "-W", "ignore", "-m", "toon_format", "-e"],
+        input="[1, 2]",
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout == "[2]: 1,2\n"

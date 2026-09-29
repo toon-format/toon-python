@@ -26,13 +26,14 @@ from 0.9.
 - CLI options `--check` (validate only), `--json-indent`, and `--stats` (token
   counts with `tiktoken`, exact for OpenAI models only), and `python -m toon`.
 - Documentation site built with MkDocs for Read the Docs.
-- The `toon-python` distribution on PyPI, an alias that installs `toon-format`.
 - Differential tests against the independent [toons](https://github.com/alesanfra/toons)
   implementation and property-based round-trip tests.
 
 ### Changed
 
-- The import name is now `toon`. `toon_format` remains as a deprecated wrapper.
+- The distribution is now `toon-python` and the import name `toon`. The
+  `toon-format` distribution remains as its former name: it depends on
+  `toon-python` and carries the deprecated `toon_format` module.
 - Unsupported values raise `TypeError` instead of becoming `null`.
 - Python 3.10 or later is required.
 

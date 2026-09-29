@@ -7,6 +7,12 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 
+[manifest]
+members = [
+    "toon-format",
+    "toon-python",
+]
+
 [[package]]
 name = "annotated-types"
 version = "0.8.0"
@@ -1680,6 +1686,44 @@ wheels = [
 
 [[package]]
 name = "toon-format"
+version = "1.0.0"
+source = { editable = "packaging/toon-format" }
+dependencies = [
+    { name = "toon-python" },
+]
+
+[package.optional-dependencies]
+pydantic = [
+    { name = "toon-python", extra = ["pydantic"] },
+]
+tokens = [
+    { name = "toon-python", extra = ["tokens"] },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "pydantic" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "toon-python", editable = "." },
+    { name = "toon-python", extras = ["pydantic"], marker = "extra == 'pydantic'", editable = "." },
+    { name = "toon-python", extras = ["tokens"], marker = "extra == 'tokens'", editable = "." },
+]
+provides-extras = ["pydantic", "tokens"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pydantic", specifier = ">=2" },
+    { name = "pytest", specifier = ">=8" },
+    { name = "pytest-cov", specifier = ">=5" },
+]
+
+[[package]]
+name = "toon-python"
 version = "1.0.0"
 source = { editable = "." }
 

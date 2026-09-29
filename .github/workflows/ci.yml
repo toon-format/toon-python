@@ -60,6 +60,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --locked
       - run: uv run pytest --cov --cov-report=term --cov-report=xml --cov-fail-under=95
+      - name: Test the deprecated toon_format module
+        working-directory: packaging/toon-format
+        run: uv run --locked --package toon-format pytest --cov --cov-fail-under=95
       - uses: actions/upload-artifact@v5
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         with:
@@ -72,9 +75,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v7
-      - run: uv build
-      - name: Smoke test the wheel
+      - run: uv build --all-packages
+      - name: Smoke test the wheels
         run: |
-          uv run --isolated --no-project --with dist/*.whl python -c \
+          uv run --isolated --no-project --with dist/toon_python-*.whl python -c \
             "import toon; assert toon.loads(toon.dumps({'a': [1, 2]})) == {'a': [1, 2]}"
-          uv run --isolated --no-project --with dist/*.whl toon --version
+          uv run --isolated --no-project --with dist/toon_python-*.whl toon --version
+          uv run --isolated --no-project --with dist/toon_python-*.whl \
+            --with dist/toon_format-*.whl python -c \
+            "import toon_format; assert toon_format.decode('a: 1') == {'a': 1}"

@@ -5,6 +5,11 @@ package to the `toon` module with a `json`-style interface. The old
 `toon_format` module still works: it delegates to the new implementation and
 emits a `DeprecationWarning` when imported.
 
+The distribution is now `toon-python`. Replace `toon-format` with
+`toon-python` in your dependencies; until then, `toon-format` 1.0 installs
+`toon-python` and keeps the `toon_format` module and the `toon` command, so
+upgrading needs no other change.
+
 ## Renamed functions
 
 | 0.9 | 1.0 |

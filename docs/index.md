@@ -12,13 +12,15 @@ tokens in LLM prompts.
 ## Installation
 
 ```bash
-pip install toon-format
+pip install toon-python
 # or
-uv add toon-format
+uv add toon-python
 ```
 
-The distribution is named `toon-format`; the module is `toon`. Install
-`toon-format[pydantic]` for the [Pydantic integration](usage.md#pydantic).
+The distribution is named `toon-python`; the module is `toon`. Install
+`toon-python[pydantic]` for the [Pydantic integration](usage.md#pydantic).
+Up to 0.9 the distribution was `toon-format`, which still works and installs
+`toon-python`.
 
 ## Quick start
 

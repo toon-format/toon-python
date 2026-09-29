@@ -21,7 +21,7 @@ def _encoding(name: str) -> Any:
         import tiktoken
     except ImportError as exc:
         raise RuntimeError(
-            'tiktoken is required for token counting: pip install "toon-format[tokens]"'
+            'tiktoken is required for token counting: pip install "toon-python[tokens]"'
         ) from exc
     return tiktoken.get_encoding(name)
 

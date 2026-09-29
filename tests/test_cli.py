@@ -116,7 +116,7 @@ def test_stats_needs_tiktoken(
     code, out, err = run(monkeypatch, capsys, "-e", "--stats", stdin='{"a": 1}')
     assert (code, out) == (1, "")
     assert err == (
-        'toon: tiktoken is required for token counting: pip install "toon-format[tokens]"\n'
+        'toon: tiktoken is required for token counting: pip install "toon-python[tokens]"\n'
     )
 
 
@@ -201,10 +201,9 @@ def test_unwritable_output(
     assert err.startswith(f"toon: cannot write {target}")
 
 
-@pytest.mark.parametrize("module", ["toon", "toon_format"])
-def test_python_m(module: str) -> None:
+def test_python_m() -> None:
     result = subprocess.run(
-        [sys.executable, "-W", "ignore", "-m", module, "-e"],
+        [sys.executable, "-m", "toon", "-e"],
         input="[1, 2]",
         capture_output=True,
         text=True,

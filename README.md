@@ -1,8 +1,8 @@
 # TOON for Python
 
 [![CI](https://github.com/toon-format/toon-python/actions/workflows/ci.yml/badge.svg)](https://github.com/toon-format/toon-python/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/toon-format.svg)](https://pypi.org/project/toon-format/)
-[![Python versions](https://img.shields.io/pypi/pyversions/toon-format.svg)](https://pypi.org/project/toon-format/)
+[![PyPI](https://img.shields.io/pypi/v/toon-python.svg)](https://pypi.org/project/toon-python/)
+[![Python versions](https://img.shields.io/pypi/pyversions/toon-python.svg)](https://pypi.org/project/toon-python/)
 [![Docs](https://readthedocs.org/projects/toon-python/badge/?version=latest)](https://toon-python.readthedocs.io)
 [![TOON spec](https://img.shields.io/badge/TOON%20spec-4.1-blue)](https://github.com/toon-format/spec/blob/main/SPEC.md)
 
@@ -47,13 +47,15 @@ assert toon.loads(toon.dumps(data)) == data
 ## Installation
 
 ```bash
-pip install toon-format
+pip install toon-python
 # or
-uv add toon-format
+uv add toon-python
 ```
 
-The distribution is named `toon-format`; the module is `toon`. Optional extras:
-`toon-format[pydantic]` for the Pydantic integration.
+The distribution is named `toon-python`; the module is `toon`. Optional extras:
+`toon-python[pydantic]` for the Pydantic integration and `toon-python[tokens]`
+for `toon --stats`. Up to 0.9 the distribution was `toon-format`, which still
+works and installs `toon-python`.
 
 ## Usage
 
@@ -85,8 +87,9 @@ implementations, the command line, Pydantic, and the API reference.
 
 ## Migrating from `toon_format` 0.9
 
-`import toon_format` still works and delegates to the new API, with a
-`DeprecationWarning`. See the [migration guide](https://toon-python.readthedocs.io/en/latest/migration/).
+`pip install toon-format` and `import toon_format` still work: the
+`toon-format` distribution now installs `toon-python`, and `toon_format`
+delegates to the new API with a `DeprecationWarning`. See the [migration guide](https://toon-python.readthedocs.io/en/latest/migration/).
 
 ## Contributing
 

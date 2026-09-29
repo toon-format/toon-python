@@ -1,6 +1,6 @@
 """Pydantic integration.
 
-Requires the ``pydantic`` extra: ``pip install "toon-format[pydantic]"``.
+Requires the ``pydantic`` extra: ``pip install "toon-python[pydantic]"``.
 
 Plain :class:`pydantic.BaseModel` instances can be passed to
 :func:`toon.dumps` directly. :class:`ToonPydanticModel` adds TOON

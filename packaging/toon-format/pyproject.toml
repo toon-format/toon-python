@@ -1,11 +1,12 @@
-# Alias distribution: `pip install toon-python` installs toon-format.
-# Keep the metadata in step with the root pyproject.toml. The version and the
-# pin below always equal the version of toon-format; the Publish workflow
-# refuses to release otherwise.
+# toon-format: the distribution name used up to 1.0. It depends on toon-python
+# at the same version and carries the deprecated toon_format module and the
+# `toon` command, so that upgrading from 0.9 keeps both (pip removes the files
+# of the old toon-format after installing toon-python). Keep the metadata in
+# step with the root pyproject.toml; the Publish workflow checks the version.
 [project]
-name = "toon-python"
+name = "toon-format"
 version = "1.0.0"
-description = "Alias of toon-format, the official Python implementation of TOON (Token-Oriented Object Notation), a compact, human-readable encoding of the JSON data model for LLM prompts."
+description = "Former name of toon-python, the official Python implementation of TOON (Token-Oriented Object Notation), a compact, human-readable encoding of the JSON data model for LLM prompts."
 readme = "README.md"
 authors = [
     { name = "Johann Schopplich", email = "hello@johannschopplich.com" },
@@ -14,7 +15,7 @@ authors = [
 license = "MIT"
 license-files = ["LICENSE", "AUTHORS"]
 requires-python = ">=3.10"
-dependencies = ["toon-format==1.0.0"]
+dependencies = ["toon-python==1.0.0"]
 keywords = ["toon", "serialization", "llm", "json", "tokens", "data-format"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -29,7 +30,15 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Text Processing :: Markup",
+    "Typing :: Typed",
 ]
+
+[project.optional-dependencies]
+pydantic = ["toon-python[pydantic]==1.0.0"]
+tokens = ["toon-python[tokens]==1.0.0"]
+
+[project.scripts]
+toon = "toon.cli:main"
 
 [project.urls]
 Homepage = "https://toonformat.dev"
@@ -39,9 +48,25 @@ Specification = "https://github.com/toon-format/spec/blob/main/SPEC.md"
 Changelog = "https://github.com/toon-format/toon-python/blob/main/CHANGELOG.md"
 Issues = "https://github.com/toon-format/toon-python/issues"
 
+[tool.uv.sources]
+toon-python = { workspace = true }
+
+[dependency-groups]
+dev = ["pydantic>=2", "pytest>=8", "pytest-cov>=5"]
+
 [build-system]
 requires = ["uv_build>=0.9,<0.12"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = []  # no code: the package only depends on toon-format
+module-name = "toon_format"
+
+# Run from this directory: uv run --package toon-format pytest
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-markers", "--strict-config", "-ra"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+branch = true
+source = ["toon_format"]
