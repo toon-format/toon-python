@@ -12,7 +12,8 @@ Thank you for helping with the official Python implementation of TOON.
    and cite the section you implement. Questions about the format itself
    belong in the [spec repository](https://github.com/toon-format/spec).
 4. Add tests, update `CHANGELOG.md`, and open a pull request with a
-   Conventional Commits title (`fix: ...`, `feat: ...`).
+   Conventional Commits title (`fix: ...`, `feat: ...`). With your first
+   substantial contribution, add your name to [AUTHORS](AUTHORS).
 
 ```bash
 uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest

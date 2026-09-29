@@ -137,6 +137,11 @@ class _Normalizer:
                 for field in dataclasses.fields(value)
             }
             return self._converted(value, fields)
+        # attrs classes are recognized without importing attrs (§3).
+        attributes = getattr(type(value), "__attrs_attrs__", None)
+        if attributes is not None:
+            fields = {field.name: getattr(value, field.name) for field in attributes}
+            return self._converted(value, fields)
         pydantic = sys.modules.get("pydantic")
         if pydantic is not None and isinstance(value, pydantic.BaseModel):
             return self._converted(value, value.model_dump(mode="json"))

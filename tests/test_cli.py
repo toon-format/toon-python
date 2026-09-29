@@ -82,6 +82,44 @@ def test_out_of_range_number_is_not_written_as_json(
     assert result == (1, "", "toon: a number is out of the JSON range\n")
 
 
+class _WordEncoding:
+    def encode(self, text: str) -> list[str]:
+        return text.split()
+
+
+def test_stats(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from toon import _tokens
+
+    monkeypatch.setattr(_tokens, "_encoding", lambda name: _WordEncoding())
+    code, out, err = run(
+        monkeypatch, capsys, "-e", "--stats", stdin='{"a": [1, 2], "b": "x y"}'
+    )
+    assert (code, out) == (0, "a[2]: 1,2\nb: x y\n")
+    assert err == (
+        "Tokens with tiktoken o200k_base (exact for OpenAI models only)\n"
+        "Format              Tokens  Characters  TOON vs\n"
+        "JSON (compact)           2          21  +150.0%\n"
+        "JSON (indent 2)         10          43   -50.0%\n"
+        "TOON                     5          16\n"
+    )
+
+
+def test_stats_needs_tiktoken(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from toon import _tokens
+
+    _tokens._encoding.cache_clear()
+    monkeypatch.setitem(sys.modules, "tiktoken", None)
+    code, out, err = run(monkeypatch, capsys, "-e", "--stats", stdin='{"a": 1}')
+    assert (code, out) == (1, "")
+    assert err == (
+        'toon: tiktoken is required for token counting: pip install "toon-format[tokens]"\n'
+    )
+
+
 def test_check(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

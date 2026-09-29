@@ -19,7 +19,9 @@ emits a `DeprecationWarning` when imported.
 | `python -m toon_format` | `python -m toon` (or the `toon` command) |
 
 `count_tokens`, `estimate_savings`, and `compare_formats` remain available from
-`toon_format` only; install `toon-format[tokens]` for them.
+`toon_format` only; install `toon-format[tokens]` for them. On the command
+line, `toon --stats` replaces them. Both count with OpenAI's tokenizers, so the
+counts are exact for OpenAI models only.
 
 ## Behavior changes
 

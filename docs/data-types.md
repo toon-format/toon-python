@@ -16,6 +16,7 @@
 | `uuid.UUID`, `pathlib.PurePath` | string |
 | `enum.Enum` | its value |
 | dataclass instance | object of its fields |
+| `attrs` class instance | object of its fields (attrs is not imported) |
 | `pydantic.BaseModel` | `model_dump(mode="json")` |
 
 Anything else goes to `default`, or raises `TypeError`.

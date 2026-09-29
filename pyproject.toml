@@ -8,7 +8,7 @@ authors = [
     { name = "Alessio Sanfratello", email = "sanfra90@gmail.com" },
 ]
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "AUTHORS"]
 requires-python = ">=3.10"
 dependencies = []
 keywords = ["toon", "serialization", "llm", "json", "tokens", "data-format"]
@@ -45,6 +45,7 @@ toon = "toon.cli:main"
 
 [dependency-groups]
 dev = [
+    "attrs>=23",
     "hypothesis>=6.100",
     "mypy>=1.13",
     "pydantic>=2",

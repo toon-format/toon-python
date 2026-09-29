@@ -6,6 +6,9 @@
 # - Publishing a GitHub release uploads to PyPI. The release tag must be
 #   "v" followed by the version in pyproject.toml, for example v1.0.0.
 # - Running the workflow by hand uploads to TestPyPI.
+# - The same jobs upload "toon-python" (packaging/toon-python), an alias that
+#   only depends on toon-format. PyPI needs a trusted publisher for that
+#   project too, with this file name and the same environments.
 
 name: Publish
 
@@ -32,13 +35,26 @@ jobs:
             echo "::error::Tag ${GITHUB_REF_NAME} does not match version ${version} in pyproject.toml"
             exit 1
           fi
+      - name: Check that the toon-python alias matches the version
+        run: |
+          version="$(uv version --short)"
+          alias="$(uv version --short --project packaging/toon-python)"
+          if [ "${alias}" != "${version}" ] || ! grep -q "\"toon-format==${version}\"" packaging/toon-python/pyproject.toml; then
+            echo "::error::packaging/toon-python must have version ${version} and depend on toon-format==${version}"
+            exit 1
+          fi
       - run: uv sync --locked
       - run: uv run pytest
       - run: uv build
+      - run: uv build packaging/toon-python --out-dir alias/
       - uses: actions/upload-artifact@v5
         with:
           name: dist
           path: dist/
+      - uses: actions/upload-artifact@v5
+        with:
+          name: alias
+          path: alias/
 
   pypi:
     name: Publish to PyPI
@@ -55,8 +71,13 @@ jobs:
         with:
           name: dist
           path: dist/
+      - uses: actions/download-artifact@v6
+        with:
+          name: alias
+          path: alias/
       - uses: astral-sh/setup-uv@v7
       - run: uv publish --trusted-publishing always
+      - run: uv publish --trusted-publishing always alias/*
 
   testpypi:
     name: Publish to TestPyPI
@@ -73,5 +94,10 @@ jobs:
         with:
           name: dist
           path: dist/
+      - uses: actions/download-artifact@v6
+        with:
+          name: alias
+          path: alias/
       - uses: astral-sh/setup-uv@v7
       - run: uv publish --trusted-publishing always --publish-url https://test.pypi.org/legacy/
+      - run: uv publish --trusted-publishing always --publish-url https://test.pypi.org/legacy/ alias/*

@@ -76,13 +76,13 @@ def test_pydantic_alias(toon_format: ModuleType) -> None:
 def test_token_utilities(
     toon_format: ModuleType, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from toon_format import utils
+    from toon import _tokens
 
     class FakeEncoding:
         def encode(self, text: str) -> list[str]:
             return text.split()
 
-    monkeypatch.setattr(utils, "_encoding", lambda name: FakeEncoding())
+    monkeypatch.setattr(_tokens, "_encoding", lambda name: FakeEncoding())
     data = {"users": [{"id": 1, "name": "Ada"}, {"id": 2, "name": "Bob"}]}
     assert toon_format.count_tokens("a b c") == 3
     savings = toon_format.estimate_savings(data)
@@ -93,9 +93,9 @@ def test_token_utilities(
 def test_token_utilities_need_tiktoken(
     toon_format: ModuleType, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    from toon_format import utils
+    from toon import _tokens
 
-    utils._encoding.cache_clear()
+    _tokens._encoding.cache_clear()
     monkeypatch.setitem(sys.modules, "tiktoken", None)
     with pytest.raises(RuntimeError, match="tiktoken is required"):
         toon_format.count_tokens("x", encoding="cl100k_base")

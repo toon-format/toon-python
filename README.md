@@ -93,13 +93,10 @@ implementations, the command line, Pydantic, and the API reference.
 See [CONTRIBUTING.md](CONTRIBUTING.md). Project conventions for humans and coding
 agents are in [AGENTS.md](AGENTS.md).
 
-## Contributors
+## Authors
 
-- [Xavi Vinaixa](https://github.com/xaviviro)
-- [David Pirogov](https://github.com/davidpirogov)
-- [Justar](https://github.com/Justar96)
-- [Johann Schopplich](https://github.com/johannschopplich)
-- [Alessio Sanfratello](https://github.com/alesanfra)
+The people who wrote this package are listed in [AUTHORS](AUTHORS); every
+contributor is on the [contributors page](https://github.com/toon-format/toon-python/graphs/contributors).
 
 ## License
 

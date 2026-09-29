@@ -216,6 +216,23 @@ def test_dataclasses() -> None:
         toon.dumps(Point)  # the class itself is not data
 
 
+def test_attrs_classes() -> None:
+    attrs = pytest.importorskip("attrs")
+
+    @attrs.define
+    class Item:
+        name: str
+        tags: list[str] = attrs.field(factory=list)
+        _secret: int = attrs.field(default=0, repr=False)
+
+    assert toon.dumps({"items": [Item("a", ["x"]), Item("b")]}) == (
+        "items[2]:\n  - name: a\n    tags[1]: x\n    _secret: 0\n"
+        "  - name: b\n    tags: []\n    _secret: 0"
+    )
+    with pytest.raises(TypeError):
+        toon.dumps(Item)  # the class itself is not data
+
+
 @pytest.mark.parametrize(
     ("key", "expected"),
     [(1, '"1"'), (1.5, '"1.5"'), (True, "true"), (None, "null"), (Size.LARGE, '"3"')],

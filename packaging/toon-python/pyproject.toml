@@ -1,0 +1,47 @@
+# Alias distribution: `pip install toon-python` installs toon-format.
+# Keep the metadata in step with the root pyproject.toml. The version and the
+# pin below always equal the version of toon-format; the Publish workflow
+# refuses to release otherwise.
+[project]
+name = "toon-python"
+version = "1.0.0"
+description = "Alias of toon-format, the official Python implementation of TOON (Token-Oriented Object Notation), a compact, human-readable encoding of the JSON data model for LLM prompts."
+readme = "README.md"
+authors = [
+    { name = "Johann Schopplich", email = "hello@johannschopplich.com" },
+    { name = "Alessio Sanfratello", email = "sanfra90@gmail.com" },
+]
+license = "MIT"
+license-files = ["LICENSE", "AUTHORS"]
+requires-python = ">=3.10"
+dependencies = ["toon-format==1.0.0"]
+keywords = ["toon", "serialization", "llm", "json", "tokens", "data-format"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: Markup",
+]
+
+[project.urls]
+Homepage = "https://toonformat.dev"
+Documentation = "https://toon-python.readthedocs.io"
+Repository = "https://github.com/toon-format/toon-python"
+Specification = "https://github.com/toon-format/spec/blob/main/SPEC.md"
+Changelog = "https://github.com/toon-format/toon-python/blob/main/CHANGELOG.md"
+Issues = "https://github.com/toon-format/toon-python/issues"
+
+[build-system]
+requires = ["uv_build>=0.9,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = []  # no code: the package only depends on toon-format

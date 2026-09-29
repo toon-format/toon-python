@@ -16,6 +16,7 @@ from typing import Any
 from . import __toon_spec__, __version__
 from ._api import dumps, loads
 from ._errors import ToonDecodeError
+from ._tokens import stats
 
 __all__ = ["main"]
 
@@ -97,6 +98,14 @@ def _parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--stats",
+        action="store_true",
+        help=(
+            "print token counts of JSON and TOON to standard error; counts use "
+            "tiktoken and are exact for OpenAI models only (needs the tokens extra)"
+        ),
+    )
+    parser.add_argument(
         "--no-strict",
         action="store_true",
         help="decode leniently instead of enforcing §14",
@@ -130,8 +139,8 @@ def _is_json(text: str) -> bool:
 
 def _convert(
     args: argparse.Namespace, text: str, suffix: str | None
-) -> tuple[str, bool]:
-    """Return the converted text and whether it is TOON."""
+) -> tuple[str, bool, Any]:
+    """Return the converted text, whether it is TOON, and the data."""
     if args.encode:
         encode = True
     elif args.decode:
@@ -142,7 +151,8 @@ def _convert(
         encode = _is_json(text)
     if encode:
         data: Any = json.loads(text)
-        return dumps(data, indent_size=args.indent_size, delimiter=args.delimiter), True
+        output = dumps(data, indent_size=args.indent_size, delimiter=args.delimiter)
+        return output, True, data
     data = loads(text, strict=not args.no_strict, indent_size=args.indent_size)
     indent = args.json_indent if args.json_indent > 0 else None
     try:
@@ -150,7 +160,7 @@ def _convert(
     except ValueError:
         # Non-strict decoding turns out-of-range numbers into ±inf (§4, §14).
         raise ValueError("a number is out of the JSON range") from None
-    return output, False
+    return output, False, data
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -177,14 +187,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"toon: {args.input} is not valid UTF-8", file=sys.stderr)
         return 1
     try:
-        output, is_toon = _convert(args, text, suffix)
+        output, is_toon, data = _convert(args, text, suffix)
+        if args.stats:
+            table = stats(data, delimiter=args.delimiter, indent_size=args.indent_size)
+            print(table, file=sys.stderr)
     except ToonDecodeError as exc:
         print(f"toon: invalid TOON: {exc}", file=sys.stderr)
         return 1
     except json.JSONDecodeError as exc:
         print(f"toon: invalid JSON: {exc}", file=sys.stderr)
         return 1
-    except (TypeError, ValueError) as exc:
+    except (TypeError, ValueError, RuntimeError) as exc:
         print(f"toon: {exc}", file=sys.stderr)
         return 1
     if args.check:

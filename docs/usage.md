@@ -57,6 +57,28 @@ TOON representation go to `default`, as with `json.dumps`:
 'z[2]: 1,2'
 ```
 
+### NumPy and pandas
+
+`toon` does not depend on either library. A pandas `DataFrame` becomes a table
+through its records; missing values (`NaN`) become `null` and timestamps ISO
+8601 strings:
+
+```python
+>>> df = pd.DataFrame({"id": [1, 2], "name": ["Ada", "Bob"], "score": [9.5, None]})
+>>> print(toon.dumps({"users": df.to_dict("records")}))
+users[2]{id,name,score}:
+  1,Ada,9.5
+  2,Bob,null
+```
+
+NumPy arrays and scalars such as `np.int64` convert with `tolist()`:
+
+```python
+>>> toon.dumps({"matrix": np.arange(6).reshape(2, 3), "n": np.int64(6)},
+...            default=lambda value: value.tolist())
+'matrix[2]:\n  - [3]: 0,1,2\n  - [3]: 3,4,5\nn: 6'
+```
+
 ## Decoding
 
 ```python
@@ -98,7 +120,14 @@ toon data.json -o data.toon          # JSON to TOON
 toon data.toon                       # TOON to JSON on standard output
 cat data.json | toon --delimiter tab # from standard input
 toon --check response.toon           # validate only; exit status 1 if invalid
+toon data.json --stats               # also print token counts to standard error
 ```
+
+`--stats` compares the token counts of compact JSON, indented JSON, and TOON.
+It needs the `tokens` extra (`pip install "toon-format[tokens]"`) and counts
+offline with OpenAI's `o200k_base` tokenizer through `tiktoken`, so the counts
+are exact for OpenAI models only. Other models, Claude and Gemini among them,
+use different tokenizers: treat the figures as an estimate for them.
 
 Run `toon --help` for the other options.
 

@@ -19,12 +19,14 @@ from 0.9.
 - The `toon` module with a `json`-style interface: `dumps`, `dump`, `loads`, `load`.
 - `default` and `sort_keys` options for encoding; `parse_float`, `parse_int`,
   `object_hook`, and `object_pairs_hook` for decoding.
-- Encoding of dataclasses, enums, UUIDs, sets, `Decimal` (lossless), and Pydantic models.
+- Encoding of dataclasses, attrs classes, enums, UUIDs, sets, `Decimal` (lossless), and Pydantic models.
 - Decoding from `bytes` and binary files.
 - `ToonDecodeError.line`, `.source`, and `.msg`.
 - `toon.Delimiter` and `toon.__toon_spec__`.
-- CLI options `--check` (validate only) and `--json-indent`, and `python -m toon`.
+- CLI options `--check` (validate only), `--json-indent`, and `--stats` (token
+  counts with `tiktoken`, exact for OpenAI models only), and `python -m toon`.
 - Documentation site built with MkDocs for Read the Docs.
+- The `toon-python` distribution on PyPI, an alias that installs `toon-format`.
 - Differential tests against the independent [toons](https://github.com/alesanfra/toons)
   implementation and property-based round-trip tests.
 

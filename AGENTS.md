@@ -26,12 +26,14 @@ the specification wins.
 | `src/toon/_decoder.py` | Line splitting (§5.1, §12) and the recursive-descent parser |
 | `src/toon/_text.py` | Rules shared by both directions: quoting, escaping, number grammars |
 | `src/toon/_errors.py` | `ToonDecodeError` |
+| `src/toon/_tokens.py` | Offline token counts with `tiktoken` for `toon --stats` and the 0.9 helpers |
 | `src/toon/cli.py` | The `toon` command |
 | `src/toon/pydantic.py` | Optional Pydantic integration |
 | `src/toon_format/` | Deprecated 0.9 API; thin wrappers over `toon`, nothing else |
 | `tests/fixtures/` | Official spec fixtures; never edited by hand |
 | `tests/strategies.py` | Hypothesis strategies for JSON-model values |
 | `scripts/update_fixtures.py` | Re-vendors the fixtures from a spec tag |
+| `packaging/toon-python/` | The `toon-python` alias distribution, which only depends on `toon-format` |
 | `scripts/benchmark.py` | Times encoding and decoding, optionally against a git revision |
 | `docs/`, `mkdocs.yml` | User documentation, built with MkDocs for Read the Docs (`.readthedocs.yaml`) |
 
@@ -179,12 +181,15 @@ section together with the code.
 - Publishing happens only through the `Publish` workflow
   (`.github/workflows/publish.yml`), with PyPI trusted publishing. PyPI binds
   the publisher to that file name and to the `pypi` and `testpypi`
-  environments: do not rename them.
+  environments: do not rename them. The same jobs publish the `toon-python`
+  alias, whose PyPI project needs the same trusted publisher.
 
 To release:
 
 1. `uv version --bump minor` (or `patch`, `major`, or an explicit version),
    and move the *Unreleased* entries of `CHANGELOG.md` under the new version.
+   Set the same version in `packaging/toon-python/pyproject.toml`, both as
+   `version` and in the `toon-format==` pin; the workflow checks it.
 2. Merge that change through a pull request.
 3. Optional: run the `Publish` workflow by hand to upload to TestPyPI.
 4. Create a GitHub release tagged `vX.Y.Z`. The workflow checks that the tag

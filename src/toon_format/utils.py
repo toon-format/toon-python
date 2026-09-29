@@ -5,29 +5,13 @@ Requires ``tiktoken`` (``pip install "toon-format[tokens]"``).
 
 from __future__ import annotations
 
-import functools
 import json
 from typing import Any
 
 import toon
+from toon._tokens import count_tokens
 
 __all__ = ["compare_formats", "count_tokens", "estimate_savings"]
-
-
-@functools.cache
-def _encoding(name: str) -> Any:
-    try:
-        import tiktoken
-    except ImportError as exc:
-        raise RuntimeError(
-            'tiktoken is required for token counting: pip install "toon-format[tokens]"'
-        ) from exc
-    return tiktoken.get_encoding(name)
-
-
-def count_tokens(text: str, encoding: str = "o200k_base") -> int:
-    """Count the tokens of ``text`` with a tiktoken encoding."""
-    return len(_encoding(encoding).encode(text))
 
 
 def estimate_savings(data: Any, encoding: str = "o200k_base") -> dict[str, Any]:
