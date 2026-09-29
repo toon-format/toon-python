@@ -224,6 +224,14 @@ def test_non_string_keys_are_coerced_like_json(key: Any, expected: str) -> None:
     assert toon.dumps({key: "x"}) == f"{expected}: x"
 
 
+@pytest.mark.parametrize(
+    "value", [{1: "a", "1": "b"}, {True: "a", "true": "b"}, {None: 1, "null": 2}]
+)
+def test_keys_colliding_after_conversion(value: dict[Any, Any]) -> None:
+    with pytest.raises(ValueError, match="Duplicate key after conversion"):
+        toon.dumps(value)
+
+
 def test_unsupported_keys() -> None:
     with pytest.raises(TypeError, match="Keys must be"):
         toon.dumps({(1, 2): "x"})
@@ -377,3 +385,16 @@ def test_subclasses_of_builtins() -> None:
 )
 def test_non_finite_float_keys(key: float, expected: str) -> None:
     assert toon.dumps({key: 1}) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("\ufeffabc", '"\ufeffabc"'),
+        ({"a": "\ufeffx"}, 'a: "\ufeffx"'),
+        (["\ufeffx"], '[1]: "\ufeffx"'),
+    ],
+)
+def test_leading_byte_order_mark_is_quoted(value: Any, expected: str) -> None:
+    assert toon.dumps(value) == expected
+    assert toon.loads(expected) == value

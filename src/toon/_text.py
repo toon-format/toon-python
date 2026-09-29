@@ -67,7 +67,7 @@ def quote(value: str) -> str:
 def _needs_quotes(value: str, delimiter: str) -> bool:
     return (
         not value
-        or value[0] in " \t-#"
+        or value[0] in " \t-#\ufeff"  # a leading U+FEFF reads as a BOM (§12)
         or value[-1] in " \t"
         or value in ("true", "false", "null")
         or delimiter in value

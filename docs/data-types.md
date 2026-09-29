@@ -41,12 +41,15 @@ shortest representation that round-trips, in plain decimal between 1e-6 and
 keeps them when decoding.
 
 **Strings.** A string holding an unpaired surrogate cannot be encoded and
-raises `ValueError`. In strict mode, quoted strings may not contain literal
+raises `ValueError`. A string starting with U+FEFF is quoted, because a
+leading U+FEFF in a document is read as a byte-order mark. In strict mode, quoted strings may not contain literal
 control characters other than tab.
 
 **Key order** is preserved, except that tabular rows follow the header's field
 order. With `strict=False`, a duplicate key keeps its first position and its
-last value, as in `json.loads`. No key is special: `__proto__` is an ordinary key.
+last value, as in `json.loads`. When encoding, keys that become equal once
+converted to strings (`1` and `"1"`, `True` and `"true"`) raise `ValueError`
+instead of dropping a value. No key is special: `__proto__` is an ordinary key.
 
 **Tabs in indentation** are an error in strict mode; otherwise each leading tab
 counts as one level.

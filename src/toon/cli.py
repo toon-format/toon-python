@@ -145,7 +145,12 @@ def _convert(
         return dumps(data, indent_size=args.indent_size, delimiter=args.delimiter), True
     data = loads(text, strict=not args.no_strict, indent_size=args.indent_size)
     indent = args.json_indent if args.json_indent > 0 else None
-    return json.dumps(data, indent=indent, ensure_ascii=False), False
+    try:
+        output = json.dumps(data, indent=indent, ensure_ascii=False, allow_nan=False)
+    except ValueError:
+        # Non-strict decoding turns out-of-range numbers into ±inf (§4, §14).
+        raise ValueError("a number is out of the JSON range") from None
+    return output, False
 
 
 def main(argv: Sequence[str] | None = None) -> int:

@@ -145,8 +145,9 @@ section together with the code.
   implementation of the same specification version. Both encoders must
   produce the same text, except for the float spellings §2 leaves open (toon
   uses exponents outside [1e-6, 1e21) and exact digits for integral floats
-  from 2⁵³); both decoders must agree on valid documents and on every decode
-  fixture. On malformed input the two knowingly differ; `toon` follows the
+  from 2⁵³) and for strings starting with U+FEFF, which toon quotes because a
+  bare one at the root is removed as a byte-order mark (§12); both decoders
+  must agree on valid documents and on every decode fixture. On malformed input the two knowingly differ; `toon` follows the
   specification there, never toons:
   - a single line such as `[` or `foo[2]` is a root string (§5, §5.2: without
     a colon it is not a header);

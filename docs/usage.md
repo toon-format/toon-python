@@ -121,3 +121,7 @@ prompt = User.schema_to_toon()  # the JSON schema, as TOON
 user = User.model_validate_toon("name: Ada\nage: 36")  # parse an LLM answer
 text = user.model_dump_toon()
 ```
+
+`model_validate_toon(text, strict=...)` passes `strict` to both the TOON
+decoder and pydantic. The default, `None`, decodes in strict mode and follows
+the model's own configuration for validation.

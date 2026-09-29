@@ -100,7 +100,14 @@ class _Normalizer:
         pairs = [(_convert_key(key), item) for key, item in value.items()]
         if self.sort_keys:
             pairs.sort(key=lambda pair: pair[0])
-        return {key: self.normalize(item) for key, item in pairs}
+        result: dict[str, Json] = {}
+        for key, item in pairs:
+            # Keys such as 1 and "1" collide once converted; keeping one value
+            # would lose data, and a duplicate key is invalid TOON (§14).
+            if key in result:
+                raise ValueError(f"Duplicate key after conversion: {key!r}")
+            result[key] = self.normalize(item)
+        return result
 
     def _other(self, value: Any) -> Json:
         # Order matters: bool before int, str/int subclasses (StrEnum, IntEnum)

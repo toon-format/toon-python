@@ -75,6 +75,13 @@ def test_options(
     assert (code, out) == (0, '{"a": [1]}\n')
 
 
+def test_out_of_range_number_is_not_written_as_json(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    result = run(monkeypatch, capsys, "-d", "--no-strict", stdin="n: 1e400")
+    assert result == (1, "", "toon: a number is out of the JSON range\n")
+
+
 def test_check(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

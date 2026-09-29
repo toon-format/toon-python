@@ -49,14 +49,21 @@ class ToonPydanticModel(BaseModel):
 
     @classmethod
     def model_validate_toon(
-        cls, text: str | bytes, *, strict: bool = True, **kwargs: Any
+        cls, text: str | bytes, *, strict: bool | None = None, **kwargs: Any
     ) -> Self:
         """Decode and validate TOON, like ``BaseModel.model_validate_json``.
 
-        Extra keyword arguments go to :meth:`pydantic.BaseModel.model_validate`.
+        Args:
+            text: The TOON document.
+            strict: Passed to both :func:`toon.loads` and
+                :meth:`pydantic.BaseModel.model_validate`. ``None`` decodes
+                in strict mode and leaves validation to the model's
+                configuration.
+            **kwargs: Passed to :meth:`pydantic.BaseModel.model_validate`.
 
         Raises:
             toon.ToonDecodeError: The text is not valid TOON.
             pydantic.ValidationError: The data does not match the model.
         """
-        return cls.model_validate(loads(text, strict=strict), **kwargs)
+        data = loads(text, strict=strict is not False)
+        return cls.model_validate(data, strict=strict, **kwargs)

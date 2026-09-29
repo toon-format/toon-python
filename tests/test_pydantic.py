@@ -55,6 +55,19 @@ def test_model_validate_toon_errors() -> None:
         User.model_validate_toon("name: Ada\nage: old")
 
 
+def test_model_validate_toon_strict() -> None:
+    text = 'name: Ada\nage: "36"\ntags[2]: a'
+    with pytest.raises(toon.ToonDecodeError):
+        User.model_validate_toon(text)
+    with pytest.raises(toon.ToonDecodeError):
+        User.model_validate_toon(text, strict=True)
+    lenient = User.model_validate_toon(text, strict=False)
+    assert lenient == User(name="Ada", age=36, tags=["a"])
+    with pytest.raises(pydantic.ValidationError):
+        User.model_validate_toon('name: Ada\nage: "36"', strict=True)
+    assert User.model_validate_toon('name: Ada\nage: "36"').age == 36
+
+
 def test_schema_to_toon() -> None:
     schema = User.schema_to_toon()
     assert toon.loads(schema) == User.model_json_schema()
