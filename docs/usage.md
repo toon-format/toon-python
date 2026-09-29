@@ -112,24 +112,48 @@ Invalid documents raise `toon.ToonDecodeError`, a `ValueError` that carries the
 
 ## Command line
 
-The `toon` command (also `python -m toon`) converts in either direction,
-choosing it from the file extension or, failing that, from the content:
+The `toon` command (also `python -m toon`) has four subcommands. Each reads a
+file, or standard input when the file is omitted or `-`:
 
 ```bash
-toon data.json -o data.toon          # JSON to TOON
-toon data.toon                       # TOON to JSON on standard output
-cat data.json | toon --delimiter tab # from standard input
-toon --check response.toon           # validate only; exit status 1 if invalid
-toon data.json --stats               # also print token counts to standard error
+toon stats data.json                      # token counts of JSON and TOON
+toon encode data.json -o data.toon        # JSON to TOON
+toon encode data.json --delimiter tab     # to standard output, with tabs
+toon decode data.toon --compact           # TOON to single-line JSON
+toon check *.toon                         # validate; exit status 1 if any is invalid
 ```
 
-`--stats` compares the token counts of compact JSON, indented JSON, and TOON.
+`toon stats` answers whether TOON pays off on your data. It accepts JSON or
+TOON and counts the tokens of compact JSON, indented JSON, and TOON with each
+delimiter, all compared with compact JSON:
+
+```
+Tokens with tiktoken o200k_base (exact for OpenAI models only)
+Format              Tokens  Characters  vs compact JSON
+JSON (compact)       2,102       7,021
+JSON (indent 2)      3,602      10,022           +71.4%
+TOON (comma)         1,309       3,748           -37.7%
+TOON (tab)           1,209       3,749           -42.5%
+TOON (pipe)          1,512       3,749           -28.1%
+```
+
 It needs the `tokens` extra (`pip install "toon-python[tokens]"`) and counts
 offline with OpenAI's `o200k_base` tokenizer through `tiktoken`, so the counts
 are exact for OpenAI models only. Other models, Claude and Gemini among them,
 use different tokenizers: treat the figures as an estimate for them.
 
-Run `toon --help` for the other options.
+`toon check` reports each error as `file:line: message`, the format editors
+and CI annotations recognize. `decode` and `check` accept `--no-strict` to
+decode leniently, and every subcommand that reads or writes TOON accepts
+`--indent N` for the spaces per indentation level.
+
+Without a subcommand, `toon FILE` converts in the direction given by the file
+extension (`.json` or `.toon`) or, failing that, by the content. This is the
+interface of 0.9, kept unchanged: `-e`/`--encode`, `-d`/`--decode`, `-o`,
+`--delimiter`, `--indent`, and `--no-strict` work as before. A file named like
+a subcommand needs a path prefix, as in `toon ./stats`.
+
+Run `toon --help` or `toon COMMAND --help` for every option.
 
 ## Pydantic
 

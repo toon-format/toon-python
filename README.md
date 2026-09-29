@@ -13,7 +13,10 @@ tokens in LLM prompts.
 - **Complete**: implements [TOON specification 4.1](https://github.com/toon-format/spec/blob/main/SPEC.md)
   and passes every official conformance fixture.
 - **Familiar**: `dumps`, `dump`, `loads`, and `load`, like the `json` module.
+- **Lossless**: `loads(dumps(data)) == data` for every JSON-compatible value.
 - **Pure Python**, no dependencies, fully typed, Python 3.10+.
+
+## Example
 
 ```python
 import toon
@@ -27,7 +30,8 @@ data = {
     ],
 }
 
-print(toon.dumps(data))
+text = toon.dumps(data)
+print(text)
 ```
 
 ```
@@ -41,8 +45,14 @@ hikes[2]{id,name,distanceKm,wasSunny}:
 ```
 
 ```python
-assert toon.loads(toon.dumps(data)) == data
+assert toon.loads(text) == data
 ```
+
+Keys of uniform arrays are written once, as a header, and each object becomes
+a row. With OpenAI's `o200k_base` tokenizer, this document takes 65 tokens,
+against 76 for compact JSON and 130 for indented JSON. The saving grows with
+the number of rows: 100 uniform records take 38% fewer tokens than compact
+JSON. Deeply nested or irregular data gains less.
 
 ## Installation
 
@@ -53,25 +63,45 @@ uv add toon-python
 ```
 
 The distribution is named `toon-python`; the module is `toon`. Optional extras:
-`toon-python[pydantic]` for the Pydantic integration and `toon-python[tokens]`
-for `toon --stats`. Up to 0.9 the distribution was `toon-format`, which still
-works and installs `toon-python`.
+
+- `toon-python[pydantic]`: the Pydantic integration.
+- `toon-python[tokens]`: token counts with `toon stats`.
 
 ## Usage
 
+Encoding and decoding follow the `json` module:
+
 ```python
-toon.dumps(obj, *, indent_size=2, delimiter=",", default=None, sort_keys=False)
-toon.loads(s, *, strict=True, indent_size=2, parse_float=None, parse_int=None,
-           object_hook=None, object_pairs_hook=None)
+toon.dumps(data, delimiter="\t")  # tabs often tokenize better than commas
+toon.dumps(data, default=str)  # fallback for unsupported types
+toon.loads(text, parse_float=Decimal)  # same hooks as json.loads
+toon.loads(llm_output, strict=False)  # tolerate wrong counts and indentation
 ```
 
-`dump` and `load` do the same with files. Invalid documents raise
-`toon.ToonDecodeError`, a `ValueError` that carries the `line` and `source` of
-the error. The package also provides a `toon` command and a Pydantic integration:
+Invalid documents raise `toon.ToonDecodeError`, a `ValueError` that carries the
+1-based `line` and the `source` line of the error.
+
+To find out whether TOON pays off on your own data, compare token counts with
+the `toon` command:
 
 ```bash
-toon data.json -o data.toon   # JSON to TOON
-toon --check response.toon    # validate only
+pip install "toon-python[tokens]"
+toon stats data.json
+```
+
+With Pydantic, `toon.dumps` accepts any model, and `ToonPydanticModel` adds
+TOON counterparts of the JSON helpers:
+
+```python
+from toon.pydantic import ToonPydanticModel
+
+
+class User(ToonPydanticModel):
+    name: str
+    age: int
+
+
+user = User.model_validate_toon("name: Ada\nage: 36")
 ```
 
 ## Documentation
@@ -81,26 +111,30 @@ The full documentation is at
 the Python type mapping, the choices the specification leaves to
 implementations, the command line, Pydantic, and the API reference.
 
-> [!NOTE]
-> The documentation site is not published yet. Until it is, read the pages in
-> [`docs/`](docs/) on GitHub.
+The documentation site is not published yet. Until it is, read the pages in
+[`docs/`](https://github.com/toon-format/toon-python/tree/main/docs) on GitHub.
 
 ## Migrating from `toon_format` 0.9
 
-`pip install toon-format` and `import toon_format` still work: the
-`toon-format` distribution now installs `toon-python`, and `toon_format`
-delegates to the new API with a `DeprecationWarning`. See the [migration guide](https://toon-python.readthedocs.io/en/latest/migration/).
+Up to 0.9 the distribution was `toon-format`. `pip install toon-format` and
+`import toon_format` still work: the `toon-format` distribution now installs
+`toon-python`, and `toon_format` delegates to the new API with a
+`DeprecationWarning`. See the
+[migration guide](https://github.com/toon-format/toon-python/blob/main/docs/migration.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Project conventions for humans and coding
-agents are in [AGENTS.md](AGENTS.md).
+See [CONTRIBUTING.md](https://github.com/toon-format/toon-python/blob/main/CONTRIBUTING.md).
+Project conventions for humans and coding agents are in
+[AGENTS.md](https://github.com/toon-format/toon-python/blob/main/AGENTS.md).
 
 ## Authors
 
-The people who wrote this package are listed in [AUTHORS](AUTHORS); every
-contributor is on the [contributors page](https://github.com/toon-format/toon-python/graphs/contributors).
+The people who wrote this package are listed in
+[AUTHORS](https://github.com/toon-format/toon-python/blob/main/AUTHORS); every
+contributor is on the
+[contributors page](https://github.com/toon-format/toon-python/graphs/contributors).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/toon-format/toon-python/blob/main/LICENSE)

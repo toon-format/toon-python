@@ -26,7 +26,7 @@ the specification wins.
 | `src/toon/_decoder.py` | Line splitting (§5.1, §12) and the recursive-descent parser |
 | `src/toon/_text.py` | Rules shared by both directions: quoting, escaping, number grammars |
 | `src/toon/_errors.py` | `ToonDecodeError` |
-| `src/toon/_tokens.py` | Offline token counts with `tiktoken` for `toon --stats` and the 0.9 helpers |
+| `src/toon/_tokens.py` | Offline token counts with `tiktoken` for `toon stats` and the 0.9 helpers |
 | `src/toon/cli.py` | The `toon` command |
 | `src/toon/pydantic.py` | Optional Pydantic integration |
 | `tests/fixtures/` | Official spec fixtures; never edited by hand |

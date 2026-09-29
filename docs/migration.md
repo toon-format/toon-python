@@ -25,7 +25,7 @@ upgrading needs no other change.
 
 `count_tokens`, `estimate_savings`, and `compare_formats` remain available from
 `toon_format` only; install `toon-format[tokens]` for them. On the command
-line, `toon --stats` replaces them. Both count with OpenAI's tokenizers, so the
+line, `toon stats` replaces them. Both count with OpenAI's tokenizers, so the
 counts are exact for OpenAI models only.
 
 ## Behavior changes

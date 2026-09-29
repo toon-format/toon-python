@@ -23,8 +23,11 @@ from 0.9.
 - Decoding from `bytes` and binary files.
 - `ToonDecodeError.line`, `.source`, and `.msg`.
 - `toon.Delimiter` and `toon.__toon_spec__`.
-- CLI options `--check` (validate only), `--json-indent`, and `--stats` (token
-  counts with `tiktoken`, exact for OpenAI models only), and `python -m toon`.
+- CLI subcommands `toon encode`, `toon decode`, `toon check` (validates
+  several files and reports `file:line: message`), and `toon stats` (token
+  counts of JSON and of TOON with each delimiter, with `tiktoken`, exact for
+  OpenAI models only), and `python -m toon`. `toon FILE` keeps the 0.9
+  interface.
 - Documentation site built with MkDocs for Read the Docs.
 - Differential tests against the independent [toons](https://github.com/alesanfra/toons)
   implementation and property-based round-trip tests.
