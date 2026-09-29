@@ -32,6 +32,7 @@ the specification wins.
 | `tests/fixtures/` | Official spec fixtures; never edited by hand |
 | `tests/strategies.py` | Hypothesis strategies for JSON-model values |
 | `scripts/update_fixtures.py` | Re-vendors the fixtures from a spec tag |
+| `scripts/benchmark.py` | Times encoding and decoding, optionally against a git revision |
 | `docs/`, `mkdocs.yml` | User documentation, built with MkDocs for Read the Docs (`.readthedocs.yaml`) |
 
 ## Environment
