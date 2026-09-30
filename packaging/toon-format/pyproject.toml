@@ -13,25 +13,9 @@ authors = [
     { name = "Alessio Sanfratello", email = "sanfra90@gmail.com" },
 ]
 license = "MIT"
-license-files = ["LICENSE", "AUTHORS"]
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = ["toon-python==1.0.0"]
-keywords = ["toon", "serialization", "llm", "json", "tokens", "data-format"]
-classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: Text Processing :: Markup",
-    "Typing :: Typed",
-]
 
 [project.optional-dependencies]
 pydantic = ["toon-python[pydantic]==1.0.0"]
