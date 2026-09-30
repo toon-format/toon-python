@@ -10,7 +10,7 @@
     "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv",
     "UV_LINK_MODE": "copy"
   },
-  "postCreateCommand": "pipx install uv && uv sync --all-groups",
+  "postCreateCommand": ".devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
       "extensions": [

@@ -44,7 +44,14 @@ The project is managed with [uv](https://docs.astral.sh/uv/).
 uv sync                    # create .venv with the dev dependencies
 uv run pytest              # full test suite
 uv run pytest -k keyed     # a subset
+uv run prek install        # install the Git hooks
 ```
+
+[prek](https://github.com/j178/prek) reads `.pre-commit-config.yaml`: before
+each commit it runs `ruff check --fix`, `ruff format`, `mypy`, and
+`mkdocs build --strict`. `uv run prek run --all-files` runs these hooks on the
+whole repository, and `uv run prek run --all-files --hook-stage manual` runs
+every check below, tests included.
 
 ## Checks before proposing a change
 

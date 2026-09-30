@@ -1,0 +1,45 @@
+# Git hooks run by prek (`uv run prek install`). The hooks call the tools
+# through uv so that they use the versions locked in uv.lock.
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types_or: [python, pyi]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types_or: [python, pyi]
+      - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false
+      - id: mkdocs
+        name: mkdocs build
+        entry: uv run --group docs mkdocs build --strict
+        language: system
+        # The API reference is generated from the docstrings in src/.
+        files: ^(docs/|src/|mkdocs\.yml$)
+        pass_filenames: false
+      # The remaining CI checks are slow: run them with
+      # `uv run prek run --all-files --hook-stage manual`.
+      - id: pytest
+        name: pytest
+        entry: uv run pytest -q --cov --cov-fail-under=95
+        language: system
+        pass_filenames: false
+        stages: [manual]
+      - id: pytest-toon-format
+        name: pytest (toon-format)
+        entry: >-
+          uv run --directory packaging/toon-format --package toon-format
+          pytest -q --cov --cov-fail-under=95
+        language: system
+        pass_filenames: false
+        stages: [manual]

@@ -2,10 +2,12 @@
 
 Thank you for helping with the official Python implementation of TOON.
 
-1. Install [uv](https://docs.astral.sh/uv/) and run `uv sync`. Alternatively,
-   open the repository in the [dev container](https://containers.dev/)
+1. Install [uv](https://docs.astral.sh/uv/) and run `uv sync`, then
+   `uv run prek install` to lint, format, type-check, and build the
+   documentation before each commit. Alternatively, open the repository in
+   the [dev container](https://containers.dev/)
    (`.devcontainer/devcontainer.json`, also used by GitHub Codespaces), which
-   comes with uv and every dependency installed.
+   comes with uv, every dependency, and the Git hooks installed.
 2. Read [AGENTS.md](AGENTS.md): it describes the layout, the code rules, and
    the checks every change must pass.
 3. For behavior changes, start from the [specification](https://github.com/toon-format/spec/blob/main/SPEC.md)
