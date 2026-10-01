@@ -5,12 +5,14 @@ before editing; keep it current when a rule changes.
 
 ## What this project is
 
-`toon-python` (import name `toon`) is the official Python implementation of
-[TOON](https://github.com/toon-format/spec), the Token-Oriented Object Notation.
-It is pure Python with no runtime dependencies and mirrors the `json` module:
-`dumps`, `dump`, `loads`, `load`, and `ToonDecodeError`.
+`toon-format` (import name `toon_format`) is the official Python
+implementation of [TOON](https://github.com/toon-format/spec), the
+Token-Oriented Object Notation. It is pure Python with no runtime dependencies
+and mirrors the `json` module: `dumps`, `dump`, `loads`, `load`, and
+`ToonDecodeError`, with `encode` and `decode` as aliases of `dumps` and
+`loads`, the names the other TOON implementations use.
 
-**Target specification: TOON 4.1**, exposed as `toon.__toon_spec__`. The
+**Target specification: TOON 4.1**, exposed as `toon_format.__toon_spec__`. The
 conformance fixtures in `tests/fixtures/` are copied from spec tag `v4.1.1`.
 The specification is the authority: when this code, its tests, or another
 implementation disagree with [SPEC.md](https://github.com/toon-format/spec/blob/main/SPEC.md),
@@ -20,19 +22,17 @@ the specification wins.
 
 | Path | Contents |
 | --- | --- |
-| `src/toon/__init__.py` | Public names only; no logic |
-| `src/toon/_api.py` | `dumps`/`dump`/`loads`/`load`, option validation, `Delimiter` |
-| `src/toon/_encoder.py` | Host-type normalization (§3) and rendering (§8–§10) |
-| `src/toon/_decoder.py` | Line splitting (§5.1, §12) and the recursive-descent parser |
-| `src/toon/_text.py` | Rules shared by both directions: quoting, escaping, number grammars |
-| `src/toon/_errors.py` | `ToonDecodeError` |
-| `src/toon/_tokens.py` | Offline token counts with `tiktoken` for `toon stats` and the 0.9 helpers |
-| `src/toon/cli.py` | The `toon` command |
-| `src/toon/pydantic.py` | Optional Pydantic integration |
+| `src/toon_format/__init__.py` | Public names only; no logic |
+| `src/toon_format/_api.py` | `dumps`/`dump`/`loads`/`load`, the `encode`/`decode` aliases, option validation, `Delimiter` |
+| `src/toon_format/_encoder.py` | Host-type normalization (§3) and rendering (§8–§10) |
+| `src/toon_format/_decoder.py` | Line splitting (§5.1, §12) and the recursive-descent parser |
+| `src/toon_format/_text.py` | Rules shared by both directions: quoting, escaping, number grammars |
+| `src/toon_format/_errors.py` | `ToonDecodeError` |
+| `src/toon_format/pydantic.py` | Optional Pydantic integration |
 | `tests/fixtures/` | Official spec fixtures; never edited by hand |
 | `tests/strategies.py` | Hypothesis strategies for JSON-model values |
 | `scripts/update_fixtures.py` | Re-vendors the fixtures from a spec tag |
-| `packaging/toon-format/` | The `toon-format` distribution, the former name: depends on `toon-python` and carries the deprecated 0.9 API (`toon_format`, thin wrappers over `toon`), its tests, and the `toon` command |
+| `packaging/toon-python/` | The `toon-python` distribution, named after the repository: an alias with no code that depends on `toon-format` |
 | `scripts/benchmark.py` | Times encoding and decoding, optionally against a git revision |
 | `docs/`, `mkdocs.yml` | User documentation, built with MkDocs for Read the Docs (`.readthedocs.yaml`) |
 
@@ -62,7 +62,6 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy
 uv run pytest --cov --cov-fail-under=95
-(cd packaging/toon-format && uv run --package toon-format pytest --cov --cov-fail-under=95)
 uv run --group docs mkdocs build --strict
 ```
 
@@ -77,12 +76,12 @@ Set `HYPOTHESIS_PROFILE=ci` to run the property tests with more examples, as CI 
 - **Typing.** `mypy --strict` must pass. Avoid `Any` in new signatures unless
   the value is genuinely arbitrary (user data, hook results).
 - **No runtime dependencies.** Integrations import their library lazily or live
-  in an optional module (`toon.pydantic`), declared as an extra.
+  in an optional module (`toon_format.pydantic`), declared as an extra.
 - **Documentation.** User-facing behavior is documented in `docs/`; the API
   reference is generated from docstrings, which use the Google style. Preview
   with `uv run --group docs mkdocs serve`. `README.md` stays short and links to
   the documentation.
-- **Public API.** Everything public is re-exported from `toon/__init__.py` and
+- **Public API.** Everything public is re-exported from `toon_format/__init__.py` and
   listed in `__all__`. Everything else is private (`_module.py`, `_name`). Options
   are keyword-only. Changing the public API requires updating `docs/`,
   `CHANGELOG.md`, and `tests/test_api.py`.
@@ -151,13 +150,13 @@ section together with the code.
 - `test_roundtrip.py` checks `loads(dumps(x)) == x` and output invariants with
   Hypothesis.
 - `test_toons_compat.py` is a differential test against
-  [toons](https://github.com/alesanfra/toons), an independent Rust
+  [toons](https://github.com/alesanfra/toons), a Rust
   implementation of the same specification version. Both encoders must
-  produce the same text, except for the float spellings §2 leaves open (toon
+  produce the same text, except for the float spellings §2 leaves open (toon_format
   uses exponents outside [1e-6, 1e21) and exact digits for integral floats
-  from 2⁵³) and for strings starting with U+FEFF, which toon quotes because a
+  from 2⁵³) and for strings starting with U+FEFF, which toon_format quotes because a
   bare one at the root is removed as a byte-order mark (§12); both decoders
-  must agree on valid documents and on every decode fixture. On malformed input the two knowingly differ; `toon` follows the
+  must agree on valid documents and on every decode fixture. On malformed input the two knowingly differ; `toon_format` follows the
   specification there, never toons:
   - a single line such as `[` or `foo[2]` is a root string (§5, §5.2: without
     a colon it is not a header);
@@ -188,15 +187,15 @@ section together with the code.
 - Publishing happens only through the `Publish` workflow
   (`.github/workflows/publish.yml`), with PyPI trusted publishing. PyPI binds
   the publisher to that file name and to the `pypi` and `testpypi`
-  environments: do not rename them. The same jobs publish `toon-python`
-  and then `toon-format`; both PyPI projects need the trusted publisher.
+  environments: do not rename them. The same jobs publish `toon-format`
+  and then `toon-python`; both PyPI projects need the trusted publisher.
 
 To release:
 
 1. `uv version --bump minor` (or `patch`, `major`, or an explicit version),
    and move the *Unreleased* entries of `CHANGELOG.md` under the new version.
-   Run `uv version --package toon-format` with the same version and update the
-   three `toon-python==` pins in `packaging/toon-format/pyproject.toml`; the
+   Run `uv version --package toon-python` with the same version and update the
+   two `toon-format==` pins in `packaging/toon-python/pyproject.toml`; the
    workflow checks them.
 2. Merge that change through a pull request.
 3. Optional: run the `Publish` workflow by hand to upload to TestPyPI.
@@ -206,4 +205,5 @@ To release:
 The documentation is meant to live at <https://toon-python.readthedocs.io>,
 built by Read the Docs from `.readthedocs.yaml`. That project does not exist
 yet: import the repository on readthedocs.org with the slug `toon-python`, then
-remove the "not published yet" note from `README.md`.
+remove the "not published yet" note from `README.md` and add a Read the Docs
+badge next to the others.

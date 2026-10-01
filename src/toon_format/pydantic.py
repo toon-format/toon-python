@@ -1,9 +1,9 @@
 """Pydantic integration.
 
-Requires the ``pydantic`` extra: ``pip install "toon-python[pydantic]"``.
+Requires the ``pydantic`` extra: ``pip install "toon-format[pydantic]"``.
 
 Plain :class:`pydantic.BaseModel` instances can be passed to
-:func:`toon.dumps` directly. :class:`ToonPydanticModel` adds TOON
+:func:`toon_format.dumps` directly. :class:`ToonPydanticModel` adds TOON
 counterparts of pydantic's JSON helpers::
 
     class User(ToonPydanticModel):
@@ -16,12 +16,17 @@ counterparts of pydantic's JSON helpers::
 
 from __future__ import annotations
 
+import sys
 from typing import Any
 
 from pydantic import BaseModel
-from typing_extensions import Self
 
 from ._api import dumps, loads
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:  # declared in the pydantic extra for Python 3.10
+    from typing_extensions import Self
 
 __all__ = ["ToonPydanticModel"]
 
@@ -55,14 +60,14 @@ class ToonPydanticModel(BaseModel):
 
         Args:
             text: The TOON document.
-            strict: Passed to both :func:`toon.loads` and
+            strict: Passed to both :func:`toon_format.loads` and
                 :meth:`pydantic.BaseModel.model_validate`. ``None`` decodes
                 in strict mode and leaves validation to the model's
                 configuration.
             **kwargs: Passed to :meth:`pydantic.BaseModel.model_validate`.
 
         Raises:
-            toon.ToonDecodeError: The text is not valid TOON.
+            toon_format.ToonDecodeError: The text is not valid TOON.
             pydantic.ValidationError: The data does not match the model.
         """
         data = loads(text, strict=strict is not False)

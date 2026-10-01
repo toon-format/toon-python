@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-import toon
+import toon_format
 
 # -- numbers (§4) ---------------------------------------------------------------
 
@@ -28,29 +28,29 @@ import toon
     ],
 )
 def test_number_types(text: str, expected: Any, kind: type) -> None:
-    value = toon.loads(text)
+    value = toon_format.loads(text)
     assert value == expected
     assert type(value) is kind
 
 
 def test_negative_zero_decodes_to_positive_zero() -> None:
-    assert str(toon.loads("-0.0")) == "0.0"
+    assert str(toon_format.loads("-0.0")) == "0.0"
 
 
 def test_out_of_range_floats() -> None:
-    with pytest.raises(toon.ToonDecodeError, match="out of range"):
-        toon.loads("x: 1e400")
-    assert toon.loads("x: -1e400", strict=False) == {"x": float("-inf")}
+    with pytest.raises(toon_format.ToonDecodeError, match="out of range"):
+        toon_format.loads("x: 1e400")
+    assert toon_format.loads("x: -1e400", strict=False) == {"x": float("-inf")}
 
 
 def test_parse_float_and_parse_int() -> None:
     text = "a: 0.1\nb: 1e400\nc: 7"
-    assert toon.loads(text, parse_float=Decimal) == {
+    assert toon_format.loads(text, parse_float=Decimal) == {
         "a": Decimal("0.1"),
         "b": Decimal("1e400"),
         "c": 7,
     }
-    assert toon.loads("n[2]: 1,2.5", parse_int=str) == {"n": ["1", 2.5]}
+    assert toon_format.loads("n[2]: 1,2.5", parse_int=str) == {"n": ["1", 2.5]}
 
 
 # -- hooks ------------------------------------------------------------------------
@@ -64,7 +64,7 @@ def test_object_hook_sees_every_object() -> None:
         seen.append(dict(obj))
         return obj
 
-    toon.loads(text, object_hook=hook)
+    toon_format.loads(text, object_hook=hook)
     assert seen == [
         {"b": 1},
         {"y": 2},
@@ -81,7 +81,7 @@ def test_object_hook_sees_every_object() -> None:
 
 
 def test_object_pairs_hook_takes_priority() -> None:
-    result = toon.loads(
+    result = toon_format.loads(
         "b: 1\na:\n  c: 2", object_pairs_hook=OrderedDict, object_hook=lambda obj: 1 / 0
     )
     assert result == OrderedDict([("b", 1), ("a", OrderedDict([("c", 2)]))])
@@ -89,40 +89,45 @@ def test_object_pairs_hook_takes_priority() -> None:
 
 
 def test_empty_document_goes_through_the_hook() -> None:
-    assert toon.loads("", object_pairs_hook=list) == []
+    assert toon_format.loads("", object_pairs_hook=list) == []
 
 
 # -- input handling (§4, §12) ---------------------------------------------------------
 
 
 def test_bytes_input() -> None:
-    assert toon.loads("name: café".encode()) == {"name": "café"}
-    assert toon.loads(bytearray(b"a: 1")) == {"a": 1}
+    assert toon_format.loads("name: café".encode()) == {"name": "café"}
+    assert toon_format.loads(bytearray(b"a: 1")) == {"a": 1}
 
 
 def test_invalid_utf8_is_an_error() -> None:
-    with pytest.raises(toon.ToonDecodeError, match="Invalid UTF-8"):
-        toon.loads(b"a: \xff")
-    with pytest.raises(toon.ToonDecodeError, match="Invalid UTF-8"):
-        toon.loads(b"a: \xed\xa0\x80")  # an encoded surrogate
+    with pytest.raises(toon_format.ToonDecodeError, match="Invalid UTF-8"):
+        toon_format.loads(b"a: \xff")
+    with pytest.raises(toon_format.ToonDecodeError, match="Invalid UTF-8"):
+        toon_format.loads(b"a: \xed\xa0\x80")  # an encoded surrogate
 
 
 def test_wrong_input_type() -> None:
     with pytest.raises(TypeError, match="must be str, bytes or bytearray"):
-        toon.loads(42)  # type: ignore[arg-type]
+        toon_format.loads(42)  # type: ignore[arg-type]
 
 
 def test_bom_and_line_endings() -> None:
-    assert toon.loads("\ufeffa: 1\r\nb:\r\n  c: 2\r\n") == {"a": 1, "b": {"c": 2}}
-    assert toon.loads("a: x\ry") == {"a": "x\ry"}  # a CR inside a line is content
+    assert toon_format.loads("\ufeffa: 1\r\nb:\r\n  c: 2\r\n") == {
+        "a": 1,
+        "b": {"c": 2},
+    }
+    assert toon_format.loads("a: x\ry") == {
+        "a": "x\ry"
+    }  # a CR inside a line is content
 
 
 # -- errors -------------------------------------------------------------------------
 
 
 def test_error_attributes() -> None:
-    with pytest.raises(toon.ToonDecodeError) as info:
-        toon.loads("a: 1\nitems[3]: x,y")
+    with pytest.raises(toon_format.ToonDecodeError) as info:
+        toon_format.loads("a: 1\nitems[3]: x,y")
     error = info.value
     assert isinstance(error, ValueError)
     assert error.line == 2
@@ -132,7 +137,7 @@ def test_error_attributes() -> None:
 
 
 def test_error_is_picklable() -> None:
-    error = toon.ToonDecodeError("boom", 3, "x")
+    error = toon_format.ToonDecodeError("boom", 3, "x")
     clone = pickle.loads(pickle.dumps(error))
     assert (clone.msg, clone.line, clone.source, str(clone)) == (
         "boom",
@@ -157,21 +162,23 @@ def test_error_is_picklable() -> None:
 )
 def test_errors_in_any_mode(text: str) -> None:
     for strict in (True, False):
-        with pytest.raises(toon.ToonDecodeError):
-            toon.loads(text, strict=strict)
+        with pytest.raises(toon_format.ToonDecodeError):
+            toon_format.loads(text, strict=strict)
 
 
 def test_literal_control_characters_in_quotes() -> None:
-    with pytest.raises(toon.ToonDecodeError, match="control character"):
-        toon.loads('a: "x\x01y"')
-    assert toon.loads('a: "x\x01y"', strict=False) == {"a": "x\x01y"}
-    assert toon.loads('a: "x\ty"') == {"a": "x\ty"}  # a literal tab is tolerated (§7.1)
+    with pytest.raises(toon_format.ToonDecodeError, match="control character"):
+        toon_format.loads('a: "x\x01y"')
+    assert toon_format.loads('a: "x\x01y"', strict=False) == {"a": "x\x01y"}
+    assert toon_format.loads('a: "x\ty"') == {
+        "a": "x\ty"
+    }  # a literal tab is tolerated (§7.1)
 
 
 def test_deep_nesting_raises_decode_error() -> None:
     text = "\n".join("  " * depth + "a:" for depth in range(5000))
-    with pytest.raises(toon.ToonDecodeError, match="nested too deeply"):
-        toon.loads(text)
+    with pytest.raises(toon_format.ToonDecodeError, match="nested too deeply"):
+        toon_format.loads(text)
 
 
 # -- non-strict leniency (§12, §14) ----------------------------------------------------
@@ -190,15 +197,15 @@ def test_deep_nesting_raises_decode_error() -> None:
     ],
 )
 def test_non_strict(text: str, expected: Any) -> None:
-    with pytest.raises(toon.ToonDecodeError):
-        toon.loads(text)
-    assert toon.loads(text, strict=False) == expected
+    with pytest.raises(toon_format.ToonDecodeError):
+        toon_format.loads(text)
+    assert toon_format.loads(text, strict=False) == expected
 
 
 def test_indent_size_option() -> None:
-    assert toon.loads("a:\n    b: 1", indent_size=4) == {"a": {"b": 1}}
-    with pytest.raises(toon.ToonDecodeError, match="multiple of 4"):
-        toon.loads("a:\n  b: 1", indent_size=4)
+    assert toon_format.loads("a:\n    b: 1", indent_size=4) == {"a": {"b": 1}}
+    with pytest.raises(toon_format.ToonDecodeError, match="multiple of 4"):
+        toon_format.loads("a:\n  b: 1", indent_size=4)
 
 
 # -- regressions from the issue tracker ---------------------------------------------------
@@ -221,18 +228,18 @@ def test_indent_size_option() -> None:
     ],
 )
 def test_regressions(text: str, expected: Any) -> None:
-    assert toon.loads(text) == expected
+    assert toon_format.loads(text) == expected
 
 
 def test_nested_length_mismatch_is_reported() -> None:
     # issue #47: a count mismatch deep inside must not truncate the document silently.
     text = "outer[1]:\n  - inner[3]: a,b\n    x: 1\ntail: 2"
     with pytest.raises(
-        toon.ToonDecodeError, match="Declared length 3 but found 2"
+        toon_format.ToonDecodeError, match="Declared length 3 but found 2"
     ) as info:
-        toon.loads(text)
+        toon_format.loads(text)
     assert info.value.line == 2
-    assert toon.loads(text, strict=False) == {
+    assert toon_format.loads(text, strict=False) == {
         "outer": [{"inner": ["a", "b"], "x": 1}],
         "tail": 2,
     }
@@ -240,20 +247,20 @@ def test_nested_length_mismatch_is_reported() -> None:
 
 def test_row_or_key_value_at_row_depth() -> None:
     # §9.3: a delimiter before the first colon keeps the line a row...
-    assert toon.loads("t[1]{x,y}:\n  a,b:c") == {"t": [{"x": "a", "y": "b:c"}]}
+    assert toon_format.loads("t[1]{x,y}:\n  a,b:c") == {"t": [{"x": "a", "y": "b:c"}]}
     # ...and a colon first ends the rows, leaving the line in no scope.
     text = "t[1]{x}:\n  1\n  n: 2"
-    with pytest.raises(toon.ToonDecodeError, match="Unexpected indentation"):
-        toon.loads(text)
-    assert toon.loads(text, strict=False) == {"t": [{"x": 1}]}
+    with pytest.raises(toon_format.ToonDecodeError, match="Unexpected indentation"):
+        toon_format.loads(text)
+    assert toon_format.loads(text, strict=False) == {"t": [{"x": 1}]}
 
 
 def test_hyphen_outside_a_list_is_part_of_the_key() -> None:
     # §5.2: outside the scope of an array in list form a leading hyphen is
     # ordinary text.
-    assert toon.loads("- a: 1") == {"- a": 1}
-    assert toon.loads("- a") == "- a"
-    assert toon.loads("items[1]:\n  - x\n- a: 1", strict=False) == {
+    assert toon_format.loads("- a: 1") == {"- a": 1}
+    assert toon_format.loads("- a") == "- a"
+    assert toon_format.loads("items[1]:\n  - x\n- a: 1", strict=False) == {
         "items": ["x"],
         "- a": 1,
     }
@@ -274,15 +281,15 @@ def test_list_item_outside_item_depth(text: str) -> None:
     # §5.2: inside an array in list form a leading hyphen always marks a list
     # item, which is admissible only at the array's item depth.
     for strict in (True, False):
-        with pytest.raises(toon.ToonDecodeError):
-            toon.loads(text, strict=strict)
+        with pytest.raises(toon_format.ToonDecodeError):
+            toon_format.loads(text, strict=strict)
 
 
 def test_integer_beyond_the_conversion_limit() -> None:
     if not hasattr(sys, "set_int_max_str_digits"):
         pytest.skip("no integer string conversion limit")
-    with pytest.raises(toon.ToonDecodeError, match="line 1"):
-        toon.loads("n: " + "9" * 5000)
+    with pytest.raises(toon_format.ToonDecodeError, match="line 1"):
+        toon_format.loads("n: " + "9" * 5000)
 
 
 @pytest.mark.parametrize(
@@ -295,10 +302,10 @@ def test_integer_beyond_the_conversion_limit() -> None:
     ],
 )
 def test_non_strict_header_fall_through(text: str, expected: Any) -> None:
-    with pytest.raises(toon.ToonDecodeError):
-        toon.loads(text)
-    assert toon.loads(text, strict=False) == expected
+    with pytest.raises(toon_format.ToonDecodeError):
+        toon_format.loads(text)
+    assert toon_format.loads(text, strict=False) == expected
 
 
 def test_unterminated_quote_in_a_field_list_hides_the_colon() -> None:
-    assert toon.loads('t[1]{"x}:') == 't[1]{"x}:'
+    assert toon_format.loads('t[1]{"x}:') == 't[1]{"x}:'

@@ -1,4 +1,7 @@
-"""The public ``json``-style functions: ``dumps``, ``dump``, ``loads``, ``load``."""
+"""The public ``json``-style functions: ``dumps``, ``dump``, ``loads``, ``load``.
+
+``encode`` and ``decode`` are aliases of ``dumps`` and ``loads``.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +13,7 @@ from . import _decoder, _encoder
 from ._errors import ToonDecodeError
 from ._text import DELIMITERS
 
-__all__ = ["Delimiter", "dump", "dumps", "load", "loads"]
+__all__ = ["Delimiter", "decode", "dump", "dumps", "encode", "load", "loads"]
 
 
 class Delimiter(str, Enum):
@@ -177,3 +180,10 @@ def load(
         object_hook=object_hook,
         object_pairs_hook=object_pairs_hook,
     )
+
+
+encode = dumps
+"""Alias of :func:`dumps`, the name used by the other TOON implementations."""
+
+decode = loads
+"""Alias of :func:`loads`, the name used by the other TOON implementations."""

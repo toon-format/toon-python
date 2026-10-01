@@ -1,32 +1,35 @@
 # Migrating from `toon_format` 0.9
 
-Version 1.0 is a rewrite that implements TOON specification 4.1 and moves the
-package to the `toon` module with a `json`-style interface. The old
-`toon_format` module still works: it delegates to the new implementation and
-emits a `DeprecationWarning` when imported.
+Version 1.0 is a rewrite that implements TOON specification 4.1. The
+distribution is still `toon-format` and the module still `toon_format`, so
+`encode(value)` and `decode(text)` keep working. The module now follows the
+interface of the standard `json` module: `dumps`, `dump`, `loads`, and `load`
+are the primary names, and `encode` and `decode` are their aliases.
 
-The distribution is now `toon-python`. Replace `toon-format` with
-`toon-python` in your dependencies; until then, `toon-format` 1.0 installs
-`toon-python` and keeps the `toon_format` module and the `toon` command, so
-upgrading needs no other change.
+## Options are keyword arguments
 
-## Renamed functions
+The options dictionary of 0.9 and its types (`EncodeOptions`, `DecodeOptions`,
+`DelimiterKey`) are gone. Pass options as keyword arguments; a positional
+options argument raises `TypeError`.
 
 | 0.9 | 1.0 |
 | --- | --- |
-| `from toon_format import encode, decode` | `import toon` |
-| `encode(value)` | `toon.dumps(value)` |
-| `encode(value, {"indent": 4, "delimiter": "\t"})` | `toon.dumps(value, indent_size=4, delimiter="\t")` |
-| `decode(text)` | `toon.loads(text)` |
-| `decode(text, DecodeOptions(indent=4, strict=False))` | `toon.loads(text, indent_size=4, strict=False)` |
-| `toon_format.ToonDecodeError` | `toon.ToonDecodeError` |
-| `toon_format.pydantic.ToonPydanticModel` | `toon.pydantic.ToonPydanticModel` |
-| `python -m toon_format` | `python -m toon` (or the `toon` command) |
+| `encode(value)` | `dumps(value)` or `encode(value)` |
+| `encode(value, {"indent": 4, "delimiter": "\t"})` | `dumps(value, indent_size=4, delimiter="\t")` |
+| `encode(value, {"delimiter": "pipe"})` | `dumps(value, delimiter="\|")` |
+| `decode(text)` | `loads(text)` or `decode(text)` |
+| `decode(text, DecodeOptions(indent=4, strict=False))` | `loads(text, indent_size=4, strict=False)` |
 
-`count_tokens`, `estimate_savings`, and `compare_formats` remain available from
-`toon_format` only; install `toon-format[tokens]` for them. On the command
-line, `toon stats` replaces them. Both count with OpenAI's tokenizers, so the
-counts are exact for OpenAI models only.
+## Removed
+
+- **Token helpers.** `count_tokens`, `estimate_savings`, and
+  `compare_formats` are gone. Count tokens with your model provider's
+  tokenizer, for example `tiktoken` for OpenAI models.
+- **The `toon` command** and `python -m toon_format`. The official command line
+  is [`@toon-format/cli`](https://www.npmjs.com/package/@toon-format/cli):
+  `npx @toon-format/cli data.json`.
+- **Length markers** (`[#3]`), removed from the specification, and the
+  `lengthMarker` option.
 
 ## Behavior changes
 
@@ -45,11 +48,8 @@ changes some output and fixes many bugs, among them
 - **Uniform nested objects** in tabular arrays become nested field groups:
   `orders[2]{id,customer{name,country}}:`.
 - **Comment lines** starting with `#` are ignored by the decoder.
-- **Length markers** (`[#3]`) are gone from the specification. The
-  `lengthMarker` option and the `--length-marker` flag are accepted and ignored.
-- **Unsupported values** raise `TypeError` in `toon.dumps`, like `json.dumps`,
-  instead of silently becoming `null`. Pass `default=` to convert them.
-  `toon_format.encode` keeps the old behavior.
+- **Unsupported values** raise `TypeError`, like `json.dumps`, instead of
+  silently becoming `null`. Pass `default=` to convert them.
 - **Non-string keys** are converted like `json.dumps` does (`1` becomes `"1"`,
   `True` becomes `"true"`); other key types raise `TypeError`.
 - **`Decimal`** values keep every digit instead of going through `float`.

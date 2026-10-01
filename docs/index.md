@@ -6,26 +6,26 @@ tokens in LLM prompts.
 
 - **Complete**: implements [TOON specification 4.1](https://github.com/toon-format/spec/blob/main/SPEC.md)
   and passes every official conformance fixture.
-- **Familiar**: `dumps`, `dump`, `loads`, and `load`, like the `json` module.
+- **Familiar**: `dumps`, `dump`, `loads`, and `load`, like the `json` module,
+  with `encode` and `decode` as aliases.
 - **Pure Python**, no dependencies, fully typed, Python 3.10+.
 
 ## Installation
 
 ```bash
-pip install toon-python
+pip install toon-format
 # or
-uv add toon-python
+uv add toon-format
 ```
 
-The distribution is named `toon-python`; the module is `toon`. Install
-`toon-python[pydantic]` for the [Pydantic integration](usage.md#pydantic).
-Up to 0.9 the distribution was `toon-format`, which still works and installs
-`toon-python`.
+The module is `toon_format`. Install `toon-format[pydantic]` for the
+[Pydantic integration](usage.md#pydantic). `toon-python`, the name of the
+repository, is an alias that installs `toon-format`.
 
 ## Quick start
 
 ```python
-import toon
+import toon_format
 
 data = {
     "context": {"task": "Our favorite hikes together", "location": "Boulder"},
@@ -36,7 +36,7 @@ data = {
     ],
 }
 
-text = toon.dumps(data)
+text = toon_format.dumps(data)
 print(text)
 ```
 
@@ -51,11 +51,11 @@ hikes[2]{id,name,distanceKm,wasSunny}:
 ```
 
 ```python
-assert toon.loads(text) == data
+assert toon_format.loads(text) == data
 ```
 
 ## Next steps
 
-- [Usage](usage.md): encoding, decoding, errors, the command line, and Pydantic.
+- [Usage](usage.md): encoding, decoding, errors, and Pydantic.
 - [Data types](data-types.md): how Python values map to TOON.
-- [Migrating from 0.9](migration.md): moving from the `toon_format` module.
+- [Migrating from 0.9](migration.md): what changed since `toon-format` 0.9.

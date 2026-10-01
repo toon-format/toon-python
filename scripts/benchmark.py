@@ -6,10 +6,10 @@ Usage:
     uv run scripts/benchmark.py v0.9.0-beta.1
 
 The revision is checked out in a temporary git worktree and imported from its
-``src`` directory: ``toon.dumps``/``toon.loads`` when it has the ``toon``
-module, the 0.9 ``toon_format.encode``/``toon_format.decode`` otherwise. Each
-figure is the best of five runs. The datasets avoid forms that 0.9 cannot
-write, such as keyed tabular objects, so that both sides encode the same text.
+``src`` directory through ``toon_format.encode`` and ``toon_format.decode``,
+which every version provides. Each figure is the best of five runs. The
+datasets avoid forms that 0.9 cannot write, such as keyed tabular objects, so
+that both sides encode the same text.
 """
 
 from __future__ import annotations
@@ -75,12 +75,8 @@ def _best(call: Callable[[], object], number: int) -> float:
 
 def _measure(src: Path) -> dict[str, dict[str, float]]:
     """Time the implementation in ``src`` inside this process."""
-    if (src / "toon").is_dir():
-        module = importlib.import_module("toon")
-        dumps, loads = module.dumps, module.loads
-    else:
-        module = importlib.import_module("toon_format")
-        dumps, loads = module.encode, module.decode
+    module = importlib.import_module("toon_format")
+    dumps, loads = module.encode, module.decode
     # The installed package must not shadow the revision under test.
     assert Path(module.__file__ or "").is_relative_to(src), module.__file__
     results = {}

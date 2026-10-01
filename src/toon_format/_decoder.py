@@ -73,7 +73,7 @@ class _Line:
 
 
 def _split_lines(text: str, indent_size: int, strict: bool) -> list[_Line]:
-    if text.startswith("﻿"):
+    if text.startswith("\ufeff"):
         text = text[1:]  # byte-order mark (§12)
     lines: list[_Line] = []
     blank: int | None = None

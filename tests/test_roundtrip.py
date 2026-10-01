@@ -7,24 +7,26 @@ from typing import Any
 from hypothesis import given
 from hypothesis import strategies as st
 
-import toon
+import toon_format
 
 from .strategies import documents
 
 
 @given(
     documents,
-    st.sampled_from(list(toon.Delimiter)),
+    st.sampled_from(list(toon_format.Delimiter)),
     st.integers(min_value=1, max_value=4),
 )
-def test_round_trip(value: Any, delimiter: toon.Delimiter, indent_size: int) -> None:
-    text = toon.dumps(value, delimiter=delimiter, indent_size=indent_size)
-    assert toon.loads(text, indent_size=indent_size) == value
+def test_round_trip(
+    value: Any, delimiter: toon_format.Delimiter, indent_size: int
+) -> None:
+    text = toon_format.dumps(value, delimiter=delimiter, indent_size=indent_size)
+    assert toon_format.loads(text, indent_size=indent_size) == value
 
 
 @given(documents)
 def test_output_invariants(value: Any) -> None:
-    text = toon.dumps(value)
+    text = toon_format.dumps(value)
     assert not text.endswith("\n")
     for line in text.split("\n"):
         assert line == line.rstrip(" "), "no trailing spaces (§12)"

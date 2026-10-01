@@ -6,8 +6,8 @@ import pytest
 
 pydantic = pytest.importorskip("pydantic")
 
-import toon  # noqa: E402
-from toon.pydantic import ToonPydanticModel  # noqa: E402
+import toon_format  # noqa: E402
+from toon_format.pydantic import ToonPydanticModel  # noqa: E402
 
 
 class Address(pydantic.BaseModel):
@@ -24,7 +24,7 @@ class User(ToonPydanticModel):
 
 def test_dumps_accepts_any_base_model() -> None:
     assert (
-        toon.dumps({"home": Address(city="Oslo", zip="0150")})
+        toon_format.dumps({"home": Address(city="Oslo", zip="0150")})
         == 'home:\n  city: Oslo\n  zip: "0150"'
     )
 
@@ -49,7 +49,7 @@ def test_model_validate_toon() -> None:
 
 
 def test_model_validate_toon_errors() -> None:
-    with pytest.raises(toon.ToonDecodeError):
+    with pytest.raises(toon_format.ToonDecodeError):
         User.model_validate_toon("name: Ada\nage: 36\ntags[3]: a")
     with pytest.raises(pydantic.ValidationError):
         User.model_validate_toon("name: Ada\nage: old")
@@ -57,9 +57,9 @@ def test_model_validate_toon_errors() -> None:
 
 def test_model_validate_toon_strict() -> None:
     text = 'name: Ada\nage: "36"\ntags[2]: a'
-    with pytest.raises(toon.ToonDecodeError):
+    with pytest.raises(toon_format.ToonDecodeError):
         User.model_validate_toon(text)
-    with pytest.raises(toon.ToonDecodeError):
+    with pytest.raises(toon_format.ToonDecodeError):
         User.model_validate_toon(text, strict=True)
     lenient = User.model_validate_toon(text, strict=False)
     assert lenient == User(name="Ada", age=36, tags=["a"])
@@ -70,5 +70,5 @@ def test_model_validate_toon_strict() -> None:
 
 def test_schema_to_toon() -> None:
     schema = User.schema_to_toon()
-    assert toon.loads(schema) == User.model_json_schema()
+    assert toon_format.loads(schema) == User.model_json_schema()
     assert "properties:" in schema

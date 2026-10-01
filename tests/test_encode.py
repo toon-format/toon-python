@@ -15,7 +15,7 @@ from typing import Any
 
 import pytest
 
-import toon
+import toon_format
 
 
 class Color(enum.Enum):
@@ -83,15 +83,15 @@ class Shape:
     ],
 )
 def test_numbers_and_literals(value: Any, expected: str) -> None:
-    assert toon.dumps(value) == expected
-    assert toon.dumps({"v": value}) == f"v: {expected}"
+    assert toon_format.dumps(value) == expected
+    assert toon_format.dumps({"v": value}) == f"v: {expected}"
 
 
 @pytest.mark.parametrize(
     "value", [1e-7, 1e21, 1.7976931348623157e308, 5e-324, 0.1, 123.456]
 )
 def test_floats_round_trip(value: float) -> None:
-    assert toon.loads(toon.dumps(value)) == value
+    assert toon_format.loads(toon_format.dumps(value)) == value
 
 
 # -- strings (§7) -------------------------------------------------------------
@@ -130,15 +130,15 @@ def test_floats_round_trip(value: float) -> None:
     ],
 )
 def test_string_quoting(value: str, expected: str) -> None:
-    assert toon.dumps({"v": value}) == f"v: {expected}"
-    assert toon.loads(toon.dumps(value)) == value
+    assert toon_format.dumps({"v": value}) == f"v: {expected}"
+    assert toon_format.loads(toon_format.dumps(value)) == value
 
 
 def test_delimiter_aware_quoting() -> None:
     data = {"note": "a|b", "tags": ["a|b", "c,d"]}
-    assert toon.dumps(data, delimiter="|") == 'note: "a|b"\ntags[2|]: "a|b"|c,d'
+    assert toon_format.dumps(data, delimiter="|") == 'note: "a|b"\ntags[2|]: "a|b"|c,d'
     assert (
-        toon.dumps(data, delimiter=toon.Delimiter.TAB)
+        toon_format.dumps(data, delimiter=toon_format.Delimiter.TAB)
         == "note: a|b\ntags[2\t]: a|b\tc,d"
     )
 
@@ -159,13 +159,13 @@ def test_delimiter_aware_quoting() -> None:
     ],
 )
 def test_key_quoting(key: str, expected: str) -> None:
-    assert toon.dumps({key: 1}) == f"{expected}: 1"
+    assert toon_format.dumps({key: 1}) == f"{expected}: 1"
 
 
 @pytest.mark.parametrize("value", ["\ud800", {"\udfff": 1}, ["ok", "a\udc80b"]])
 def test_unpaired_surrogates_are_rejected(value: Any) -> None:
     with pytest.raises(ValueError, match="surrogate"):
-        toon.dumps(value)
+        toon_format.dumps(value)
 
 
 # -- host types (§3, Appendix E.3) -------------------------------------------
@@ -187,7 +187,7 @@ def test_unpaired_surrogates_are_rejected(value: Any) -> None:
     ],
 )
 def test_scalar_host_types(value: Any, expected: str) -> None:
-    assert toon.dumps({"v": value}) == f"v: {expected}"
+    assert toon_format.dumps({"v": value}) == f"v: {expected}"
 
 
 def test_collections() -> None:
@@ -199,7 +199,7 @@ def test_collections() -> None:
         "mapping": types.MappingProxyType({"k": 1}),
         "ordered": collections.OrderedDict(z=1, a=2),
     }
-    assert toon.dumps(data) == (
+    assert toon_format.dumps(data) == (
         "tuple[2]: 1,2\n"
         "set[3]: 1,2,3\n"
         "frozen[2]: a,b\n"
@@ -211,9 +211,9 @@ def test_collections() -> None:
 
 def test_dataclasses() -> None:
     shape = Shape("tri", [Point(0, 0), Point(1, 0), Point(0, 1)])
-    assert toon.dumps(shape) == "name: tri\npoints[3]{x,y}:\n  0,0\n  1,0\n  0,1"
+    assert toon_format.dumps(shape) == "name: tri\npoints[3]{x,y}:\n  0,0\n  1,0\n  0,1"
     with pytest.raises(TypeError):
-        toon.dumps(Point)  # the class itself is not data
+        toon_format.dumps(Point)  # the class itself is not data
 
 
 def test_attrs_classes() -> None:
@@ -225,12 +225,12 @@ def test_attrs_classes() -> None:
         tags: list[str] = attrs.field(factory=list)
         _secret: int = attrs.field(default=0, repr=False)
 
-    assert toon.dumps({"items": [Item("a", ["x"]), Item("b")]}) == (
+    assert toon_format.dumps({"items": [Item("a", ["x"]), Item("b")]}) == (
         "items[2]:\n  - name: a\n    tags[1]: x\n    _secret: 0\n"
         "  - name: b\n    tags: []\n    _secret: 0"
     )
     with pytest.raises(TypeError):
-        toon.dumps(Item)  # the class itself is not data
+        toon_format.dumps(Item)  # the class itself is not data
 
 
 @pytest.mark.parametrize(
@@ -238,7 +238,7 @@ def test_attrs_classes() -> None:
     [(1, '"1"'), (1.5, '"1.5"'), (True, "true"), (None, "null"), (Size.LARGE, '"3"')],
 )
 def test_non_string_keys_are_coerced_like_json(key: Any, expected: str) -> None:
-    assert toon.dumps({key: "x"}) == f"{expected}: x"
+    assert toon_format.dumps({key: "x"}) == f"{expected}: x"
 
 
 @pytest.mark.parametrize(
@@ -246,18 +246,18 @@ def test_non_string_keys_are_coerced_like_json(key: Any, expected: str) -> None:
 )
 def test_keys_colliding_after_conversion(value: dict[Any, Any]) -> None:
     with pytest.raises(ValueError, match="Duplicate key after conversion"):
-        toon.dumps(value)
+        toon_format.dumps(value)
 
 
 def test_unsupported_keys() -> None:
     with pytest.raises(TypeError, match="Keys must be"):
-        toon.dumps({(1, 2): "x"})
+        toon_format.dumps({(1, 2): "x"})
 
 
 @pytest.mark.parametrize("value", [object(), b"bytes", 1j, iter([1]), print])
 def test_unsupported_values_raise_type_error(value: Any) -> None:
     with pytest.raises(TypeError, match="is not TOON serializable"):
-        toon.dumps({"v": value})
+        toon_format.dumps({"v": value})
 
 
 def test_default_hook() -> None:
@@ -266,21 +266,21 @@ def test_default_hook() -> None:
             return {"re": value.real, "im": value.imag}
         raise TypeError(f"cannot encode {type(value).__name__}")
 
-    assert toon.dumps({"z": 1 + 2j}, default=default) == "z:\n  re: 1\n  im: 2"
+    assert toon_format.dumps({"z": 1 + 2j}, default=default) == "z:\n  re: 1\n  im: 2"
     with pytest.raises(TypeError, match="cannot encode bytes"):
-        toon.dumps(b"x", default=default)
+        toon_format.dumps(b"x", default=default)
 
 
 def test_default_hook_is_not_called_for_supported_types() -> None:
     calls = []
-    toon.dumps({"a": [1, "x", None]}, default=calls.append)
+    toon_format.dumps({"a": [1, "x", None]}, default=calls.append)
     assert calls == []
 
 
 def test_sort_keys() -> None:
     data = {"b": 1, "a": {"d": 2, "c": 3}, "rows": [{"y": 1, "x": 2}]}
     assert (
-        toon.dumps(data, sort_keys=True)
+        toon_format.dumps(data, sort_keys=True)
         == "a:\n  c: 3\n  d: 2\nb: 1\nrows[1]{x,y}:\n  2,1"
     )
 
@@ -292,21 +292,21 @@ def test_circular_references() -> None:
     items: list[Any] = [1]
     items.append(items)
     with pytest.raises(ValueError, match="Circular reference"):
-        toon.dumps(items)
+        toon_format.dumps(items)
     obj: dict[str, Any] = {}
     obj["self"] = obj
     with pytest.raises(ValueError, match="Circular reference"):
-        toon.dumps(obj)
+        toon_format.dumps(obj)
 
 
 def test_default_returning_its_argument_is_a_cycle() -> None:
     with pytest.raises(ValueError, match="Circular reference"):
-        toon.dumps(object(), default=lambda value: value)
+        toon_format.dumps(object(), default=lambda value: value)
 
 
 def test_shared_references_are_not_cycles() -> None:
     shared = {"x": 1}
-    assert toon.dumps([shared, shared]) == "[2]{x}:\n  1\n  1"
+    assert toon_format.dumps([shared, shared]) == "[2]{x}:\n  1\n  1"
 
 
 def test_deep_nesting_raises_value_error() -> None:
@@ -314,7 +314,7 @@ def test_deep_nesting_raises_value_error() -> None:
     for _ in range(sys.getrecursionlimit() + 10):
         value = [value]
     with pytest.raises(ValueError, match="nested too deeply"):
-        toon.dumps(value)
+        toon_format.dumps(value)
 
 
 # -- forms (§9, §10) and regressions from the issue tracker -------------------------
@@ -362,17 +362,22 @@ def test_deep_nesting_raises_value_error() -> None:
     ],
 )
 def test_forms(value: Any, expected: str) -> None:
-    assert toon.dumps(value) == expected
-    assert toon.loads(expected) == value
+    assert toon_format.dumps(value) == expected
+    assert toon_format.loads(expected) == value
 
 
 def test_indent_size() -> None:
     data = {"a": {"b": [{"c": 1, "d": {"e": 2}}, 3]}}
-    assert toon.dumps(data, indent_size=4) == (
+    assert toon_format.dumps(data, indent_size=4) == (
         "a:\n    b[2]:\n        - c: 1\n            d:\n                e: 2\n        - 3"
     )
     for size in (1, 3, 4, 8):
-        assert toon.loads(toon.dumps(data, indent_size=size), indent_size=size) == data
+        assert (
+            toon_format.loads(
+                toon_format.dumps(data, indent_size=size), indent_size=size
+            )
+            == data
+        )
 
 
 def test_subclasses_of_builtins() -> None:
@@ -387,7 +392,7 @@ def test_subclasses_of_builtins() -> None:
             return "overridden"
 
     assert (
-        toon.dumps([Ratio(0.5), Ratio("inf"), Count(3), Name("ada")])
+        toon_format.dumps([Ratio(0.5), Ratio("inf"), Count(3), Name("ada")])
         == "[4]: 0.5,null,3,ada"
     )
 
@@ -401,7 +406,7 @@ def test_subclasses_of_builtins() -> None:
     ],
 )
 def test_non_finite_float_keys(key: float, expected: str) -> None:
-    assert toon.dumps({key: 1}) == expected
+    assert toon_format.dumps({key: 1}) == expected
 
 
 @pytest.mark.parametrize(
@@ -413,5 +418,5 @@ def test_non_finite_float_keys(key: float, expected: str) -> None:
     ],
 )
 def test_leading_byte_order_mark_is_quoted(value: Any, expected: str) -> None:
-    assert toon.dumps(value) == expected
-    assert toon.loads(expected) == value
+    assert toon_format.dumps(value) == expected
+    assert toon_format.loads(expected) == value

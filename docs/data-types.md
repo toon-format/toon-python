@@ -10,7 +10,7 @@
 | `str` | string, quoted only when needed |
 | `int` | number, exact at any size |
 | `float` | number; `nan` and infinities become `null` |
-| `decimal.Decimal` | number, with every digit preserved |
+| `decimal.Decimal` | number, with every digit preserved (see [Numbers](#specification-choices)) |
 | `bool`, `None` | `true`, `false`, `null` |
 | `datetime`, `date`, `time` | ISO 8601 string |
 | `uuid.UUID`, `pathlib.PurePath` | string |
@@ -30,7 +30,7 @@ converted back to dates or other types.
 
 ## Specification choices
 
-This package targets **TOON 4.1** (`toon.__toon_spec__`). The specification
+This package targets **TOON 4.1** (`toon_format.__toon_spec__`). The specification
 asks implementations to document the following choices.
 
 **Numbers.** Integers encode and decode exactly at any size. Floats use the
@@ -39,7 +39,9 @@ shortest representation that round-trips, in plain decimal between 1e-6 and
 2⁵³ up are written with their exact digits, so that they decode to an equal
 `int`. A decoded number beyond the double range is an error in strict mode and
 `±inf` otherwise. `Decimal` input keeps every digit, and `parse_float=Decimal`
-keeps them when decoding.
+keeps them when decoding. A `Decimal` beyond the double range, such as
+`Decimal("1e400")`, therefore encodes but does not decode back with the
+default strict decoder: pass `parse_float=Decimal` to read it.
 
 **Strings.** A string holding an unpaired surrogate cannot be encoded and
 raises `ValueError`. A string starting with U+FEFF is quoted, because a

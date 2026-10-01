@@ -1,4 +1,4 @@
-"""Differential tests against toons, an independent Rust implementation of TOON 4.1.
+"""Differential tests against toons, a Rust implementation of TOON 4.1.
 
 The two implementations must agree on every encoding and on every document
 the reference encoder can produce. Documented divergences on malformed input
@@ -15,7 +15,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-import toon
+import toon_format
 
 from .strategies import documents
 
@@ -35,33 +35,33 @@ def _numbers_as_floats(value: Any) -> Any:
 
 
 def test_same_specification() -> None:
-    assert toons.__toon_spec__ == toon.__toon_spec__
+    assert toons.__toon_spec__ == toon_format.__toon_spec__
 
 
 @given(
     documents,
-    st.sampled_from(list(toon.Delimiter)),
+    st.sampled_from(list(toon_format.Delimiter)),
     st.integers(min_value=2, max_value=4),
 )
 def test_encoders_agree(
-    value: Any, delimiter: toon.Delimiter, indent_size: int
+    value: Any, delimiter: toon_format.Delimiter, indent_size: int
 ) -> None:
-    ours = toon.dumps(value, delimiter=delimiter, indent_size=indent_size)
+    ours = toon_format.dumps(value, delimiter=delimiter, indent_size=indent_size)
     theirs = toons.dumps(value, delimiter=str(delimiter), indent_size=indent_size)
     if ours != theirs:
         # §2 leaves the spelling of some floats open: toons writes plain
-        # shortest digits everywhere, toon writes exponents outside
+        # shortest digits everywhere, toon_format writes exponents outside
         # [1e-6, 1e21) and exact digits for integral floats from 2**53. Both
         # must still denote the same doubles.
         assert _numbers_as_floats(
-            toon.loads(ours, indent_size=indent_size)
-        ) == _numbers_as_floats(toon.loads(theirs, indent_size=indent_size))
+            toon_format.loads(ours, indent_size=indent_size)
+        ) == _numbers_as_floats(toon_format.loads(theirs, indent_size=indent_size))
 
 
-@given(documents, st.sampled_from(list(toon.Delimiter)))
-def test_decoders_agree(value: Any, delimiter: toon.Delimiter) -> None:
-    text = toon.dumps(value, delimiter=delimiter)
-    assert toon.loads(text) == toons.loads(text)
+@given(documents, st.sampled_from(list(toon_format.Delimiter)))
+def test_decoders_agree(value: Any, delimiter: toon_format.Delimiter) -> None:
+    text = toon_format.dumps(value, delimiter=delimiter)
+    assert toon_format.loads(text) == toons.loads(text)
 
 
 def _decode_fixture_inputs() -> list[Any]:
@@ -93,4 +93,4 @@ def _outcome(module: Any, text: str, options: dict[str, Any]) -> Any:
 
 @pytest.mark.parametrize(("text", "options"), _decode_fixture_inputs())
 def test_decoders_agree_on_fixtures(text: str, options: dict[str, Any]) -> None:
-    assert _outcome(toon, text, options) == _outcome(toons, text, options)
+    assert _outcome(toon_format, text, options) == _outcome(toons, text, options)

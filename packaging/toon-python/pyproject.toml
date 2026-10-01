@@ -1,0 +1,36 @@
+# Alias distribution named after the repository: `pip install toon-python`
+# installs toon-format. Publishing it keeps the name from being registered by
+# someone else. Keep the metadata, except the authors, in step with the
+# root pyproject.toml. The version and the pins below always equal the
+# version of toon-format; the Publish workflow refuses to release otherwise.
+[project]
+name = "toon-python"
+version = "1.0.0"
+description = "Alias of toon-format, the official Python implementation of TOON (Token-Oriented Object Notation), a compact, human-readable encoding of the JSON data model for LLM prompts."
+readme = "README.md"
+authors = [{ name = "Alessio Sanfratello", email = "sanfra90@gmail.com" }]
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+dependencies = ["toon-format==1.0.0"]
+
+[project.optional-dependencies]
+pydantic = ["toon-format[pydantic]==1.0.0"]
+
+[project.urls]
+Homepage = "https://toonformat.dev"
+Documentation = "https://toon-python.readthedocs.io"
+Repository = "https://github.com/toon-format/toon-python"
+Specification = "https://github.com/toon-format/spec/blob/main/SPEC.md"
+Changelog = "https://github.com/toon-format/toon-python/blob/main/CHANGELOG.md"
+Issues = "https://github.com/toon-format/toon-python/issues"
+
+[tool.uv.sources]
+toon-format = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.9,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = []  # no code: the package only depends on toon-format

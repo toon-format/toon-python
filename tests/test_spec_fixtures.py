@@ -9,7 +9,7 @@ from typing import Any
 
 import pytest
 
-import toon
+import toon_format
 
 FIXTURES = Path(__file__).parent / "fixtures"
 
@@ -51,25 +51,25 @@ def _key_order(value: Any) -> Any:
 
 def _dumps_via_file(value: Any, **options: Any) -> str:
     buffer = io.StringIO()
-    toon.dump(value, buffer, **options)
+    toon_format.dump(value, buffer, **options)
     return buffer.getvalue()
 
 
 def _loads_via_file(text: str, **options: Any) -> Any:
-    return toon.load(io.BytesIO(text.encode()), **options)
+    return toon_format.load(io.BytesIO(text.encode()), **options)
 
 
-@pytest.mark.parametrize("encode", [toon.dumps, _dumps_via_file])
+@pytest.mark.parametrize("encode", [toon_format.dumps, _dumps_via_file])
 @pytest.mark.parametrize("case", _cases("encode"))
 def test_encode(case: dict[str, Any], encode: Any) -> None:
     assert encode(case["input"], **_encode_options(case)) == case["expected"]
 
 
-@pytest.mark.parametrize("decode", [toon.loads, _loads_via_file])
+@pytest.mark.parametrize("decode", [toon_format.loads, _loads_via_file])
 @pytest.mark.parametrize("case", _cases("decode"))
 def test_decode(case: dict[str, Any], decode: Any) -> None:
     if case.get("shouldError"):
-        with pytest.raises(toon.ToonDecodeError):
+        with pytest.raises(toon_format.ToonDecodeError):
             decode(case["input"], **_decode_options(case))
     else:
         result = decode(case["input"], **_decode_options(case))

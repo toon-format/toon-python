@@ -16,32 +16,34 @@ from 0.9.
 - Full support for [TOON specification 4.1](https://github.com/toon-format/spec/blob/v4.1.1/SPEC.md):
   keyed tabular objects, nested field groups, comment lines, canonical empty
   arrays, and every strict-mode check. All official fixtures of spec `v4.1.1` pass.
-- The `toon` module with a `json`-style interface: `dumps`, `dump`, `loads`, `load`.
+- A `json`-style interface: `dumps`, `dump`, `loads`, `load`, with keyword-only
+  options. `encode` and `decode` are aliases of `dumps` and `loads`.
 - `default` and `sort_keys` options for encoding; `parse_float`, `parse_int`,
   `object_hook`, and `object_pairs_hook` for decoding.
 - Encoding of dataclasses, attrs classes, enums, UUIDs, sets, `Decimal` (lossless), and Pydantic models.
 - Decoding from `bytes` and binary files.
 - `ToonDecodeError.line`, `.source`, and `.msg`.
-- `toon.Delimiter` and `toon.__toon_spec__`.
-- CLI subcommands `toon encode`, `toon decode`, `toon check` (validates
-  several files and reports `file:line: message`), and `toon stats` (token
-  counts of JSON and of TOON with each delimiter, with `tiktoken`, exact for
-  OpenAI models only), and `python -m toon`. `toon FILE` keeps the 0.9
-  interface.
+- `toon_format.Delimiter` and `toon_format.__toon_spec__`.
+- The `toon-python` distribution, an alias with no code that installs
+  `toon-format`.
 - Documentation site built with MkDocs for Read the Docs.
-- Differential tests against the independent [toons](https://github.com/alesanfra/toons)
-  implementation and property-based round-trip tests.
+- Differential tests against [toons](https://github.com/alesanfra/toons), a
+  Rust implementation of the same specification, and property-based
+  round-trip tests.
 
 ### Changed
 
-- The distribution is now `toon-python` and the import name `toon`. The
-  `toon-format` distribution remains as its former name: it depends on
-  `toon-python` and carries the deprecated `toon_format` module.
+- `encode` and `decode` take options as keyword arguments instead of a
+  dictionary.
 - Unsupported values raise `TypeError` instead of becoming `null`.
 - Python 3.10 or later is required.
 
 ### Removed
 
+- The options types `EncodeOptions`, `DecodeOptions`, and `DelimiterKey`.
+- The token helpers `count_tokens`, `estimate_savings`, and `compare_formats`.
+- The `toon` command and `python -m toon_format`; use
+  [`@toon-format/cli`](https://www.npmjs.com/package/@toon-format/cli).
 - Length markers (`[#N]`), removed from the specification.
 
 ### Fixed

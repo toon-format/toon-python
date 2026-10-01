@@ -1,5 +1,5 @@
 [project]
-name = "toon-python"
+name = "toon-format"
 version = "1.0.0"
 description = "Official Python implementation of TOON (Token-Oriented Object Notation), a compact, human-readable encoding of the JSON data model for LLM prompts."
 readme = "README.md"
@@ -8,7 +8,7 @@ authors = [
     { name = "Alessio Sanfratello", email = "sanfra90@gmail.com" },
 ]
 license = "MIT"
-license-files = ["LICENSE", "AUTHORS"]
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = []
 keywords = ["toon", "serialization", "llm", "json", "tokens", "data-format"]
@@ -37,11 +37,7 @@ Changelog = "https://github.com/toon-format/toon-python/blob/main/CHANGELOG.md"
 Issues = "https://github.com/toon-format/toon-python/issues"
 
 [project.optional-dependencies]
-pydantic = ["pydantic>=2"]
-tokens = ["tiktoken>=0.7"]
-
-[project.scripts]
-toon = "toon.cli:main"
+pydantic = ["pydantic>=2", "typing-extensions>=4.0; python_version < '3.11'"]
 
 [dependency-groups]
 dev = [
@@ -62,16 +58,15 @@ docs = [
 ]
 
 [tool.uv.workspace]
-# toon-format, the former name, which carries the deprecated toon_format
-# module and its tests.
-members = ["packaging/toon-format"]
+# toon-python, an alias distribution with no code that depends on toon-format.
+members = ["packaging/toon-python"]
 
 [build-system]
 requires = ["uv_build>=0.9,<0.12"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
-module-name = "toon"
+module-name = "toon_format"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -80,7 +75,7 @@ filterwarnings = ["error"]
 
 [tool.coverage.run]
 branch = true
-source = ["toon"]
+source = ["toon_format"]
 
 [tool.coverage.report]
 show_missing = true
@@ -110,13 +105,9 @@ select = [
 "tests/**" = ["E501", "RUF001"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["toon", "toon_format"]
+known-first-party = ["toon_format"]
 
 [tool.mypy]
 python_version = "3.10"
 strict = true
-files = ["src", "packaging/toon-format/src"]
-
-[[tool.mypy.overrides]]
-module = ["tiktoken", "tiktoken.*"]
-ignore_missing_imports = true
+files = ["src"]

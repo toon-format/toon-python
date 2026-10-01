@@ -35,11 +35,3 @@ repos:
         language: system
         pass_filenames: false
         stages: [manual]
-      - id: pytest-toon-format
-        name: pytest (toon-format)
-        entry: >-
-          uv run --directory packaging/toon-format --package toon-format
-          pytest -q --cov --cov-fail-under=95
-        language: system
-        pass_filenames: false
-        stages: [manual]
