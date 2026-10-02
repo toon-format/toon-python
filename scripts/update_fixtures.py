@@ -3,7 +3,7 @@
 # ///
 """Replace tests/fixtures with the conformance fixtures of a TOON specification release.
 
-Usage: uv run scripts/update_fixtures.py v4.1.1
+Usage: uv run scripts/update_fixtures.py v4.1.2
 """
 
 from __future__ import annotations

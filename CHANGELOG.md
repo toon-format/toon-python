@@ -13,9 +13,9 @@ from 0.9.
 
 ### Added
 
-- Full support for [TOON specification 4.1](https://github.com/toon-format/spec/blob/v4.1.1/SPEC.md):
+- Full support for [TOON specification 4.1](https://github.com/toon-format/spec/blob/v4.1.2/SPEC.md):
   keyed tabular objects, nested field groups, comment lines, canonical empty
-  arrays, and every strict-mode check. All official fixtures of spec `v4.1.1` pass.
+  arrays, and every strict-mode check. All official fixtures of spec `v4.1.2` pass.
 - A `json`-style interface: `dumps`, `dump`, `loads`, `load`, with keyword-only
   options. `encode` and `decode` are aliases of `dumps` and `loads`.
 - `default` and `sort_keys` options for encoding; `parse_float`, `parse_int`,
