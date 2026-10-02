@@ -1,52 +1,74 @@
-from typing import Optional
+"""The pydantic integration."""
+
+from __future__ import annotations
 
 import pytest
-from pydantic import ValidationError
 
-from toon_format.pydantic import ToonPydanticModel
+pydantic = pytest.importorskip("pydantic")
+
+import toon_format  # noqa: E402
+from toon_format.pydantic import ToonPydanticModel  # noqa: E402
+
+
+class Address(pydantic.BaseModel):
+    city: str
+    zip: str
 
 
 class User(ToonPydanticModel):
     name: str
     age: int
-    email: Optional[str] = None
+    tags: list[str] = pydantic.Field(default_factory=list)
+    address: Address | None = None
 
 
-def test_schema_to_toon():
+def test_dumps_accepts_any_base_model() -> None:
+    assert (
+        toon_format.dumps({"home": Address(city="Oslo", zip="0150")})
+        == 'home:\n  city: Oslo\n  zip: "0150"'
+    )
+
+
+def test_model_dump_toon() -> None:
+    user = User(name="Ada", age=36, tags=["math", "code"])
+    assert (
+        user.model_dump_toon()
+        == "name: Ada\nage: 36\ntags[2]: math,code\naddress: null"
+    )
+    assert (
+        user.model_dump_toon(exclude_none=True, delimiter="|")
+        == "name: Ada\nage: 36\ntags[2|]: math|code"
+    )
+
+
+def test_model_validate_toon() -> None:
+    text = 'name: Ada\nage: 36\naddress:\n  city: Oslo\n  zip: "0150"'
+    user = User.model_validate_toon(text)
+    assert user == User(name="Ada", age=36, address=Address(city="Oslo", zip="0150"))
+    assert User.model_validate_toon(text.encode()) == user
+
+
+def test_model_validate_toon_errors() -> None:
+    with pytest.raises(toon_format.ToonDecodeError):
+        User.model_validate_toon("name: Ada\nage: 36\ntags[3]: a")
+    with pytest.raises(pydantic.ValidationError):
+        User.model_validate_toon("name: Ada\nage: old")
+
+
+def test_model_validate_toon_strict() -> None:
+    text = 'name: Ada\nage: "36"\ntags[2]: a'
+    with pytest.raises(toon_format.ToonDecodeError):
+        User.model_validate_toon(text)
+    with pytest.raises(toon_format.ToonDecodeError):
+        User.model_validate_toon(text, strict=True)
+    lenient = User.model_validate_toon(text, strict=False)
+    assert lenient == User(name="Ada", age=36, tags=["a"])
+    with pytest.raises(pydantic.ValidationError):
+        User.model_validate_toon('name: Ada\nage: "36"', strict=True)
+    assert User.model_validate_toon('name: Ada\nage: "36"').age == 36
+
+
+def test_schema_to_toon() -> None:
     schema = User.schema_to_toon()
-    assert "name:" in schema
-    assert "age:" in schema
-    assert "email:" in schema  # optional field
-    assert "type: object" in schema
-
-
-def test_model_validate_toon_success():
-    toon = "name:Ansar\nage:25\nemail:null"
-    user = User.model_validate_toon(toon)
-    assert user.name == "Ansar"
-    assert user.age == 25
-    assert user.email is None
-
-
-def test_model_validate_toon_validation_error():
-    toon = "name:Ansar\nage:twenty-five"  # wrong type
-    with pytest.raises(ValidationError):
-        User.model_validate_toon(toon)
-
-
-def test_model_validate_toon_empty_string():
-    with pytest.raises(ValueError, match="Empty string"):
-        User.model_validate_toon("")
-
-
-def test_model_dump_toon():
-    user = User(name="Ansar", age=25)
-    toon = user.model_dump_toon()
-    assert "name: Ansar" in toon
-    assert "age: 25" in toon
-
-
-def test_model_dump_toon_roundtrip():
-    user = User(name="Ansar", age=25, email="a@b.com")
-    restored = User.model_validate_toon(user.model_dump_toon())
-    assert restored == user
+    assert toon_format.loads(schema) == User.model_json_schema()
+    assert "properties:" in schema

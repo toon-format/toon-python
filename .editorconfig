@@ -5,18 +5,9 @@ charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
 
 [*.{py,pyi}]
-indent_style = space
 indent_size = 4
-
-[*.{yml,yaml}]
-indent_style = space
-indent_size = 2
-
-[*.{json,toml}]
-indent_style = space
-indent_size = 2
-
-[*.md]
-trim_trailing_whitespace = false
+max_line_length = 88

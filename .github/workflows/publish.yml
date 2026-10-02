@@ -1,4 +1,13 @@
-name: Publish to PyPI
+# Publishes "toon-format" to PyPI with trusted publishing (no API token).
+#
+# PyPI's trusted publisher is bound to this file name (publish.yml) and to the
+# "pypi" and "testpypi" environments: keep them.
+#
+# - Publishing a GitHub release uploads to PyPI. The release tag must be
+#   "v" followed by the version in pyproject.toml, for example v1.0.0.
+# - Running the workflow by hand uploads to TestPyPI.
+
+name: Publish
 
 on:
   release:
@@ -10,74 +19,59 @@ permissions:
 
 jobs:
   build:
-    name: Build distribution
+    name: Build distributions
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v5
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.x"
-
-      - name: Install build dependencies
+      - uses: astral-sh/setup-uv@v7
+      - name: Check that the tag matches the version
+        if: github.event_name == 'release'
         run: |
-          python -m pip install --upgrade pip
-          pip install build twine
-
-      - name: Build package
-        run: python -m build
-
-      - name: Check package
-        run: twine check dist/*
-
-      - name: Store distribution packages
-        uses: actions/upload-artifact@v4
+          version="$(uv version --short)"
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match version ${version} in pyproject.toml"
+            exit 1
+          fi
+      - run: uv sync --locked
+      - run: uv run pytest
+      - run: uv build
+      - uses: actions/upload-artifact@v5
         with:
-          name: python-package-distributions
+          name: dist
           path: dist/
 
-  publish-to-pypi:
+  pypi:
     name: Publish to PyPI
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release'
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/toon_format
+      url: https://pypi.org/p/toon-format
     permissions:
       id-token: write
-
     steps:
-      - name: Download distributions
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
-          name: python-package-distributions
+          name: dist
           path: dist/
+      - uses: astral-sh/setup-uv@v7
+      - run: uv publish --trusted-publishing always
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-
-  publish-to-testpypi:
+  testpypi:
     name: Publish to TestPyPI
     if: github.event_name == 'workflow_dispatch'
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/toon_format
+      url: https://test.pypi.org/p/toon-format
     permissions:
       id-token: write
-
     steps:
-      - name: Download distributions
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
-          name: python-package-distributions
+          name: dist
           path: dist/
-
-      - name: Publish to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
+      - uses: astral-sh/setup-uv@v7
+      - run: uv publish --trusted-publishing always --publish-url https://test.pypi.org/legacy/

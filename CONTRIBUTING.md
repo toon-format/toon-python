@@ -1,106 +1,52 @@
 # Contributing to toon-python
 
-Thank you for your interest in contributing to the official Python implementation of TOON!
+Thank you for helping with the official Python implementation of TOON.
 
-## Project Setup
-
-This project uses [`uv`](https://github.com/astral-sh/uv) for dependency management.
+1. Install [uv](https://docs.astral.sh/uv/) and run `uv sync`, then
+   `uv run prek install` to lint, format, type-check, and build the
+   documentation before each commit. Alternatively, open the repository in
+   the [dev container](https://containers.dev/)
+   (`.devcontainer/devcontainer.json`, also used by GitHub Codespaces), which
+   comes with uv, every dependency, and the Git hooks installed.
+2. Read [AGENTS.md](AGENTS.md): it describes the code rules and the checks
+   every change must pass.
+3. For behavior changes, start from the [specification](https://github.com/toon-format/spec/blob/main/SPEC.md)
+   and cite the section you implement. Questions about the format itself
+   belong in the [spec repository](https://github.com/toon-format/spec).
+4. Add tests, update `CHANGELOG.md`, and open a pull request with a
+   Conventional Commits title (`fix: ...`, `feat: ...`).
 
 ```bash
-# Clone the repository
-git clone https://github.com/toon-format/toon-python.git
-cd toon-python
-
-# Install dependencies (uv will create a virtual environment automatically)
-uv sync
-
-# Run tests
-uv run pytest
-
-# Run tests with coverage
-uv run pytest --cov=src/toon_format --cov-report=term-missing
+uv run ruff check . && uv run ruff format --check . && uv run mypy && uv run pytest
 ```
 
-## Development Workflow
+## Code style
 
-1. **Fork the repository** and create a feature branch
-2. **Make your changes** following the coding standards below
-3. **Add tests** for any new functionality
-4. **Ensure all tests pass** and coverage remains high
-5. **Submit a pull request** with a clear description
+`ruff format` formats the code and `ruff check` lints it; CI runs both.
 
-## Coding Standards
+Lines are limited to **88 characters**, the default of ruff and Black. It is
+the de facto standard of the Python ecosystem: FastAPI, Flask, Django, HTTPX,
+Requests, pytest, and pandas all use it. PEP 8's 79 characters wrap ordinary
+code too often, and a longer limit would diverge from the projects most
+contributors already know. The value is set explicitly in `pyproject.toml` so
+that nobody has to know the default.
 
-### Python Version Support
+## Releases
 
-We support Python 3.8 and above (including Python 3.13 and 3.14).
+Publishing happens only through the `Publish` workflow
+(`.github/workflows/publish.yml`), with PyPI trusted publishing. PyPI binds
+the publisher to that file name and to the `pypi` and `testpypi`
+environments: do not rename them.
 
-### Type Safety
+1. `uv version --bump minor` (or `patch`, `major`, or an explicit version),
+   and move the *Unreleased* entries of `CHANGELOG.md` under the new version.
+2. Merge that change through a pull request.
+3. Optional: run the `Publish` workflow by hand to upload to TestPyPI.
+4. Create a GitHub release tagged `vX.Y.Z`. The workflow checks that the tag
+   matches the version, runs the tests, builds, and uploads to PyPI.
 
-- All code must include type hints
-- Run `mypy` before committing:
-  ```bash
-  uv run mypy src/
-  ```
-
-### Code Style
-
-- We use `ruff` for linting and formatting
-- Run before committing:
-  ```bash
-  uv run ruff check src/ tests/
-  uv run ruff format src/ tests/
-  ```
-
-### Testing
-
-- All new features must include tests
-- Maintain test coverage at **85%+ line coverage**
-- Tests should cover edge cases and spec compliance
-- Run the full test suite:
-  ```bash
-  uv run pytest tests/
-
-  # Run with coverage report
-  uv run pytest --cov=toon_format --cov-report=term --cov-fail-under=85
-  ```
-
-## SPEC Compliance
-
-All implementations must comply with the [TOON specification](https://github.com/toon-format/spec/blob/main/SPEC.md).
-
-Before submitting changes that affect encoding/decoding behavior:
-1. Verify against the official SPEC.md
-2. Add tests for the specific spec sections you're implementing
-3. Document any spec version requirements
-
-## Pull Request Guidelines
-
-- **Title**: Use a clear, descriptive title
-- **Description**: Explain what changes you made and why
-- **Tests**: Include tests for your changes
-- **Documentation**: Update README or documentation if needed
-- **Commits**: Use clear commit messages ([Conventional Commits](https://www.conventionalcommits.org/) preferred)
-
-Your pull request will use our standard template which guides you through the required information.
-
-## Communication
-
-- **GitHub Issues**: For bug reports and feature requests
-- **GitHub Discussions**: For questions and general discussion
-- **Pull Requests**: For code reviews and implementation discussion
-
-## Maintainers
-
-This is a collaborative project. Current maintainers:
-
-- [@xaviviro](https://github.com/xaviviro)
-- [@davidpirogov](https://github.com/davidpirogov)
-- [@bpradana](https://github.com/bpradana)
-- [@Justar96](https://github.com/Justar96)
-
-All maintainers have equal and consensual decision-making power. For major architectural decisions, please open a discussion issue first.
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the MIT License.
+The documentation is meant to live at <https://toon-python.readthedocs.io>,
+built by Read the Docs from `.readthedocs.yaml`. That project does not exist
+yet: import the repository on readthedocs.org with the slug `toon-python`, then
+point the "Documentation" section of `README.md` and the `Documentation` URL in
+`pyproject.toml` to it, and add a Read the Docs badge next to the others.

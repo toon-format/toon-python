@@ -1,29 +1,25 @@
 {
-  // To customize this for your local environment without committing changes,
-  // create a .devcontainer/devcontainer.local.json file (it's gitignored).
-  // See .devcontainer/README.md for examples.
-  "name": "toon-python (devcontainer)",
-  "build": {
-    "dockerfile": "Dockerfile.dev",
-    "context": ".."
-  },
-  "workspaceFolder": "/app",
-  "mounts": [
-    "source=${localWorkspaceFolder},target=/app,type=bind,consistency=cached"
-  ],
+  "name": "toon-python",
+  "image": "mcr.microsoft.com/devcontainers/python:3.14-trixie",
   "features": {
-    "ghcr.io/devcontainers/features/git:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "remoteEnv": {
-    // Python environment variables (can be overridden in devcontainer.local.json)
-    // These supplement the ENV vars set in Dockerfile.dev
+  "containerEnv": {
+    // Keep the container's virtualenv out of the mounted repository, so it
+    // never replaces the host's .venv.
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.venv",
+    "UV_LINK_MODE": "copy"
   },
-  "postCreateCommand": "uv sync --all-groups",
+  "postCreateCommand": ".devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff"
+      ],
       "settings": {
-        "python.defaultInterpreterPath": "/app/.venv/bin/python"
+        "python.defaultInterpreterPath": "/home/vscode/.venv/bin/python"
       }
     }
   }

@@ -1,7 +1,7 @@
 {
-  "version": "1.3",
+  "version": "4.0",
   "category": "encode",
-  "description": "Delimiter options - tab and pipe delimiters, delimiter-aware quoting",
+  "description": "Delimiter options – tab and pipe delimiters, delimiter-aware quoting",
   "tests": [
     {
       "name": "encodes primitive arrays with tab delimiter",
@@ -12,7 +12,7 @@
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "encodes primitive arrays with pipe delimiter",
@@ -23,7 +23,7 @@
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "encodes primitive arrays with comma delimiter",
@@ -34,7 +34,7 @@
       "options": {
         "delimiter": ","
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "encodes tabular arrays with tab delimiter",
@@ -48,7 +48,7 @@
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "encodes tabular arrays with pipe delimiter",
@@ -62,7 +62,7 @@
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "encodes nested arrays with tab delimiter",
@@ -73,7 +73,7 @@
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "encodes nested arrays with pipe delimiter",
@@ -84,43 +84,43 @@
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "encodes root arrays with tab delimiter",
+      "name": "encodes root-level array with tab delimiter",
       "input": ["x", "y", "z"],
       "expected": "[3\t]: x\ty\tz",
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "encodes root arrays with pipe delimiter",
+      "name": "encodes root-level array with pipe delimiter",
       "input": ["x", "y", "z"],
       "expected": "[3|]: x|y|z",
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "encodes root arrays of objects with tab delimiter",
+      "name": "encodes root-level array of objects with tab delimiter",
       "input": [{ "id": 1 }, { "id": 2 }],
       "expected": "[2\t]{id}:\n  1\n  2",
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "encodes root arrays of objects with pipe delimiter",
+      "name": "encodes root-level array of objects with pipe delimiter",
       "input": [{ "id": 1 }, { "id": 2 }],
       "expected": "[2|]{id}:\n  1\n  2",
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "quotes strings containing tab delimiter",
@@ -131,7 +131,7 @@
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "quotes strings containing pipe delimiter",
@@ -142,7 +142,7 @@
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not quote commas with tab delimiter",
@@ -153,7 +153,7 @@
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not quote commas with pipe delimiter",
@@ -164,7 +164,7 @@
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "quotes tabular values containing comma delimiter",
@@ -178,7 +178,7 @@
       "options": {
         "delimiter": ","
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not quote commas in tabular values with tab delimiter",
@@ -192,7 +192,7 @@
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not quote commas in object values with pipe delimiter",
@@ -203,7 +203,7 @@
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not quote commas in object values with tab delimiter",
@@ -214,7 +214,7 @@
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "quotes nested array values containing pipe delimiter",
@@ -225,7 +225,7 @@
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "quotes nested array values containing tab delimiter",
@@ -236,7 +236,7 @@
       "options": {
         "delimiter": "\t"
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "preserves ambiguity quoting regardless of delimiter",
@@ -247,7 +247,7 @@
       "options": {
         "delimiter": "|"
       },
-      "specSection": "8"
+      "specSection": "11"
     }
   ]
 }

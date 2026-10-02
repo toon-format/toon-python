@@ -1,7 +1,7 @@
 {
-  "version": "1.3",
+  "version": "4.0",
   "category": "decode",
-  "description": "Delimiter decoding - tab and pipe delimiter parsing, delimiter-aware value splitting",
+  "description": "Delimiter decoding – tab and pipe delimiter parsing, delimiter-aware value splitting",
   "tests": [
     {
       "name": "parses primitive arrays with tab delimiter",
@@ -9,7 +9,7 @@
       "expected": {
         "tags": ["reading", "gaming", "coding"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses primitive arrays with pipe delimiter",
@@ -17,15 +17,7 @@
       "expected": {
         "tags": ["reading", "gaming", "coding"]
       },
-      "specSection": "8"
-    },
-    {
-      "name": "parses primitive arrays with comma delimiter",
-      "input": "tags[3]: reading,gaming,coding",
-      "expected": {
-        "tags": ["reading", "gaming", "coding"]
-      },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses tabular arrays with tab delimiter",
@@ -36,7 +28,7 @@
           { "sku": "B2", "qty": 1, "price": 14.5 }
         ]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses tabular arrays with pipe delimiter",
@@ -47,7 +39,7 @@
           { "sku": "B2", "qty": 1, "price": 14.5 }
         ]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses nested arrays with tab delimiter",
@@ -55,7 +47,7 @@
       "expected": {
         "pairs": [["a", "b"], ["c", "d"]]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses nested arrays with pipe delimiter",
@@ -63,48 +55,47 @@
       "expected": {
         "pairs": [["a", "b"], ["c", "d"]]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "nested arrays inside list items default to comma delimiter",
+      "name": "parses nested arrays inside list items with default comma delimiter",
       "input": "items[1\t]:\n  - tags[3]: a,b,c",
       "expected": {
         "items": [{ "tags": ["a", "b", "c"] }]
       },
-      "specSection": "8",
-      "note": "Parent uses tab, nested defaults to comma"
+      "specSection": "11"
     },
     {
-      "name": "nested arrays inside list items default to comma with pipe parent",
+      "name": "parses nested arrays inside list items with default comma delimiter when parent uses pipe",
       "input": "items[1|]:\n  - tags[3]: a,b,c",
       "expected": {
         "items": [{ "tags": ["a", "b", "c"] }]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "parses root arrays with tab delimiter",
+      "name": "parses root-level array with tab delimiter",
       "input": "[3\t]: x\ty\tz",
       "expected": ["x", "y", "z"],
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "parses root arrays with pipe delimiter",
+      "name": "parses root-level array with pipe delimiter",
       "input": "[3|]: x|y|z",
       "expected": ["x", "y", "z"],
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "parses root arrays of objects with tab delimiter",
+      "name": "parses root-level array of objects with tab delimiter",
       "input": "[2\t]{id}:\n  1\n  2",
       "expected": [{ "id": 1 }, { "id": 2 }],
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "parses root arrays of objects with pipe delimiter",
+      "name": "parses root-level array of objects with pipe delimiter",
       "input": "[2|]{id}:\n  1\n  2",
       "expected": [{ "id": 1 }, { "id": 2 }],
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses values containing tab delimiter when quoted",
@@ -112,7 +103,7 @@
       "expected": {
         "items": ["a", "b\tc", "d"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses values containing pipe delimiter when quoted",
@@ -120,7 +111,7 @@
       "expected": {
         "items": ["a", "b|c", "d"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not split on commas when using tab delimiter",
@@ -128,7 +119,7 @@
       "expected": {
         "items": ["a,b", "c,d"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not split on commas when using pipe delimiter",
@@ -136,7 +127,7 @@
       "expected": {
         "items": ["a,b", "c,d"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses tabular values containing comma with comma delimiter",
@@ -147,7 +138,7 @@
           { "id": 2, "note": "c,d" }
         ]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not require quoting commas with tab delimiter",
@@ -158,7 +149,7 @@
           { "id": 2, "note": "c,d" }
         ]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "does not require quoting commas in object values",
@@ -166,8 +157,25 @@
       "expected": {
         "note": "a,b"
       },
-      "specSection": "8",
-      "note": "Object values don't require comma quoting regardless of delimiter"
+      "specSection": "11",
+      "note": "Object field values are parsed as the whole post-colon token, never split on a delimiter"
+    },
+    {
+      "name": "does not split object values on commas inside a tab-delimited scope",
+      "input": "items[2\t]:\n  - status: a,b\n  - status: c,d",
+      "expected": {
+        "items": [{ "status": "a,b" }, { "status": "c,d" }]
+      },
+      "specSection": "11.2",
+      "note": "The active delimiter splits row and inline cells, never object field values"
+    },
+    {
+      "name": "parses quoted comma in object values",
+      "input": "items[2]:\n  - status: \"a,b\"\n  - status: \"c,d\"",
+      "expected": {
+        "items": [{ "status": "a,b" }, { "status": "c,d" }]
+      },
+      "specSection": "11"
     },
     {
       "name": "parses nested array values containing pipe delimiter",
@@ -175,7 +183,7 @@
       "expected": {
         "pairs": [["a", "b|c"]]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses nested array values containing tab delimiter",
@@ -183,7 +191,7 @@
       "expected": {
         "pairs": [["a", "b\tc"]]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "preserves quoted ambiguity with pipe delimiter",
@@ -191,7 +199,7 @@
       "expected": {
         "items": ["true", "42", "-3.14"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "preserves quoted ambiguity with tab delimiter",
@@ -199,7 +207,7 @@
       "expected": {
         "items": ["true", "42", "-3.14"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses structural-looking strings when quoted with pipe delimiter",
@@ -207,7 +215,7 @@
       "expected": {
         "items": ["[5]", "{key}", "- item"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses structural-looking strings when quoted with tab delimiter",
@@ -215,7 +223,7 @@
       "expected": {
         "items": ["[5]", "{key}", "- item"]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
       "name": "parses tabular headers with keys containing the active delimiter",
@@ -223,15 +231,19 @@
       "expected": {
         "items": [{ "a|b": 1 }, { "a|b": 2 }]
       },
-      "specSection": "8"
+      "specSection": "11"
     },
     {
-      "name": "accepts length marker with pipe delimiter",
-      "input": "tags[#3|]: reading|gaming|coding",
+      "name": "falls through to a key-value line on a header delimiter mismatch",
+      "input": "a[2|]{x,y}: 1|2",
       "expected": {
-        "tags": ["reading", "gaming", "coding"]
+        "a[2|]{x,y}": "1|2"
       },
-      "specSection": "8"
+      "options": {
+        "strict": false
+      },
+      "specSection": "6",
+      "minSpecVersion": "4.1"
     }
   ]
 }
