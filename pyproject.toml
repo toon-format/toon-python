@@ -30,7 +30,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://toonformat.dev"
-Documentation = "https://toon-python.readthedocs.io"
+Documentation = "https://github.com/toon-format/toon-python/tree/main/docs"
 Repository = "https://github.com/toon-format/toon-python"
 Specification = "https://github.com/toon-format/spec/blob/main/SPEC.md"
 Changelog = "https://github.com/toon-format/toon-python/blob/main/CHANGELOG.md"
@@ -49,17 +49,12 @@ dev = [
     "pytest>=8",
     "pytest-cov>=5",
     "ruff>=0.8",
-    "toons>=0.8",
 ]
 docs = [
     "mkdocs>=1.6.1,<2",
     "mkdocs-material>=9.7.7",
     "mkdocstrings[python]>=1.0.6",
 ]
-
-[tool.uv.workspace]
-# toon-python, an alias distribution with no code that depends on toon-format.
-members = ["packaging/toon-python"]
 
 [build-system]
 requires = ["uv_build>=0.9,<0.12"]

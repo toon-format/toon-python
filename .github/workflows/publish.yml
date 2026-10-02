@@ -1,10 +1,7 @@
-# Publishes to PyPI with trusted publishing (no API token).
+# Publishes "toon-format" to PyPI with trusted publishing (no API token).
 #
-# Two projects are uploaded: "toon-format" (the repository root) and then
-# "toon-python" (packaging/toon-python), an alias with no code that depends on
-# it and keeps the repository's name from being registered by someone else.
-# PyPI's trusted publishers for both are bound to this file name (publish.yml)
-# and to the "pypi" and "testpypi" environments: keep them.
+# PyPI's trusted publisher is bound to this file name (publish.yml) and to the
+# "pypi" and "testpypi" environments: keep them.
 #
 # - Publishing a GitHub release uploads to PyPI. The release tag must be
 #   "v" followed by the version in pyproject.toml, for example v1.0.0.
@@ -35,27 +32,13 @@ jobs:
             echo "::error::Tag ${GITHUB_REF_NAME} does not match version ${version} in pyproject.toml"
             exit 1
           fi
-      - name: Check that toon-python matches the version
-        run: |
-          version="$(uv version --short)"
-          alias="$(uv version --short --package toon-python)"
-          pins="$(grep -c "toon-format\(\[[a-z]*\]\)\?==${version}\"" packaging/toon-python/pyproject.toml)"
-          if [ "${alias}" != "${version}" ] || [ "${pins}" != 2 ]; then
-            echo "::error::packaging/toon-python must have version ${version} and pin toon-format==${version} (dependency and pydantic extra)"
-            exit 1
-          fi
       - run: uv sync --locked
       - run: uv run pytest
-      - run: uv build --package toon-format
-      - run: uv build --package toon-python --out-dir alias/
+      - run: uv build
       - uses: actions/upload-artifact@v5
         with:
           name: dist
           path: dist/
-      - uses: actions/upload-artifact@v5
-        with:
-          name: alias
-          path: alias/
 
   pypi:
     name: Publish to PyPI
@@ -72,13 +55,8 @@ jobs:
         with:
           name: dist
           path: dist/
-      - uses: actions/download-artifact@v6
-        with:
-          name: alias
-          path: alias/
       - uses: astral-sh/setup-uv@v7
       - run: uv publish --trusted-publishing always
-      - run: uv publish --trusted-publishing always alias/*
 
   testpypi:
     name: Publish to TestPyPI
@@ -95,10 +73,5 @@ jobs:
         with:
           name: dist
           path: dist/
-      - uses: actions/download-artifact@v6
-        with:
-          name: alias
-          path: alias/
       - uses: astral-sh/setup-uv@v7
       - run: uv publish --trusted-publishing always --publish-url https://test.pypi.org/legacy/
-      - run: uv publish --trusted-publishing always --publish-url https://test.pypi.org/legacy/ alias/*

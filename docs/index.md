@@ -19,8 +19,7 @@ uv add toon-format
 ```
 
 The module is `toon_format`. Install `toon-format[pydantic]` for the
-[Pydantic integration](usage.md#pydantic). `toon-python`, the name of the
-repository, is an alias that installs `toon-format`.
+[Pydantic integration](usage.md#pydantic).
 
 ## Quick start
 

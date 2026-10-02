@@ -24,12 +24,8 @@ from 0.9.
 - Decoding from `bytes` and binary files.
 - `ToonDecodeError.line`, `.source`, and `.msg`.
 - `toon_format.Delimiter` and `toon_format.__toon_spec__`.
-- The `toon-python` distribution, an alias with no code that installs
-  `toon-format`.
 - Documentation site built with MkDocs for Read the Docs.
-- Differential tests against [toons](https://github.com/alesanfra/toons), a
-  Rust implementation of the same specification, and property-based
-  round-trip tests.
+- Property-based round-trip tests.
 
 ### Changed
 

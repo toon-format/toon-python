@@ -12,29 +12,12 @@ and mirrors the `json` module: `dumps`, `dump`, `loads`, `load`, and
 `ToonDecodeError`, with `encode` and `decode` as aliases of `dumps` and
 `loads`, the names the other TOON implementations use.
 
-**Target specification: TOON 4.1**, exposed as `toon_format.__toon_spec__`. The
-conformance fixtures in `tests/fixtures/` are copied from spec tag `v4.1.1`.
-The specification is the authority: when this code, its tests, or another
-implementation disagree with [SPEC.md](https://github.com/toon-format/spec/blob/main/SPEC.md),
-the specification wins.
-
-## Layout
-
-| Path | Contents |
-| --- | --- |
-| `src/toon_format/__init__.py` | Public names only; no logic |
-| `src/toon_format/_api.py` | `dumps`/`dump`/`loads`/`load`, the `encode`/`decode` aliases, option validation, `Delimiter` |
-| `src/toon_format/_encoder.py` | Host-type normalization (§3) and rendering (§8–§10) |
-| `src/toon_format/_decoder.py` | Line splitting (§5.1, §12) and the recursive-descent parser |
-| `src/toon_format/_text.py` | Rules shared by both directions: quoting, escaping, number grammars |
-| `src/toon_format/_errors.py` | `ToonDecodeError` |
-| `src/toon_format/pydantic.py` | Optional Pydantic integration |
-| `tests/fixtures/` | Official spec fixtures; never edited by hand |
-| `tests/strategies.py` | Hypothesis strategies for JSON-model values |
-| `scripts/update_fixtures.py` | Re-vendors the fixtures from a spec tag |
-| `packaging/toon-python/` | The `toon-python` distribution, named after the repository: an alias with no code that depends on `toon-format` |
-| `scripts/benchmark.py` | Times encoding and decoding, optionally against a git revision |
-| `docs/`, `mkdocs.yml` | User documentation, built with MkDocs for Read the Docs (`.readthedocs.yaml`) |
+**Target specification: TOON 4.1**, exposed as `toon_format.__toon_spec__`.
+The conformance fixtures in `tests/fixtures/` are copied from the spec
+repository and never edited by hand. The specification is the authority: when
+this code, its tests, or another implementation disagree with
+[SPEC.md](https://github.com/toon-format/spec/blob/main/SPEC.md), the
+specification wins.
 
 ## Environment
 
@@ -84,16 +67,15 @@ Set `HYPOTHESIS_PROFILE=ci` to run the property tests with more examples, as CI 
 - **Public API.** Everything public is re-exported from `toon_format/__init__.py` and
   listed in `__all__`. Everything else is private (`_module.py`, `_name`). Options
   are keyword-only. Changing the public API requires updating `docs/`,
-  `CHANGELOG.md`, and `tests/test_api.py`.
+  `CHANGELOG.md`, and its tests.
 - **Cite the specification.** Comments and docstrings reference the section
   they implement, for example `(§9.5)`. Keep that habit: it is how reviewers
   check behavior.
 - **Errors.** Encoding raises `TypeError` for values or keys that cannot be
   represented and `ValueError` for invalid options, cycles, unpaired
   surrogates, or excessive nesting, like `json.dumps`. Decoding raises only
-  `ToonDecodeError` for bad input, created through `_Parser.error` so that
-  `.line` and `.source` are set. Never replace an unrepresentable value with
-  `null` silently.
+  `ToonDecodeError` for bad input, with `.line` and `.source` set. Never
+  replace an unrepresentable value with `null` silently.
 - **Style.** Lines are at most 88 characters (the reason is in
   `CONTRIBUTING.md`); `ruff format` decides the layout. Small functions,
   early returns, no dead code, no commented-out code, no speculative options.
@@ -102,11 +84,11 @@ Set `HYPOTHESIS_PROFILE=ci` to run the property tests with more examples, as CI 
 ### Encoder invariants
 
 - The form of a value follows from its shape and position, never from a
-  preference (§1.4): inline for primitive arrays, tabular when `_shape`
-  succeeds, keyed tabular for an object with at least two uniform entries in
-  field or root position, list form otherwise.
+  preference (§1.4): inline for primitive arrays, tabular for uniform objects,
+  keyed tabular for an object with at least two uniform entries in field or
+  root position, list form otherwise.
 - A keyless array that is itself a list item never uses a field list (§9.4).
-- A list-item object is rendered as fields at `depth + 1` whose first line
+- A list-item object is rendered as fields one level deeper whose first line
   moves onto the hyphen line; this single rule produces the §10 layout for
   every first field, tabular or not.
 - Every header declares the document delimiter (§11.1).
@@ -116,12 +98,12 @@ Set `HYPOTHESIS_PROFILE=ci` to run the property tests with more examples, as CI 
 
 ### Decoder invariants
 
-- Comment lines are removed and blank lines folded into `_Line.blank_before`
-  in `_split_lines`, before any structural decision (§5.1, §12). Line numbers
-  in errors always refer to the original document.
-- `_Parser.classify` implements the line classes of §5.2. A malformed header
-  raises `_Malformed`; strict mode turns it into an error, non-strict mode
-  falls back to a key-value line with a literal key (§6).
+- Comment lines and blank lines are handled while splitting lines, before any
+  structural decision (§5.1, §12). Line numbers in errors always refer to the
+  original document.
+- Line classification follows §5.2. In strict mode a malformed header is an
+  error; in non-strict mode it falls back to a key-value line with a literal
+  key (§6).
 - `strict=False` relaxes only what §14 lists as strict-only: counts and
   widths, blank lines in header spans, indentation, over-indented lines,
   duplicate keys (last write wins, first position kept), malformed headers,
@@ -129,8 +111,8 @@ Set `HYPOTHESIS_PROFILE=ci` to run the property tests with more examples, as CI 
   errors.
 - A declared `[N]` never ends or truncates a scope; it is only compared with
   what the scope contains.
-- Numbers follow the §4 grammar in `_text.is_number_token`, never Python's
-  `int()`/`float()` grammar, which accepts `1_000`, `+5`, and `inf`.
+- Numbers follow the §4 grammar, never Python's `int()`/`float()` grammar,
+  which accepts `1_000`, `+5`, and `inf`.
 
 ### Documented choices
 
@@ -142,33 +124,11 @@ section together with the code.
 
 - pytest only; parametrize instead of looping; assert on complete output, not
   substrings.
-- `test_spec_fixtures.py` runs every official fixture through `dumps`/`dump`
-  and `loads`/`load`. A fixture failure is a bug in this package.
-- `test_encode.py` and `test_decode.py` cover behavior the fixtures cannot
-  express: host types, hooks, errors, non-strict leniency, and regressions
-  from the issue tracker (cite the issue number).
-- `test_roundtrip.py` checks `loads(dumps(x)) == x` and output invariants with
-  Hypothesis.
-- `test_toons_compat.py` is a differential test against
-  [toons](https://github.com/alesanfra/toons), a Rust
-  implementation of the same specification version. Both encoders must
-  produce the same text, except for the float spellings §2 leaves open (toon_format
-  uses exponents outside [1e-6, 1e21) and exact digits for integral floats
-  from 2⁵³) and for strings starting with U+FEFF, which toon_format quotes because a
-  bare one at the root is removed as a byte-order mark (§12); both decoders
-  must agree on valid documents and on every decode fixture. On malformed input the two knowingly differ; `toon_format` follows the
-  specification there, never toons:
-  - a single line such as `[` or `foo[2]` is a root string (§5, §5.2: without
-    a colon it is not a header);
-  - inside an array in list form, a line starting with `- ` anywhere but at
-    the array's item depth is an error in both modes (§5.2, §10); outside such
-    an array the hyphen is ordinary text (`- a: 1` is the key `"- a"`);
-  - quoted strings with literal control characters other than tab are
-    rejected in strict mode (§7.1 `unescaped-char`);
-  - field lists missing a delimiter (`{a{x}b}`) are malformed (§6 `fields-seg`).
-
-  When the two disagree on anything else, find out which one is wrong before
-  changing either.
+- Every official fixture runs through `dumps`/`dump` and `loads`/`load`. A
+  fixture failure is a bug in this package.
+- Other tests cover what the fixtures cannot express: host types, hooks,
+  errors, non-strict leniency, and regressions from the issue tracker (cite
+  the issue number). Hypothesis checks `loads(dumps(x)) == x`.
 - Every bug fix comes with a test that fails without it.
 
 ## Specification updates
@@ -177,33 +137,10 @@ section together with the code.
 2. Implement the changes, citing the new sections.
 3. Update `__toon_spec__`, the README badge, `docs/data-types.md`, this file,
    and `CHANGELOG.md`.
-4. Bump `toons` in the dev dependencies once it supports the same version.
 
-## Commits and releases
+## Commits
 
 - Conventional Commits (`feat:`, `fix:`, `docs:`, `test:`, `refactor:`,
   `ci:`, `chore:`); add `!` for breaking changes.
 - Every user-visible change gets a line under *Unreleased* in `CHANGELOG.md`.
-- Publishing happens only through the `Publish` workflow
-  (`.github/workflows/publish.yml`), with PyPI trusted publishing. PyPI binds
-  the publisher to that file name and to the `pypi` and `testpypi`
-  environments: do not rename them. The same jobs publish `toon-format`
-  and then `toon-python`; both PyPI projects need the trusted publisher.
-
-To release:
-
-1. `uv version --bump minor` (or `patch`, `major`, or an explicit version),
-   and move the *Unreleased* entries of `CHANGELOG.md` under the new version.
-   Run `uv version --package toon-python` with the same version and update the
-   two `toon-format==` pins in `packaging/toon-python/pyproject.toml`; the
-   workflow checks them.
-2. Merge that change through a pull request.
-3. Optional: run the `Publish` workflow by hand to upload to TestPyPI.
-4. Create a GitHub release tagged `vX.Y.Z`. The workflow checks that the tag
-   matches the version, runs the tests, builds, and uploads to PyPI.
-
-The documentation is meant to live at <https://toon-python.readthedocs.io>,
-built by Read the Docs from `.readthedocs.yaml`. That project does not exist
-yet: import the repository on readthedocs.org with the slug `toon-python`, then
-remove the "not published yet" note from `README.md` and add a Read the Docs
-badge next to the others.
+- Releases follow `CONTRIBUTING.md`.

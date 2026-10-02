@@ -72,11 +72,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v7
-      - run: uv build --all-packages
-      - name: Smoke test the wheels
+      - run: uv build
+      - name: Smoke test the wheel
         run: |
           uv run --isolated --no-project --with dist/toon_format-*.whl python -c \
             "import toon_format as t; assert t.loads(t.dumps({'a': [1, 2]})) == {'a': [1, 2]}"
-          uv run --isolated --no-project --with dist/toon_format-*.whl \
-            --with dist/toon_python-*.whl python -c \
-            "import toon_format; assert toon_format.decode('a: 1') == {'a': 1}"

@@ -108,13 +108,10 @@ npx @toon-format/cli data.json --stats        # token savings against JSON
 
 ## Documentation
 
-The full documentation is at
-**[toon-python.readthedocs.io](https://toon-python.readthedocs.io)**: usage,
+The full documentation is in
+**[`docs/`](https://github.com/toon-format/toon-python/tree/main/docs)**: usage,
 the Python type mapping, the choices the specification leaves to
-implementations, Pydantic, and the API reference.
-
-The documentation site is not published yet. Until it is, read the pages in
-[`docs/`](https://github.com/toon-format/toon-python/tree/main/docs) on GitHub.
+implementations, and Pydantic.
 
 ## Migrating from `toon_format` 0.9
 
