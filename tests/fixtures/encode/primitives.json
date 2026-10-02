@@ -273,6 +273,14 @@
       "input": "#hello",
       "expected": "\"#hello\"",
       "specSection": "7.2"
+    },
+    {
+      "name": "quotes a root string starting with U+FEFF",
+      "input": "\ufeff8",
+      "expected": "\"\ufeff8\"",
+      "specSection": "7.2",
+      "note": "Unquoted, a decoder would remove the U+FEFF as a byte-order mark (§12) and read the number 8",
+      "minSpecVersion": "4.1"
     }
   ]
 }
