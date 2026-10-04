@@ -4,6 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/toon-format.svg)](https://pypi.org/project/toon-format/)
 [![Python versions](https://img.shields.io/pypi/pyversions/toon-format.svg)](https://pypi.org/project/toon-format/)
 [![TOON spec](https://img.shields.io/badge/TOON%20spec-4.1-blue)](https://github.com/toon-format/spec/blob/main/SPEC.md)
+[![Documentation](https://readthedocs.org/projects/toon-format/badge/?version=stable)](https://toon-format.readthedocs.io/en/stable/)
 
 The official Python implementation of **TOON** (Token-Oriented Object Notation):
 a compact, human-readable encoding of the JSON data model, designed to save
@@ -108,9 +109,9 @@ npx @toon-format/cli data.json --stats        # token savings against JSON
 
 ## Documentation
 
-The full documentation is in
-**[`docs/`](https://github.com/toon-format/toon-python/tree/main/docs)**: usage,
-the Python type mapping, the choices the specification leaves to
+The full documentation is on
+**[Read the Docs](https://toon-format.readthedocs.io/en/stable/)**:
+usage, the Python type mapping, the choices the specification leaves to
 implementations, and Pydantic.
 
 ## Migrating from `toon_format` 0.9
@@ -119,7 +120,7 @@ The distribution and the module keep their names, and `encode(value)` and
 `decode(text)` keep working. Options are now keyword arguments instead of a
 dictionary, the token helpers and the `toon` command are gone, and the output
 follows specification 4.1. See the
-[migration guide](https://github.com/toon-format/toon-python/blob/main/docs/migration.md).
+[migration guide](https://toon-format.readthedocs.io/en/stable/migration/).
 
 ## Contributing
 
