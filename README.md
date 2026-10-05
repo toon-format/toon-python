@@ -8,16 +8,29 @@
 
 The official Python implementation of **TOON** (Token-Oriented Object Notation):
 a compact, human-readable encoding of the JSON data model, designed to save
-tokens in LLM prompts.
+tokens in LLM prompts. Keep working with dictionaries and lists in your code,
+and encode them as TOON only where a model reads them.
 
 - **Complete**: implements [TOON specification 4.1](https://github.com/toon-format/spec/blob/main/SPEC.md)
   and passes every official conformance fixture.
 - **Familiar**: `dumps`, `dump`, `loads`, and `load`, like the `json` module,
-  with `encode` and `decode` as aliases.
+  plus [`encode` and `decode`](#encode-and-decode), the names of the
+  TypeScript reference implementation.
 - **Lossless**: `loads(dumps(data)) == data` for every JSON-compatible value.
 - **Pure Python**, no dependencies, fully typed, Python 3.10+.
 
-## Example
+## Installation
+
+```bash
+pip install toon-format
+# or
+uv add toon-format
+```
+
+The module is `toon_format`. Install `toon-format[pydantic]` for the Pydantic
+integration.
+
+## Quick start
 
 ```python
 import toon_format
@@ -55,20 +68,12 @@ against 76 for compact JSON and 130 for indented JSON. The saving grows with
 the number of rows: 100 uniform records take 38% fewer tokens than compact
 JSON. Deeply nested or irregular data gains less.
 
-## Installation
-
-```bash
-pip install toon-format
-# or
-uv add toon-format
-```
-
-The module is `toon_format`. Install `toon-format[pydantic]` for the Pydantic
-integration.
-
 ## Usage
 
-Encoding and decoding follow the `json` module:
+### Options
+
+Encoding and decoding follow the `json` module, with the same keyword
+arguments where they apply:
 
 ```python
 toon_format.dumps(data, delimiter="\t")  # tabs often tokenize better than commas
@@ -77,8 +82,58 @@ toon_format.loads(text, parse_float=Decimal)  # same hooks as json.loads
 toon_format.loads(llm_output, strict=False)  # tolerate wrong counts and indentation
 ```
 
+### Errors
+
 Invalid documents raise `toon_format.ToonDecodeError`, a `ValueError` that
-carries the 1-based `line` and the `source` line of the error.
+carries the 1-based `line` and the `source` line of the error:
+
+```python
+try:
+    toon_format.loads("a: 1\ntags[3]: a,b")
+except toon_format.ToonDecodeError as exc:
+    print(exc.line, exc.source)  # 2 tags[3]: a,b
+    print(exc)  # line 2: Declared length 3 but found 2
+```
+
+### `encode` and `decode`
+
+`encode` and `decode` are the names used by the TypeScript reference
+implementation, [`@toon-format/toon`](https://www.npmjs.com/package/@toon-format/toon),
+and by the other TOON implementations. Here they are aliases of `dumps` and
+`loads`, so code and examples carry over from one language to the other:
+
+```python
+from toon_format import decode, encode
+
+data = {
+    "users": [
+        {"id": 1, "name": "Ada", "role": "admin"},
+        {"id": 2, "name": "Bob", "role": "user"},
+    ]
+}
+
+print(encode(data))
+# users[2]{id,name,role}:
+#   1,Ada,admin
+#   2,Bob,user
+
+assert decode(encode(data)) == data
+```
+
+Options are keyword arguments in snake case, a spelling the specification
+allows (§13):
+
+| TypeScript                                         | Python                                        |
+| -------------------------------------------------- | --------------------------------------------- |
+| `encode(data)`                                     | `encode(data)`                                |
+| `encode(data, { indentSize: 4, delimiter: '\t' })` | `encode(data, indent_size=4, delimiter="\t")` |
+| `decode(text)`                                     | `decode(text)`                                |
+| `decode(text, { strict: false })`                  | `decode(text, strict=False)`                  |
+
+The streaming functions (`encodeLines`, `decodeStream`) and the `replacer`
+option have no Python counterpart.
+
+### Pydantic
 
 With Pydantic, `toon_format.dumps` accepts any model, and `ToonPydanticModel`
 adds TOON counterparts of the JSON helpers:
