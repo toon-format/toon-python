@@ -45,8 +45,5 @@ environments: do not rename them.
 4. Create a GitHub release tagged `vX.Y.Z`. The workflow checks that the tag
    matches the version, runs the tests, builds, and uploads to PyPI.
 
-The documentation is meant to live at <https://toon-python.readthedocs.io>,
-built by Read the Docs from `.readthedocs.yaml`. That project does not exist
-yet: import the repository on readthedocs.org with the slug `toon-python`, then
-point the "Documentation" section of `README.md` and the `Documentation` URL in
-`pyproject.toml` to it, and add a Read the Docs badge next to the others.
+The documentation lives at <https://toon-format.readthedocs.io>, built by
+Read the Docs (project slug `toon-format`) from `.readthedocs.yaml`.

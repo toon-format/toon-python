@@ -30,7 +30,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://toonformat.dev"
-Documentation = "https://github.com/toon-format/toon-python/tree/main/docs"
+Documentation = "https://toon-format.readthedocs.io/en/stable/"
 Repository = "https://github.com/toon-format/toon-python"
 Specification = "https://github.com/toon-format/spec/blob/main/SPEC.md"
 Changelog = "https://github.com/toon-format/toon-python/blob/main/CHANGELOG.md"
