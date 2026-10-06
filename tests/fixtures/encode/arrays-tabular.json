@@ -83,7 +83,7 @@
       "input": {
         "orders": [
           { "id": 1, "customer": { "name": "Ada", "country": "DK" }, "total": 99 },
-          { "id": 2, "customer": { "name": "Bob", "country": "UK" }, "total": 149 }
+          { "id": 2, "customer": { "country": "UK", "name": "Bob" }, "total": 149 }
         ]
       },
       "expected": "orders[2]{id,customer{name,country},total}:\n  1,Ada,DK,99\n  2,Bob,UK,149",

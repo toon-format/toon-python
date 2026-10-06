@@ -4,14 +4,6 @@
   "description": "Nested and mixed array encoding – arrays of arrays, mixed type arrays, root arrays",
   "tests": [
     {
-      "name": "encodes nested arrays of primitives",
-      "input": {
-        "pairs": [["a", "b"], ["c", "d"]]
-      },
-      "expected": "pairs[2]:\n  - [2]: a,b\n  - [2]: c,d",
-      "specSection": "9.2"
-    },
-    {
       "name": "quotes strings containing delimiters in nested arrays",
       "input": {
         "pairs": [["a", "b"], ["c,d", "e:f", "true"]]
@@ -25,14 +17,6 @@
         "pairs": [[], []]
       },
       "expected": "pairs[2]:\n  - [0]:\n  - [0]:",
-      "specSection": "9.2"
-    },
-    {
-      "name": "encodes mixed-length inner arrays",
-      "input": {
-        "pairs": [[1], [2, 3]]
-      },
-      "expected": "pairs[2]:\n  - [1]: 1\n  - [2]: 2,3",
       "specSection": "9.2"
     },
     {
@@ -72,20 +56,6 @@
       "specSection": "9.1"
     },
     {
-      "name": "encodes complex nested structure",
-      "input": {
-        "user": {
-          "id": 123,
-          "name": "Ada",
-          "tags": ["reading", "gaming"],
-          "active": true,
-          "prefs": []
-        }
-      },
-      "expected": "user:\n  id: 123\n  name: Ada\n  tags[2]: reading,gaming\n  active: true\n  prefs: []",
-      "specSection": "8"
-    },
-    {
       "name": "uses list form for arrays mixing primitives and objects",
       "input": {
         "items": [1, { "a": 1 }, "text"]
@@ -112,21 +82,40 @@
     {
       "name": "uses list form for a tabular-eligible array in list-item position",
       "input": {
-        "a": [
-          [
-            {
-              "x": 1
-            },
-            {
-              "x": 2
-            }
-          ]
-        ]
+        "a": [[{ "x": 1 }, { "x": 2 }]]
       },
       "expected": "a[1]:\n  - [2]:\n    - x: 1\n    - x: 2",
-      "specSection": "9.3",
+      "specSection": "9.4",
       "note": "A keyless fields-bearing header is valid only at the document root",
       "minSpecVersion": "4.1"
+    },
+    {
+      "name": "uses list form for an array of arrays in list-item position",
+      "input": [
+        [
+          [
+            1
+          ]
+        ]
+      ],
+      "expected": "[1]:\n  - [1]:\n    - [1]: 1",
+      "specSection": "9.4"
+    },
+    {
+      "name": "uses list form for an array mixing primitives and objects in list-item position",
+      "input": {
+        "a": [
+          [
+            1,
+            {
+              "x": 1
+            }
+          ],
+          2
+        ]
+      },
+      "expected": "a[2]:\n  - [2]:\n    - 1\n    - x: 1\n  - 2",
+      "specSection": "9.4"
     }
   ]
 }

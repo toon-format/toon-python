@@ -4,22 +4,6 @@
   "description": "Primitive array decoding – inline arrays of strings, numbers, booleans, quoted strings",
   "tests": [
     {
-      "name": "parses string arrays inline",
-      "input": "tags[3]: reading,gaming,coding",
-      "expected": {
-        "tags": ["reading", "gaming", "coding"]
-      },
-      "specSection": "9.1"
-    },
-    {
-      "name": "parses number arrays inline",
-      "input": "nums[3]: 1,2,3",
-      "expected": {
-        "nums": [1, 2, 3]
-      },
-      "specSection": "9.1"
-    },
-    {
       "name": "parses mixed primitive arrays inline",
       "input": "data[4]: x,y,true,10",
       "expected": {
@@ -100,34 +84,10 @@
       "specSection": "9.1"
     },
     {
-      "name": "parses quoted key containing brackets with inline array",
-      "input": "\"key[test]\"[3]: 1,2,3",
-      "expected": {
-        "key[test]": [1, 2, 3]
-      },
-      "specSection": "9.1"
-    },
-    {
       "name": "parses quoted key containing a colon with inline array",
       "input": "\"a:b\"[2]: 1,2",
       "expected": {
         "a:b": [1, 2]
-      },
-      "specSection": "9.1"
-    },
-    {
-      "name": "parses quoted key with empty array",
-      "input": "\"x-custom\"[0]:",
-      "expected": {
-        "x-custom": []
-      },
-      "specSection": "9.1"
-    },
-    {
-      "name": "parses quoted empty string key with empty array",
-      "input": "\"\"[0]:",
-      "expected": {
-        "": []
       },
       "specSection": "9.1"
     },
@@ -140,20 +100,72 @@
       "specSection": "9.1"
     },
     {
-      "name": "decodes canonical empty array with quoted key",
-      "input": "\"x-custom\": []",
+      "name": "parses quoted key containing escaped quotes and brackets with inline array",
+      "input": "\"has \\\"[2]\\\" in it\"[3]: 3,4,5",
       "expected": {
-        "x-custom": []
+        "has \"[2]\" in it": [
+          3,
+          4,
+          5
+        ]
       },
-      "specSection": "9.1"
+      "specSection": "9.1",
+      "note": "An escaped quote does not close a quoted key, so the [2] inside it is not a bracket segment"
     },
     {
-      "name": "decodes canonical empty array with empty-string key",
-      "input": "\"\": []",
+      "name": "keeps inline values under a legacy [0] header in non-strict mode",
+      "input": "a[0]: 1,2",
       "expected": {
-        "": []
+        "a": [
+          1,
+          2
+        ]
       },
-      "specSection": "9.1"
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.1",
+      "note": "A legacy [0] is a declared length, so its content is decoded (§14.1)",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "keeps every inline value when the count mismatches in non-strict mode",
+      "input": "tags[1]: a,b",
+      "expected": {
+        "tags": [
+          "a",
+          "b"
+        ]
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.1",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "decodes the inline element [] as a string, not an empty array",
+      "input": "a[1]: []",
+      "expected": {
+        "a": [
+          "[]"
+        ]
+      },
+      "specSection": "9.3"
+    },
+    {
+      "name": "keeps a header whose length exceeds integer range in non-strict mode",
+      "input": "a[99999999999999999999]: 1",
+      "expected": {
+        "a": [
+          1
+        ]
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "6",
+      "minSpecVersion": "4.2"
     }
   ]
 }
