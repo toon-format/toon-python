@@ -28,7 +28,6 @@ Fields: TypeAlias = "tuple[tuple[str, Fields | None], ...]"
 _BRACKET = re.compile(r"\[(0|[1-9][0-9]*)(:?)([\t|]?)\]")
 _QUOTED = re.compile(r'"(?:[^"\\]|\\.)*"', re.DOTALL)
 _HEX4 = re.compile(r"[0-9A-Fa-f]{4}")
-_CONTROL = re.compile(r"[\x00-\x08\x0a-\x1f]")
 _SIMPLE_ESCAPES = {"\\": "\\", '"': '"', "n": "\n", "r": "\r", "t": "\t"}
 _MISSING = object()
 
@@ -292,8 +291,6 @@ class _Parser:
     # -- tokens (§4, §7) ----------------------------------------------------
 
     def unescape(self, body: str, line: _Line) -> str:
-        if self.strict and _CONTROL.search(body):
-            raise self.error("Unescaped control character in quoted string", line)
         if "\\" not in body:
             return body
         parts: list[str] = []

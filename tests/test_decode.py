@@ -166,15 +166,6 @@ def test_errors_in_any_mode(text: str) -> None:
             toon_format.loads(text, strict=strict)
 
 
-def test_literal_control_characters_in_quotes() -> None:
-    with pytest.raises(toon_format.ToonDecodeError, match="control character"):
-        toon_format.loads('a: "x\x01y"')
-    assert toon_format.loads('a: "x\x01y"', strict=False) == {"a": "x\x01y"}
-    assert toon_format.loads('a: "x\ty"') == {
-        "a": "x\ty"
-    }  # a literal tab is tolerated (§7.1)
-
-
 def test_deep_nesting_raises_decode_error() -> None:
     text = "\n".join("  " * depth + "a:" for depth in range(5000))
     with pytest.raises(toon_format.ToonDecodeError, match="nested too deeply"):

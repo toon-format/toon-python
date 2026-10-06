@@ -45,8 +45,7 @@ default strict decoder: pass `parse_float=Decimal` to read it.
 
 **Strings.** A string holding an unpaired surrogate cannot be encoded and
 raises `ValueError`. A string starting with U+FEFF is quoted, because a
-leading U+FEFF in a document is read as a byte-order mark. In strict mode, quoted strings may not contain literal
-control characters other than tab.
+leading U+FEFF in a document is read as a byte-order mark.
 
 **Key order** is preserved, except that tabular rows follow the header's field
 order. With `strict=False`, a duplicate key keeps its first position and its
