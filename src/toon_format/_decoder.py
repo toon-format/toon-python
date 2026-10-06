@@ -371,7 +371,7 @@ class _Parser:
         try:
             if match is None:
                 raise _Malformed("Malformed bracket segment")
-            if content[bracket - 1 : bracket] in (" ", "\t"):
+            if content[bracket - 1 : bracket].isspace():
                 raise _Malformed("Whitespace between a key and its bracket segment")
             delimiter = match.group(3) or ","
             pos = match.end()
@@ -433,7 +433,7 @@ class _Parser:
                 pos += 1
             nested = None
             if text.startswith("{", pos):
-                if text[pos - 1] == " ":
+                if text[pos - 1].isspace():
                     raise _Malformed(
                         "Whitespace between a field name and its nested field group"
                     )

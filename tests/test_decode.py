@@ -270,6 +270,7 @@ def test_integer_beyond_the_conversion_limit() -> None:
         ("l[1]:\n  - [1]{v}:", {"l": [{"[1]{v}": {}}]}),
         ("t[1]{a|b}:", {"t[1]{a|b}": {}}),
         ("t[1]{a{b}c}:", {"t[1]{a{b}c}": {}}),
+        ("t[1]{a\u00a0{b}}:", {"t[1]{a\u00a0{b}}": {}}),
     ],
 )
 def test_non_strict_header_fall_through(text: str, expected: Any) -> None:
