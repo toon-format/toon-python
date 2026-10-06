@@ -453,7 +453,11 @@ class _Parser:
             else:
                 start = pos
                 while pos < n and text[pos] not in "{},|\t":
-                    pos += 1
+                    if text[pos] == '"':
+                        end = _quoted_end(text, pos)
+                        pos = end if end >= 0 else n
+                    else:
+                        pos += 1
                 name = text[start:pos].strip(" ")
                 if not name:
                     raise _Malformed("Empty field name in field list")
