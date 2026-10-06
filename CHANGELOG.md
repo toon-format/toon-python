@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-06
+
 ### Changed
 
 - Support for [TOON specification 4.2](https://github.com/toon-format/spec/blob/v4.2.1/SPEC.md):
@@ -70,6 +72,7 @@ from 0.9.
 
 First public beta, implementing TOON specification 1.3.
 
-[Unreleased]: https://github.com/toon-format/toon-python/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/toon-format/toon-python/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/toon-format/toon-python/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/toon-format/toon-python/releases/tag/v1.0.0
 [0.9.0-beta.1]: https://github.com/toon-format/toon-python/releases/tag/v0.9.0-beta.1
