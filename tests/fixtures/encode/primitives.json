@@ -71,10 +71,11 @@
       "specSection": "7.1"
     },
     {
-      "name": "encodes string with U+0004 control character via \\uXXXX",
-      "input": { "val": "a\u0004b" },
-      "expected": "val: \"a\\u0004b\"",
-      "specSection": "7.1"
+      "name": "escapes U+0004 via \\uXXXX and keeps U+2028 literal in quoted strings",
+      "input": { "val": "a\u0004b", "sep": "a:\u2028b" },
+      "expected": "val: \"a\\u0004b\"\nsep: \"a:\u2028b\"",
+      "specSection": "7.1",
+      "minSpecVersion": "4.2"
     },
     {
       "name": "escapes backslash in string",
@@ -197,8 +198,8 @@
     },
     {
       "name": "encodes floats with their shortest round-trip digits",
-      "input": [0.3333333333333333, 0.30000000000000004],
-      "expected": "[2]: 0.3333333333333333,0.30000000000000004",
+      "input": [0.3333333333333333, 0.30000000000000004, -0.000001],
+      "expected": "[3]: 0.3333333333333333,0.30000000000000004,-0.000001",
       "specSection": "2"
     },
     {

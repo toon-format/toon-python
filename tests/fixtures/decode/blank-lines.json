@@ -34,16 +34,6 @@
       "specSection": "14.2"
     },
     {
-      "name": "throws on multiple blank lines inside array",
-      "input": "items[2]:\n  - a\n\n\n  - b",
-      "expected": null,
-      "shouldError": true,
-      "options": {
-        "strict": true
-      },
-      "specSection": "14.2"
-    },
-    {
       "name": "throws on blank line with spaces inside array",
       "input": "items[2]:\n  - a\n  \n  - b",
       "expected": null,
@@ -89,9 +79,10 @@
     },
     {
       "name": "accepts trailing newline at end of file",
-      "input": "a: 1\n",
+      "input": "a: 1\nitems[1]:\n  - b: 2\n",
       "expected": {
-        "a": 1
+        "a": 1,
+        "items": [{ "b": 2 }]
       },
       "options": {
         "strict": true
@@ -110,11 +101,15 @@
       "specSection": "12"
     },
     {
-      "name": "accepts blank line after array ends",
-      "input": "items[1]:\n  - a\n\nb: 2",
+      "name": "accepts blank line after array ends, at root and in a nested object",
+      "input": "items[1]:\n  - a\n\nb: 2\nc:\n  d[1]:\n    - x\n\n  e: 3",
       "expected": {
         "items": ["a"],
-        "b": 2
+        "b": 2,
+        "c": {
+          "d": ["x"],
+          "e": 3
+        }
       },
       "options": {
         "strict": true
@@ -137,9 +132,9 @@
     },
     {
       "name": "ignores blank lines inside list array when strict=false",
-      "input": "items[3]:\n  - a\n\n  - b\n\n\n  - c",
+      "input": "items[4]:\n  - a\n\n  - b\n\n\n  - c\n  - x: 1\n\n    y: 2",
       "expected": {
-        "items": ["a", "b", "c"]
+        "items": ["a", "b", "c", { "x": 1, "y": 2 }]
       },
       "options": {
         "strict": false
@@ -209,6 +204,14 @@
       "shouldError": true,
       "specSection": "14.2",
       "note": "The blank is after the nested object's content but inside the outer array's span (§12)"
+    },
+    {
+      "name": "throws on blank line between a list-item field and its nested object",
+      "input": "a[1]:\n  - k:\n\n      x: 1",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "14.2",
+      "note": "The blank is between the field and its nested object's first line but inside the array's header span (§12)"
     },
     {
       "name": "throws on a tab-only line, which is not blank",

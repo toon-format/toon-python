@@ -12,7 +12,7 @@ and mirrors the `json` module: `dumps`, `dump`, `loads`, `load`, and
 `ToonDecodeError`, with `encode` and `decode` as aliases of `dumps` and
 `loads`, the names the other TOON implementations use.
 
-**Target specification: TOON 4.2**, exposed as `toon_format.__toon_spec__`.
+**Target specification: TOON 4.3**, exposed as `toon_format.__toon_spec__`.
 The conformance fixtures in `tests/fixtures/` are copied from the spec
 repository and never edited by hand. The specification is the authority: when
 this code, its tests, or another implementation disagree with

@@ -78,9 +78,10 @@
     {
       "name": "encodes nested arrays with pipe delimiter",
       "input": {
-        "pairs": [["a", "b"], ["c", "d"]]
+        "pairs": [["a", "b"], ["c", "d"]],
+        "items": [{ "k": [[1, { "x": 1 }]] }]
       },
-      "expected": "pairs[2|]:\n  - [2|]: a|b\n  - [2|]: c|d",
+      "expected": "pairs[2|]:\n  - [2|]: a|b\n  - [2|]: c|d\nitems[1|]:\n  - k[1|]:\n      - [2|]:\n        - 1\n        - x: 1",
       "options": {
         "delimiter": "|"
       },
@@ -196,6 +197,17 @@
         "delimiter": "|"
       },
       "specSection": "11.1",
+      "minSpecVersion": "4.2"
+    },
+    {
+      "name": "keeps a root string containing only a non-document delimiter unquoted",
+      "input": "a,b",
+      "expected": "a,b",
+      "options": {
+        "delimiter": "|"
+      },
+      "specSection": "11.1",
+      "note": "A root primitive is quoted against the document delimiter (§11.1)",
       "minSpecVersion": "4.2"
     }
   ]

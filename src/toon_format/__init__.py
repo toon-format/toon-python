@@ -37,7 +37,7 @@ __all__ = [
 
 ToonDecodeError.__module__ = __name__  # shown as toon_format.ToonDecodeError
 
-__toon_spec__ = "4.2"
+__toon_spec__ = "4.3"
 """Version of the TOON specification this package implements."""
 
 try:

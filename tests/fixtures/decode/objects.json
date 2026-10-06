@@ -200,16 +200,18 @@
       "note": "An absent length prevents header interpretation; non-strict fall-through produces a literal key"
     },
     {
-      "name": "treats non-integer bracket content as literal key (non-strict)",
-      "input": "foo[bar][1]: 20",
+      "name": "treats bracket content that fails the length grammar as literal key (non-strict)",
+      "input": "foo[bar][1]: 20\nn[-1]: 1\nk[\u0662]: a,b",
       "options": {
         "strict": false
       },
       "expected": {
-        "foo[bar][1]": 20
+        "foo[bar][1]": 20,
+        "n[-1]": 1,
+        "k[\u0662]": "a,b"
       },
       "specSection": "6",
-      "note": "[bar] fails integer parsing; non-strict fall-through produces a literal key not constrained by §7.3"
+      "note": "[bar], [-1] and [\u0662] (a non-ASCII digit) fail the length grammar; non-strict fall-through produces a literal key not constrained by §7.3"
     },
     {
       "name": "parses quoted key with comma",
@@ -344,10 +346,12 @@
       "note": "Encoders must quote hyphen-leading strings (§7.2); decoders accept the unquoted form as data"
     },
     {
-      "name": "accepts unquoted colon-containing value in strict mode",
-      "input": "k: b:c",
+      "name": "accepts unquoted values and keys an encoder would quote in strict mode",
+      "input": "k: b:c\npaths[2]: C:\\,D:\\\na\\: b",
       "expected": {
-        "k": "b:c"
+        "k": "b:c",
+        "paths": ["C:\\", "D:\\"],
+        "a\\": "b"
       },
       "specSection": "7.4",
       "note": "The first unquoted colon ends the key; the entire post-colon token is the value (§11.2)"
@@ -501,21 +505,30 @@
     },
     {
       "name": "parses an empty unquoted key as the empty key",
-      "input": ": 1",
+      "input": ": 1\na:\n  : 2\nitems[1]:\n  - : 3\nm[1:]{v}:\n  : 4",
       "expected": {
-        "": 1
+        "": 1,
+        "a": { "": 2 },
+        "items": [{ "": 3 }],
+        "m": { "": { "v": 4 } }
       },
       "specSection": "7.4",
       "minSpecVersion": "4.2"
     },
     {
-      "name": "parses a hyphen-leading line at list-item field depth as a key-value line",
-      "input": "items[1]:\n  - a: 1\n    - y: 2",
+      "name": "parses a hyphen-leading line off item depth as a key-value line or a tabular row",
+      "input": "items[1]:\n  - a: 1\n    - y: 2\nrows[1]{a,b}:\n  - y,2",
       "expected": {
         "items": [
           {
             "a": 1,
             "- y": 2
+          }
+        ],
+        "rows": [
+          {
+            "a": "- y",
+            "b": 2
           }
         ]
       },
@@ -523,19 +536,24 @@
       "minSpecVersion": "4.2"
     },
     {
-      "name": "parses a key whose closed mid-token quote span hides a colon",
-      "input": "a\"b:c\"d: 1",
+      "name": "parses keys whose closed mid-token quote span hides a colon or a bracket segment, or precedes one",
+      "input": "a\"b:c\"d: 1\ne\"[1]:\"f: 2\na\"b\"[2]: x,y",
       "expected": {
-        "a\"b:c\"d": 1
+        "a\"b:c\"d": 1,
+        "e\"[1]:\"f": 2,
+        "a\"b\"": ["x", "y"]
       },
       "specSection": "5.2",
       "minSpecVersion": "4.2"
     },
     {
-      "name": "reads a line whose only unquoted colon sits in the bracket segment as a key-value line",
+      "name": "falls through to a key-value line in non-strict mode when a header line fails the grammar",
       "input": "a[2:]{x}",
       "expected": {
         "a[2": "]{x}"
+      },
+      "options": {
+        "strict": false
       },
       "specSection": "5.2",
       "minSpecVersion": "4.2"

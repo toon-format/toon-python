@@ -85,16 +85,6 @@
       "note": "Active delimiter is tab; rows using comma each parse as 1 value, failing the row width check"
     },
     {
-      "name": "throws on mismatched delimiter between bracket and brace fields",
-      "input": "items[2\t]{a,b}:\n  1\t2\n  3\t4",
-      "expected": null,
-      "shouldError": true,
-      "options": {
-        "strict": true
-      },
-      "specSection": "6"
-    },
-    {
       "name": "throws on extra brackets between bracket segment and colon in strict mode",
       "input": "foo[1][bar]: 10",
       "expected": null,
@@ -143,6 +133,22 @@
       "specSection": "5.2"
     },
     {
+      "name": "throws on a header line with an unclosed bracket segment",
+      "input": "a[1:",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "5.2",
+      "minSpecVersion": "4.3"
+    },
+    {
+      "name": "throws on a keyed header line without its colon",
+      "input": "a[2:]{x}",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "5.2",
+      "minSpecVersion": "4.3"
+    },
+    {
       "name": "throws when inline values fall short of the declared length",
       "input": "tags[3]: a,b",
       "expected": null,
@@ -155,6 +161,13 @@
       "expected": null,
       "shouldError": true,
       "specSection": "14.1"
+    },
+    {
+      "name": "throws on a value line under a bare list-form header",
+      "input": "tags[3]:\n  reading,gaming,coding",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "6"
     },
     {
       "name": "throws on bracket length with leading zeros in strict mode",
@@ -325,7 +338,7 @@
     },
     {
       "name": "throws on keyed header without a field list in strict mode",
-      "input": "m[2:]:\n  a: 1\n  b: 2",
+      "input": "m[0:]:",
       "expected": null,
       "shouldError": true,
       "options": {
@@ -347,7 +360,7 @@
     },
     {
       "name": "throws on keyed marker with leading-zero length in strict mode",
-      "input": "m[03:]{v}:\n  a: 1\n  b: 2",
+      "input": "m[02:]{v}:\n  a: 1\n  b: 2",
       "expected": null,
       "shouldError": true,
       "options": {
@@ -389,7 +402,7 @@
     },
     {
       "name": "throws on a line without an unquoted colon at entry depth in strict mode",
-      "input": "m[2:]{v}:\n  a: 1\n  5",
+      "input": "m[1:]{v}:\n  a: 1\n  5",
       "expected": null,
       "shouldError": true,
       "options": {
@@ -433,6 +446,18 @@
       "specSection": "6"
     },
     {
+      "name": "throws on a keyless list-form header in object field position in non-strict mode",
+      "input": "a:\n  [2]:\n    - 1\n    - 2",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "6",
+      "note": "Read as a key-value line, the header's list items become scalar lines (§5.2), so no non-strict leniency yields a value",
+      "minSpecVersion": "4.2"
+    },
+    {
       "name": "throws on keyless array header after a depth-0 field",
       "input": "a: 1\n[2]: x,y",
       "expected": null,
@@ -448,12 +473,35 @@
       "specSection": "6"
     },
     {
+      "name": "throws on keyless fields-bearing header as list item in non-strict mode",
+      "input": "items[1]:\n  - [1]{x}:\n      1",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "6",
+      "minSpecVersion": "4.2"
+    },
+    {
       "name": "throws on inline content after tabular header",
       "input": "items[2]{a,b}: 1,2",
       "expected": null,
       "shouldError": true,
       "specSection": "6",
       "note": "A fields-bearing header carries no inline content; decoding the values as an inline array would silently drop the field list"
+    },
+    {
+      "name": "throws on a row under a fields-bearing header with inline content in non-strict mode",
+      "input": "b[1]{c}: x\n  y",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "6",
+      "note": "Read as a key-value line, the row becomes an over-indented scalar line (§5.2), so no non-strict leniency yields a value",
+      "minSpecVersion": "4.2"
     },
     {
       "name": "throws on inline content after root tabular header",
@@ -501,6 +549,17 @@
       },
       "specSection": "5.2",
       "note": "A scalar line outside root primitive position is an error in strict and non-strict mode alike",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "throws on a bare token line among list-item fields in non-strict mode",
+      "input": "items[1]:\n  - a: 1\n    b",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "5.2",
       "minSpecVersion": "4.1"
     },
     {
@@ -665,8 +724,27 @@
       "minSpecVersion": "4.2"
     },
     {
+      "name": "throws on content after a nested field group in non-strict mode",
+      "input": "a[1]{b{c}d}:\n  1",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "6",
+      "note": "Not a header (§6 grammar), so the row is a scalar line under a key-value line (§5.2)",
+      "minSpecVersion": "4.2"
+    },
+    {
       "name": "throws on a \\u escape with a sign before its hex digits",
       "input": "val: \"\\u+0ab\"",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "7.1"
+    },
+    {
+      "name": "throws on a \\u escape with non-ASCII digits",
+      "input": "val: \"\\u\u0660\u0660\u0664\u0661\"",
       "expected": null,
       "shouldError": true,
       "specSection": "7.1"

@@ -198,12 +198,15 @@
       "minSpecVersion": "4.1"
     },
     {
-      "name": "treats a delimiter inside a mid-token quote span as quoted",
-      "input": "k[2]: a\"b,c\",d",
+      "name": "treats a delimiter inside a closed or unclosed mid-token quote span as quoted",
+      "input": "k[2]: a\"b,c\",d\nu[1]: x\"y,z",
       "expected": {
         "k": [
           "a\"b,c\"",
           "d"
+        ],
+        "u": [
+          "x\"y,z"
         ]
       },
       "specSection": "5.2",

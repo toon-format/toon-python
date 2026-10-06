@@ -127,11 +127,12 @@
       "specSection": "7.3"
     },
     {
-      "name": "quotes key with leading hyphen",
+      "name": "quotes keys with a leading or interior hyphen",
       "input": {
-        "-lead": 1
+        "-lead": 1,
+        "a-b": 2
       },
-      "expected": "\"-lead\": 1",
+      "expected": "\"-lead\": 1\n\"a-b\": 2",
       "specSection": "7.3"
     },
     {
@@ -267,14 +268,17 @@
       "specSection": "8"
     },
     {
-      "name": "keeps strings that only resemble numbers or literals unquoted",
+      "name": "keeps strings that only resemble numbers or literals, a leading byte-order mark, or DEL unquoted",
       "input": {
         "a": ".5",
         "b": "NaN",
-        "c": "True"
+        "c": "True",
+        "d": "\ufeffx",
+        "e": "a\u007fb"
       },
-      "expected": "a: .5\nb: NaN\nc: True",
+      "expected": "a: .5\nb: NaN\nc: True\nd: \ufeffx\ne: a\u007fb",
       "specSection": "7.2",
+      "note": "Only a root primitive starting with U+FEFF is quoted, and only U+0000–U+001F count as controls (§7.1, §7.2)",
       "minSpecVersion": "4.2"
     }
   ]

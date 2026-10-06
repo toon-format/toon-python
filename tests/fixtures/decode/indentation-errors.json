@@ -206,12 +206,16 @@
     },
     {
       "name": "adopts the depth of a jumped first line in non-strict mode",
-      "input": "a:\n    b: 1\n  c: 2\n    d: 3",
+      "input": "a:\n    b: 1\n  c: 2\n    d: 3\nitems[2]:\n    - 1\n    - 2",
       "expected": {
         "a": {
           "b": 1,
           "d": 3
-        }
+        },
+        "items": [
+          1,
+          2
+        ]
       },
       "options": {
         "strict": false
@@ -255,19 +259,32 @@
       "minSpecVersion": "4.2"
     },
     {
-      "name": "skips an over-indented line under a primitive list item in non-strict mode",
-      "input": "items[2]:\n  - a\n    b: 1\n  - c",
+      "name": "skips over-indented lines under a primitive list item and after a list scope in non-strict mode",
+      "input": "items[2]:\n  - a\n    b: 1\n  - c\n  x: 1\nz: 2",
       "expected": {
         "items": [
           "a",
           "c"
-        ]
+        ],
+        "z": 2
       },
       "options": {
         "strict": false
       },
       "specSection": "8",
       "minSpecVersion": "4.2"
+    },
+    {
+      "name": "throws on an over-indented scalar line under a primitive list item in non-strict mode",
+      "input": "items[2]:\n  - a\n    b\n  - c",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "8",
+      "note": "The non-strict skip for over-indented lines excludes scalar lines (§5.2)",
+      "minSpecVersion": "4.1"
     },
     {
       "name": "skips an over-indented line under a list-item field in non-strict mode",

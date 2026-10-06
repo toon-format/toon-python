@@ -174,27 +174,6 @@ def _find_unquoted(text: str, char: str, start: int = 0) -> int:
     return -1
 
 
-def _brace_end(text: str, start: int) -> int:
-    """Index of the ``}`` closing the ``{`` at ``start``, outside quotes, or -1."""
-    depth = 0
-    i, n = start, len(text)
-    while i < n:
-        c = text[i]
-        if c == '"':
-            i = _quoted_end(text, i)
-            if i < 0:
-                return -1
-            continue
-        if c == "{":
-            depth += 1
-        elif c == "}":
-            depth -= 1
-            if depth == 0:
-                return i
-        i += 1
-    return -1
-
-
 def _split(text: str, delimiter: str) -> list[str]:
     """Split on unquoted delimiters and trim each token (§11.2, Appendix B.3)."""
     if '"' not in text:
@@ -412,12 +391,7 @@ class _Parser:
         except _Malformed as exc:
             if colon < 0:
                 return _Scalar(content)  # without a colon it is a scalar line (§5.2)
-            # A line whose only colons sit in the bracket segment or its field
-            # list is a key-value line, in strict mode too (§5.2, §6).
-            close = _find_unquoted(content, "]", bracket)
-            if close >= 0 and content.startswith("{", close + 1):
-                close = max(close, _brace_end(content, close + 1))
-            if self.strict and close >= 0 and _find_unquoted(content, ":", close) >= 0:
+            if self.strict:
                 raise self.error(str(exc), line) from None
             return self.literal_key_value(content, line)
         key_text = content[:bracket]

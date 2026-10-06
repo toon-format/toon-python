@@ -74,6 +74,17 @@
       "minSpecVersion": "4.1"
     },
     {
+      "name": "throws on a bare token line under a trailing header after a root array in non-strict mode",
+      "input": "[1]: 1\nx[1]:\n  junk",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "5",
+      "minSpecVersion": "4.1"
+    },
+    {
       "name": "parses a root line shaped like a header without a colon as a string",
       "input": "items[2]",
       "expected": "items[2]",
@@ -93,9 +104,21 @@
       "minSpecVersion": "4.2"
     },
     {
-      "name": "parses a root primitive whose colon follows an unclosed quote",
-      "input": "a\"b: 1",
-      "expected": "a\"b: 1",
+      "name": "throws on an indented root array header",
+      "input": "  [2]: 1,2",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": true
+      },
+      "specSection": "5",
+      "note": "Root form discovery reads the first non-blank depth-0 line; an indented first line is over-indented (§8)",
+      "minSpecVersion": "4.2"
+    },
+    {
+      "name": "parses a root primitive whose bracket segment and colon follow an unclosed quote",
+      "input": "k\"x[2]: 1,2",
+      "expected": "k\"x[2]: 1,2",
       "specSection": "5.2",
       "minSpecVersion": "4.2"
     },
