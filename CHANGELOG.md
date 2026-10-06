@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Support for [TOON specification 4.2](https://github.com/toon-format/spec/blob/v4.2.1/SPEC.md):
+  all official fixtures of spec `v4.2.1` pass, and `toon_format.__toon_spec__`
+  is `"4.2"`. Encoder output is unchanged.
+- Decoding settles the edge cases that 4.1 left open: quoted strings accept raw
+  control characters in strict mode, a leading hyphen marks a list item only at
+  item depth, a line whose only colons sit in the bracket segment or its field
+  list is a key-value line, a quote span inside a field name hides braces and
+  delimiters, whitespace before a nested field group is a header error, a
+  tab-only line is a tab-indentation error in strict mode instead of a blank
+  line, and an indented first line is over-indented.
+- With `strict=False`, a jumped first line sets the depth of its scope,
+  over-indented lines inside arrays are skipped instead of ending them, and a
+  scalar line after a root array is an error.
+
 ## [1.0.0]
 
 A complete rewrite. See [docs/migration.md](docs/migration.md) for upgrading
