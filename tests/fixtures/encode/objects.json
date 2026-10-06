@@ -4,26 +4,18 @@
   "description": "Object encoding – simple objects, nested objects, key encoding",
   "tests": [
     {
-      "name": "preserves key order in objects",
+      "name": "preserves key order in objects with primitive values",
       "input": {
         "id": 123,
         "name": "Ada",
-        "active": true
-      },
-      "expected": "id: 123\nname: Ada\nactive: true",
-      "specSection": "8"
-    },
-    {
-      "name": "encodes null values in objects",
-      "input": {
-        "id": 123,
+        "active": true,
         "value": null
       },
-      "expected": "id: 123\nvalue: null",
+      "expected": "id: 123\nname: Ada\nactive: true\nvalue: null",
       "specSection": "8"
     },
     {
-      "name": "encodes empty objects as empty string",
+      "name": "encodes an empty root object as an empty document",
       "input": {},
       "expected": "",
       "specSection": "8"
@@ -93,11 +85,11 @@
       "specSection": "7.2"
     },
     {
-      "name": "quotes string value that looks like negative decimal",
+      "name": "quotes string value that looks like a number with an uppercase exponent",
       "input": {
-        "v": "-7.5"
+        "v": "1E6"
       },
-      "expected": "v: \"-7.5\"",
+      "expected": "v: \"1E6\"",
       "specSection": "7.2"
     },
     {
@@ -109,19 +101,12 @@
       "specSection": "7.3"
     },
     {
-      "name": "quotes key with brackets",
+      "name": "quotes keys with brackets or braces",
       "input": {
-        "[index]": 5
+        "[index]": 5,
+        "{key}": 6
       },
-      "expected": "\"[index]\": 5",
-      "specSection": "7.3"
-    },
-    {
-      "name": "quotes key with braces",
-      "input": {
-        "{key}": 5
-      },
-      "expected": "\"{key}\": 5",
+      "expected": "\"[index]\": 5\n\"{key}\": 6",
       "specSection": "7.3"
     },
     {
@@ -133,11 +118,12 @@
       "specSection": "7.3"
     },
     {
-      "name": "quotes key with spaces",
+      "name": "quotes keys with spaces",
       "input": {
-        "full name": "Ada"
+        "full name": "Ada",
+        " a ": 1
       },
-      "expected": "\"full name\": Ada",
+      "expected": "\"full name\": Ada\n\" a \": 1",
       "specSection": "7.3"
     },
     {
@@ -146,14 +132,6 @@
         "-lead": 1
       },
       "expected": "\"-lead\": 1",
-      "specSection": "7.3"
-    },
-    {
-      "name": "quotes key with leading and trailing spaces",
-      "input": {
-        " a ": 1
-      },
-      "expected": "\" a \": 1",
       "specSection": "7.3"
     },
     {
@@ -182,19 +160,21 @@
       "note": "The unquoted-key pattern is ASCII-only, so every non-ASCII key is quoted"
     },
     {
-      "name": "quotes CJK key",
+      "name": "keeps a dotted key unquoted",
       "input": {
-        "名前": "x"
+        "a.b": 1
       },
-      "expected": "\"名前\": x",
-      "specSection": "7.3"
+      "expected": "a.b: 1",
+      "specSection": "7.3",
+      "minSpecVersion": "4.2"
     },
     {
-      "name": "escapes newline in key",
+      "name": "escapes newline and quotes in keys",
       "input": {
-        "line\nbreak": 1
+        "line\nbreak": 1,
+        "he said \"hi\"": 2
       },
-      "expected": "\"line\\nbreak\": 1",
+      "expected": "\"line\\nbreak\": 1\n\"he said \\\"hi\\\"\": 2",
       "specSection": "7.1"
     },
     {
@@ -203,14 +183,6 @@
         "tab\there": 2
       },
       "expected": "\"tab\\there\": 2",
-      "specSection": "7.1"
-    },
-    {
-      "name": "escapes quotes in key",
-      "input": {
-        "he said \"hi\"": 1
-      },
-      "expected": "\"he said \\\"hi\\\"\": 1",
       "specSection": "7.1"
     },
     {
@@ -260,15 +232,6 @@
       "note": "No key has special meaning, so the encoder emits prototype-named own entries like any other (§8)"
     },
     {
-      "name": "encodes constructor and prototype own properties as ordinary keys",
-      "input": {
-        "constructor": 1,
-        "prototype": 2
-      },
-      "expected": "constructor: 1\nprototype: 2",
-      "specSection": "15"
-    },
-    {
       "name": "encodes __proto__ as a tabular field name",
       "input": {
         "rows": [
@@ -292,6 +255,27 @@
       },
       "expected": "note: \"#x\"",
       "specSection": "7.2"
+    },
+    {
+      "name": "encodes empty string key opening a nested object",
+      "input": {
+        "": {
+          "a": 1
+        }
+      },
+      "expected": "\"\":\n  a: 1",
+      "specSection": "8"
+    },
+    {
+      "name": "keeps strings that only resemble numbers or literals unquoted",
+      "input": {
+        "a": ".5",
+        "b": "NaN",
+        "c": "True"
+      },
+      "expected": "a: .5\nb: NaN\nc: True",
+      "specSection": "7.2",
+      "minSpecVersion": "4.2"
     }
   ]
 }

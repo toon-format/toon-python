@@ -62,14 +62,10 @@
     {
       "name": "quotes entry keys per key encoding",
       "input": {
-        "ids": {
-          "42": { "v": 1 },
-          "my key": { "v": 2 }
-        }
+        "ids": { "42": { "v": 1 }, "my key": { "v": 2 } }
       },
       "expected": "ids[2:]{v}:\n  \"42\": 1\n  \"my key\": 2",
-      "specSection": "9.5",
-      "note": "Entry keys follow §7.3, the same rule as object keys"
+      "specSection": "9.5"
     },
     {
       "name": "quotes entry-row cells containing the active delimiter",
@@ -150,6 +146,14 @@
       "expected": "items[2]:\n  - a:\n      x: 1\n    b:\n      x: 2\n  - 5",
       "specSection": "9.5",
       "note": "The element object is keyed-eligible but has no key; the keyless form is root-only, so it encodes per §10"
+    },
+    {
+      "name": "keeps an object of empty objects out of keyed tabular form",
+      "input": {
+        "m": { "a": {}, "b": {} }
+      },
+      "expected": "m:\n  a:\n  b:",
+      "specSection": "9.5"
     }
   ]
 }

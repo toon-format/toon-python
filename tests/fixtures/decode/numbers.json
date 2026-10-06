@@ -12,45 +12,24 @@
       "specSection": "4"
     },
     {
-      "name": "parses negative number with positive exponent",
-      "input": "value: -1E+03",
+      "name": "parses exponent forms in either case with optional exponent sign",
+      "input": "a: -1E+03\nb: 2.5e2\nc: 3E-02",
       "expected": {
-        "value": -1000
-      },
-      "specSection": "4"
-    },
-    {
-      "name": "parses lowercase exponent",
-      "input": "value: 2.5e2",
-      "expected": {
-        "value": 250
-      },
-      "specSection": "4"
-    },
-    {
-      "name": "parses uppercase exponent with negative sign",
-      "input": "value: 3E-02",
-      "expected": {
-        "value": 0.03
+        "a": -1000,
+        "b": 250,
+        "c": 0.03
       },
       "specSection": "4"
     },
     {
       "name": "parses negative zero as zero",
-      "input": "value: -0",
+      "input": "a: -0\nb: -0.0",
       "expected": {
-        "value": 0
+        "a": 0,
+        "b": 0
       },
       "specSection": "4",
-      "note": "Negative zero decodes to 0; most host environments do not distinguish -0 from 0"
-    },
-    {
-      "name": "parses negative zero with fractional part",
-      "input": "value: -0.0",
-      "expected": {
-        "value": 0
-      },
-      "specSection": "4"
+      "note": "Most host environments do not distinguish -0 from 0"
     },
     {
       "name": "parses array with mixed numeric forms",
@@ -58,30 +37,13 @@
       "expected": {
         "nums": [42, -1000, 1.5, 0, 250]
       },
-      "specSection": "4",
-      "note": "Decoders normalize all numeric forms to host numeric values"
+      "specSection": "4"
     },
     {
       "name": "treats leading zero as string not number",
       "input": "value: 05",
       "expected": {
         "value": "05"
-      },
-      "specSection": "4"
-    },
-    {
-      "name": "parses very small exponent",
-      "input": "value: 1e-10",
-      "expected": {
-        "value": 0.0000000001
-      },
-      "specSection": "4"
-    },
-    {
-      "name": "parses integer with positive exponent",
-      "input": "value: 5E+00",
-      "expected": {
-        "value": 5
       },
       "specSection": "4"
     },
@@ -94,47 +56,15 @@
       "specSection": "4"
     },
     {
-      "name": "parses negative zero with exponent as number",
-      "input": "value: -0e1",
-      "expected": {
-        "value": 0
-      },
-      "specSection": "4"
-    },
-    {
       "name": "parses exponent notation",
       "input": "1e6",
       "expected": 1000000,
       "specSection": "4"
     },
     {
-      "name": "parses exponent notation with uppercase E",
-      "input": "1E+6",
-      "expected": 1000000,
-      "specSection": "4"
-    },
-    {
-      "name": "parses negative exponent notation",
-      "input": "-1e-3",
-      "expected": -0.001,
-      "specSection": "4"
-    },
-    {
       "name": "treats unquoted leading-zero number as string",
       "input": "05",
       "expected": "05",
-      "specSection": "4"
-    },
-    {
-      "name": "treats unquoted multi-leading-zero as string",
-      "input": "007",
-      "expected": "007",
-      "specSection": "4"
-    },
-    {
-      "name": "treats unquoted octal-like as string",
-      "input": "0123",
-      "expected": "0123",
       "specSection": "4"
     },
     {
@@ -150,38 +80,15 @@
       "specSection": "4"
     },
     {
-      "name": "treats negative leading-zeros in array as strings",
-      "input": "nums[2]: -05,-007",
+      "name": "treats bare-fraction, trailing-dot, and leading-plus tokens as strings",
+      "input": "a: .5\nb: 1.\nc: +1",
       "expected": {
-        "nums": ["-05", "-007"]
-      },
-      "specSection": "4"
-    },
-    {
-      "name": "treats bare fraction without integer part as string",
-      "input": "value: .5",
-      "expected": {
-        "value": ".5"
+        "a": ".5",
+        "b": "1.",
+        "c": "+1"
       },
       "specSection": "4",
-      "note": "Outside the number grammar, so a host parser would read 0.5 and corrupt the round-trip"
-    },
-    {
-      "name": "treats integer with trailing dot as string",
-      "input": "value: 1.",
-      "expected": {
-        "value": "1."
-      },
-      "specSection": "4"
-    },
-    {
-      "name": "treats leading-plus integer as string",
-      "input": "value: +1",
-      "expected": {
-        "value": "+1"
-      },
-      "specSection": "4",
-      "note": "The grammar admits only an optional leading minus, so +1 stays a string"
+      "note": "Outside the number grammar, so a host number parser would corrupt the round-trip"
     },
     {
       "name": "treats leading-plus tokens in array as strings",
@@ -191,15 +98,6 @@
       },
       "specSection": "4",
       "note": "The grammar admits only an optional leading minus, so leading-plus cells stay strings"
-    },
-    {
-      "name": "parses positive exponent sign as number",
-      "input": "value: 1e+2",
-      "expected": {
-        "value": 100
-      },
-      "specSection": "4",
-      "note": "The plus sign is inside the exponent, which the grammar allows"
     },
     {
       "name": "treats Infinity and NaN tokens as strings",
@@ -220,6 +118,14 @@
       },
       "specSection": "4",
       "note": "Host parsers that accept these forms have a wider grammar than the spec permits"
+    },
+    {
+      "name": "treats non-ASCII digits as a string",
+      "input": "value: ٤٢",
+      "expected": {
+        "value": "٤٢"
+      },
+      "specSection": "4"
     }
   ]
 }

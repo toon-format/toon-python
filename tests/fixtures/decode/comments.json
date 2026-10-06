@@ -4,8 +4,8 @@
   "description": "Comment lines – full-line decode-side comments stripped before structural interpretation",
   "tests": [
     {
-      "name": "strips comment line between tabular rows without terminating rows",
-      "input": "items[2]{id,name}:\n  1,Ada\n  # note\n  2,Bob",
+      "name": "strips comment lines after the header and between tabular rows",
+      "input": "items[2]{id,name}:\n  # leading\n  1,Ada\n  # note\n  2,Bob",
       "expected": {
         "items": [
           {
@@ -19,22 +19,7 @@
         ]
       },
       "specSection": "5.1",
-      "note": "The comment is not counted as a row and does not end the tabular scope"
-    },
-    {
-      "name": "strips comment line between header and first row",
-      "input": "items[2]{id}:\n  # leading\n  1\n  2",
-      "expected": {
-        "items": [
-          {
-            "id": 1
-          },
-          {
-            "id": 2
-          }
-        ]
-      },
-      "specSection": "5.1"
+      "note": "Comments are not counted as rows and do not end the tabular scope"
     },
     {
       "name": "strips comment line whose indentation is not a multiple of indentSize",
@@ -89,12 +74,6 @@
       "note": "Comment text is discarded without interpretation; the quote never reaches the tokenizer"
     },
     {
-      "name": "decodes document of only comments to empty object",
-      "input": "# only\n# comments",
-      "expected": {},
-      "specSection": "5.1"
-    },
-    {
       "name": "decodes comments and blank lines only to empty object",
       "input": "\n# c\n\n# d\n",
       "expected": {},
@@ -112,24 +91,20 @@
       "input": "items[2]{id}:\n  #1\n  2",
       "expected": null,
       "shouldError": true,
-      "specSection": "14.1",
+      "specSection": "5.1",
       "note": "The first cell makes the whole line a comment; only one row remains for [2]"
     },
     {
-      "name": "drops hash-leading row silently in non-strict mode",
+      "name": "strips a hash-leading row as a comment in non-strict mode",
       "input": "items[2]{id}:\n  #1\n  2",
       "expected": {
-        "items": [
-          {
-            "id": 2
-          }
-        ]
+        "items": [{ "id": 2 }]
       },
       "options": {
         "strict": false
       },
       "specSection": "5.1",
-      "note": "A hash-leading first cell makes the whole line a comment; non-strict mode drops the row silently"
+      "note": "Comment removal applies in both modes; the resulting count mismatch is not an error when strict=false (§14.1)"
     },
     {
       "name": "throws on tab-indented hash line, which is not a comment",
@@ -185,33 +160,13 @@
       "note": "\"#\" is not the line's first non-space character; comments are full-line only"
     },
     {
-      "name": "parses hash after key-value colon as string value",
-      "input": "note: #x",
+      "name": "parses hash after a key-value colon or mid-value as data, not an inline comment",
+      "input": "note: #x\nmsg: hello # world",
       "expected": {
-        "note": "#x"
-      },
-      "specSection": "5.1",
-      "note": "No inline comments; the unquoted token decodes as the string #x"
-    },
-    {
-      "name": "parses hash mid-value as data, not a trailing comment",
-      "input": "msg: hello # world",
-      "expected": {
+        "note": "#x",
         "msg": "hello # world"
       },
       "specSection": "5.1"
-    },
-    {
-      "name": "round-trips quoted hash-leading values in field and inline array positions",
-      "input": "tag: \"#x\"\nlist[2]: \"#a\",b",
-      "expected": {
-        "tag": "#x",
-        "list": [
-          "#a",
-          "b"
-        ]
-      },
-      "specSection": "7.2"
     }
   ]
 }

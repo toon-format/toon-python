@@ -15,31 +15,14 @@
       "specSection": "9.4"
     },
     {
-      "name": "uses list form for objects with nested values",
+      "name": "preserves field order in list items",
       "input": {
         "items": [
-          { "id": 1, "nested": { "x": 1 } },
-          { "id": 2, "nested": { "y": 2 } }
+          { "nums": [1, 2, 3], "name": "Ada" },
+          { "name": "Ada", "nums": [1, 2, 3] }
         ]
       },
-      "expected": "items[2]:\n  - id: 1\n    nested:\n      x: 1\n  - id: 2\n    nested:\n      y: 2",
-      "specSection": "9.4",
-      "note": "The nested column mixes key sets {x} and {y}, so it is not nested-uniform (§9.3), so the array uses list form"
-    },
-    {
-      "name": "preserves field order in list items - array first",
-      "input": {
-        "items": [{ "nums": [1, 2, 3], "name": "Ada" }]
-      },
-      "expected": "items[1]:\n  - nums[3]: 1,2,3\n    name: Ada",
-      "specSection": "10"
-    },
-    {
-      "name": "preserves field order in list items - primitive first",
-      "input": {
-        "items": [{ "name": "Ada", "nums": [1, 2, 3] }]
-      },
-      "expected": "items[1]:\n  - name: Ada\n    nums[3]: 1,2,3",
+      "expected": "items[2]:\n  - nums[3]: 1,2,3\n    name: Ada\n  - name: Ada\n    nums[3]: 1,2,3",
       "specSection": "10"
     },
     {
@@ -53,13 +36,14 @@
       "specSection": "10"
     },
     {
-      "name": "uses tabular form for nested uniform object arrays",
+      "name": "uses tabular form for a list-item object's first field, with and without sibling fields",
       "input": {
         "items": [
-          { "users": [{ "id": 1, "name": "Ada" }, { "id": 2, "name": "Bob" }], "status": "active" }
+          { "users": [{ "id": 1, "name": "Ada" }, { "id": 2, "name": "Bob" }], "status": "active" },
+          { "users": [{ "id": 3, "name": "Cy" }, { "id": 4, "name": "Dee" }] }
         ]
       },
-      "expected": "items[1]:\n  - users[2]{id,name}:\n      1,Ada\n      2,Bob\n    status: active",
+      "expected": "items[2]:\n  - users[2]{id,name}:\n      1,Ada\n      2,Bob\n    status: active\n  - users[2]{id,name}:\n      3,Cy\n      4,Dee",
       "specSection": "10",
       "note": "Tabular header on hyphen line with rows at depth +2 and sibling fields at depth +1"
     },
@@ -74,65 +58,15 @@
       "specSection": "10"
     },
     {
-      "name": "uses list form for objects with multiple array fields",
-      "input": {
-        "items": [{ "nums": [1, 2], "tags": ["a", "b"], "name": "test" }]
-      },
-      "expected": "items[1]:\n  - nums[2]: 1,2\n    tags[2]: a,b\n    name: test",
-      "specSection": "10"
-    },
-    {
-      "name": "uses list form for objects with only array fields",
-      "input": {
-        "items": [{ "nums": [1, 2, 3], "tags": ["a", "b"] }]
-      },
-      "expected": "items[1]:\n  - nums[3]: 1,2,3\n    tags[2]: a,b",
-      "specSection": "10"
-    },
-    {
-      "name": "encodes objects with empty arrays in list form",
+      "name": "places empty arrays on the hyphen line when first and at field depth when later",
       "input": {
         "items": [
-          { "name": "Ada", "data": [] }
+          { "data": [], "name": "Ada" },
+          { "name": "Bob", "data": [] }
         ]
       },
-      "expected": "items[1]:\n  - name: Ada\n    data: []",
+      "expected": "items[2]:\n  - data: []\n    name: Ada\n  - name: Bob\n    data: []",
       "specSection": "10"
-    },
-    {
-      "name": "uses canonical encoding for multi-field list-item objects with tabular arrays",
-      "input": {
-        "items": [{ "users": [{ "id": 1 }, { "id": 2 }], "note": "x" }]
-      },
-      "expected": "items[1]:\n  - users[2]{id}:\n      1\n      2\n    note: x",
-      "specSection": "10",
-      "note": "Tabular header on hyphen line with rows at depth +2 and sibling fields at depth +1"
-    },
-    {
-      "name": "uses canonical encoding for single-field list-item tabular arrays",
-      "input": {
-        "items": [{ "users": [{ "id": 1, "name": "Ada" }, { "id": 2, "name": "Bob" }] }]
-      },
-      "expected": "items[1]:\n  - users[2]{id,name}:\n      1,Ada\n      2,Bob",
-      "specSection": "10",
-      "note": "Tabular header on hyphen line with rows at depth +2"
-    },
-    {
-      "name": "places empty arrays on hyphen line when first",
-      "input": {
-        "items": [{ "data": [], "name": "x" }]
-      },
-      "expected": "items[1]:\n  - data: []\n    name: x",
-      "specSection": "10"
-    },
-    {
-      "name": "encodes empty object list items as bare hyphen",
-      "input": {
-        "items": ["first", "second", {}]
-      },
-      "expected": "items[3]:\n  - first\n  - second\n  -",
-      "specSection": "10",
-      "note": "Empty object list items encode as a single \"-\" line at the list-item depth"
     },
     {
       "name": "uses field order from first object for tabular headers",
@@ -186,6 +120,41 @@
       "specSection": "9.5",
       "note": "Keyed tabular form is mandated in object-field and root positions, not in a column",
       "minSpecVersion": "4.1"
+    },
+    {
+      "name": "places an empty object first field on the hyphen line",
+      "input": {
+        "items": [
+          {
+            "a": {},
+            "b": 1
+          }
+        ]
+      },
+      "expected": "items[1]:\n  - a:\n    b: 1",
+      "specSection": "10"
+    },
+    {
+      "name": "uses tabular form for a later field of a list-item object",
+      "input": {
+        "items": [
+          {
+            "id": 1,
+            "users": [
+              {
+                "id": 1,
+                "name": "Ada"
+              },
+              {
+                "id": 2,
+                "name": "Bob"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": "items[1]:\n  - id: 1\n    users[2]{id,name}:\n      1,Ada\n      2,Bob",
+      "specSection": "10"
     }
   ]
 }

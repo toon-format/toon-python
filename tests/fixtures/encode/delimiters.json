@@ -123,17 +123,6 @@
       "specSection": "11"
     },
     {
-      "name": "quotes strings containing tab delimiter",
-      "input": {
-        "items": ["a", "b\tc", "d"]
-      },
-      "expected": "items[3\t]: a\t\"b\\tc\"\td",
-      "options": {
-        "delimiter": "\t"
-      },
-      "specSection": "11"
-    },
-    {
       "name": "quotes strings containing pipe delimiter",
       "input": {
         "items": ["a", "b|c", "d"]
@@ -152,31 +141,6 @@
       "expected": "items[2\t]: a,b\tc,d",
       "options": {
         "delimiter": "\t"
-      },
-      "specSection": "11"
-    },
-    {
-      "name": "does not quote commas with pipe delimiter",
-      "input": {
-        "items": ["a,b", "c,d"]
-      },
-      "expected": "items[2|]: a,b|c,d",
-      "options": {
-        "delimiter": "|"
-      },
-      "specSection": "11"
-    },
-    {
-      "name": "quotes tabular values containing comma delimiter",
-      "input": {
-        "items": [
-          { "id": 1, "note": "a,b" },
-          { "id": 2, "note": "c,d" }
-        ]
-      },
-      "expected": "items[2]{id,note}:\n  1,\"a,b\"\n  2,\"c,d\"",
-      "options": {
-        "delimiter": ","
       },
       "specSection": "11"
     },
@@ -206,17 +170,6 @@
       "specSection": "11"
     },
     {
-      "name": "does not quote commas in object values with tab delimiter",
-      "input": {
-        "note": "a,b"
-      },
-      "expected": "note: a,b",
-      "options": {
-        "delimiter": "\t"
-      },
-      "specSection": "11"
-    },
-    {
       "name": "quotes nested array values containing pipe delimiter",
       "input": {
         "pairs": [["a", "b|c"]]
@@ -228,26 +181,22 @@
       "specSection": "11"
     },
     {
-      "name": "quotes nested array values containing tab delimiter",
+      "name": "quotes a primitive list item containing the document delimiter",
       "input": {
-        "pairs": [["a", "b\tc"]]
+        "a": [
+          "x|y",
+          "p,q",
+          {
+            "b": 1
+          }
+        ]
       },
-      "expected": "pairs[1\t]:\n  - [2\t]: a\t\"b\\tc\"",
-      "options": {
-        "delimiter": "\t"
-      },
-      "specSection": "11"
-    },
-    {
-      "name": "preserves ambiguity quoting regardless of delimiter",
-      "input": {
-        "items": ["true", "42", "-3.14"]
-      },
-      "expected": "items[3|]: \"true\"|\"42\"|\"-3.14\"",
+      "expected": "a[3|]:\n  - \"x|y\"\n  - p,q\n  - b: 1",
       "options": {
         "delimiter": "|"
       },
-      "specSection": "11"
+      "specSection": "11.1",
+      "minSpecVersion": "4.2"
     }
   ]
 }

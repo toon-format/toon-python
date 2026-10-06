@@ -30,7 +30,7 @@ converted back to dates or other types.
 
 ## Specification choices
 
-This package targets **TOON 4.1** (`toon_format.__toon_spec__`). The specification
+This package targets **TOON 4.2** (`toon_format.__toon_spec__`). The specification
 asks implementations to document the following choices.
 
 **Numbers.** Integers encode and decode exactly at any size. Floats use the
@@ -44,9 +44,8 @@ keeps them when decoding. A `Decimal` beyond the double range, such as
 default strict decoder: pass `parse_float=Decimal` to read it.
 
 **Strings.** A string holding an unpaired surrogate cannot be encoded and
-raises `ValueError`. A string starting with U+FEFF is quoted, because a
-leading U+FEFF in a document is read as a byte-order mark. In strict mode, quoted strings may not contain literal
-control characters other than tab.
+raises `ValueError`. A root string starting with U+FEFF is quoted, because a
+leading U+FEFF in a document is read as a byte-order mark.
 
 **Key order** is preserved, except that tabular rows follow the header's field
 order. With `strict=False`, a duplicate key keeps its first position and its

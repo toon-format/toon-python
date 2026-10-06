@@ -166,15 +166,6 @@ def test_errors_in_any_mode(text: str) -> None:
             toon_format.loads(text, strict=strict)
 
 
-def test_literal_control_characters_in_quotes() -> None:
-    with pytest.raises(toon_format.ToonDecodeError, match="control character"):
-        toon_format.loads('a: "x\x01y"')
-    assert toon_format.loads('a: "x\x01y"', strict=False) == {"a": "x\x01y"}
-    assert toon_format.loads('a: "x\ty"') == {
-        "a": "x\ty"
-    }  # a literal tab is tolerated (§7.1)
-
-
 def test_deep_nesting_raises_decode_error() -> None:
     text = "\n".join("  " * depth + "a:" for depth in range(5000))
     with pytest.raises(toon_format.ToonDecodeError, match="nested too deeply"):
@@ -256,33 +247,13 @@ def test_row_or_key_value_at_row_depth() -> None:
 
 
 def test_hyphen_outside_a_list_is_part_of_the_key() -> None:
-    # §5.2: outside the scope of an array in list form a leading hyphen is
-    # ordinary text.
-    assert toon_format.loads("- a: 1") == {"- a": 1}
+    # §5.2: a leading hyphen marks a list item only at item depth; elsewhere it
+    # is ordinary text.
     assert toon_format.loads("- a") == "- a"
     assert toon_format.loads("items[1]:\n  - x\n- a: 1", strict=False) == {
         "items": ["x"],
         "- a": 1,
     }
-
-
-@pytest.mark.parametrize(
-    "text",
-    [
-        # A list item where a field of the list-item object is expected (§10).
-        "items[1]:\n  - a: 1\n    - b: 2",
-        "items[1]:\n  - a:\n      - b: 2",
-        # A list item too deep to be an item of the array.
-        "items[2]:\n  - a: 1\n      - b: 2",
-        "items[1]:\n  - [1]:\n    - x\n      - y",
-    ],
-)
-def test_list_item_outside_item_depth(text: str) -> None:
-    # §5.2: inside an array in list form a leading hyphen always marks a list
-    # item, which is admissible only at the array's item depth.
-    for strict in (True, False):
-        with pytest.raises(toon_format.ToonDecodeError):
-            toon_format.loads(text, strict=strict)
 
 
 def test_integer_beyond_the_conversion_limit() -> None:

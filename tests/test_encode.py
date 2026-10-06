@@ -413,10 +413,10 @@ def test_non_finite_float_keys(key: float, expected: str) -> None:
     ("value", "expected"),
     [
         ("\ufeffabc", '"\ufeffabc"'),
-        ({"a": "\ufeffx"}, 'a: "\ufeffx"'),
-        (["\ufeffx"], '[1]: "\ufeffx"'),
+        ({"a": "\ufeffx"}, "a: \ufeffx"),
+        (["\ufeffx"], "[1]: \ufeffx"),
     ],
 )
-def test_leading_byte_order_mark_is_quoted(value: Any, expected: str) -> None:
+def test_leading_byte_order_mark(value: Any, expected: str) -> None:
     assert toon_format.dumps(value) == expected
     assert toon_format.loads(expected) == value

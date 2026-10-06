@@ -36,21 +36,14 @@
       "specSection": "9.5"
     },
     {
-      "name": "parses keyed headers with the pipe delimiter",
-      "input": "servers[2:|]{host|port}:\n  alpha: a|8080\n  beta: b|9090",
+      "name": "parses keyed headers with the pipe and tab delimiters",
+      "input": "pipe[2:|]{host|port}:\n  alpha: a|8080\n  beta: b|9090\ntab[2:\t]{host\tport}:\n  alpha: a\t8080\n  beta: b\t9090",
       "expected": {
-        "servers": {
+        "pipe": {
           "alpha": { "host": "a", "port": 8080 },
           "beta": { "host": "b", "port": 9090 }
-        }
-      },
-      "specSection": "9.5"
-    },
-    {
-      "name": "parses keyed headers with the tab delimiter",
-      "input": "servers[2:\t]{host\tport}:\n  alpha: a\t8080\n  beta: b\t9090",
-      "expected": {
-        "servers": {
+        },
+        "tab": {
           "alpha": { "host": "a", "port": 8080 },
           "beta": { "host": "b", "port": 9090 }
         }
@@ -93,27 +86,16 @@
       "note": "A keyed scope ends only by dedent or end of input"
     },
     {
-      "name": "treats key-value-shaped lines at entry depth as entry rows",
-      "input": "m[2:]{x}:\n  total: 5\n  other: 6",
+      "name": "splits an entry row at its first unquoted colon before delimiter or header parsing",
+      "input": "m[2:]{v}:\n  a,b: 5\n  k[2]: 6",
       "expected": {
         "m": {
-          "total": { "x": 5 },
-          "other": { "x": 6 }
+          "a,b": { "v": 5 },
+          "k[2]": { "v": 6 }
         }
       },
       "specSection": "9.5",
-      "note": "Opposite polarity to §9.3: in a tabular array, a colon-before-delimiter line at row depth ends the rows; in a keyed scope it is an entry"
-    },
-    {
-      "name": "splits an entry row at its first unquoted colon before delimiter splitting",
-      "input": "m[1:]{v}:\n  k[2]: 5",
-      "expected": {
-        "m": {
-          "k[2]": { "v": 5 }
-        }
-      },
-      "specSection": "9.5",
-      "note": "The token before the first unquoted colon is the entry key, accepted as a literal key per §7.4 even though an encoder would quote it"
+      "note": "The entry key is everything before the first unquoted colon, taken as a literal key per §7.4 even though an encoder would quote it"
     },
     {
       "name": "decodes the cell token [] as a string, not an empty array",
@@ -135,16 +117,6 @@
       },
       "specSection": "9.5",
       "note": "Encoders never emit keyed headers for fewer than two entries; decoders accept any N with count checks"
-    },
-    {
-      "name": "accepts a single entry row",
-      "input": "m[1:]{v}:\n  a: 1",
-      "expected": {
-        "m": {
-          "a": { "v": 1 }
-        }
-      },
-      "specSection": "9.5"
     },
     {
       "name": "parses quoted cells containing the active delimiter",
@@ -224,6 +196,18 @@
         "strict": false
       },
       "specSection": "9.5",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "decodes every entry row beyond the declared count in non-strict mode",
+      "input": "m[1:]{v}:\n  a: 1\n  b: 2",
+      "expected": {
+        "m": { "a": { "v": 1 }, "b": { "v": 2 } }
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.1",
       "minSpecVersion": "4.1"
     }
   ]
