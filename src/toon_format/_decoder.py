@@ -484,6 +484,9 @@ class _Parser:
         if line is not None:
             if self.strict:
                 raise self.error("Unexpected content after the root value", line)
+            for trailing in self.lines[self.pos :]:
+                if isinstance(self.classify(trailing.content, trailing), _Scalar):
+                    raise self.error("Unexpected bare value", trailing)
             self.pos = len(self.lines)
 
     # -- objects (§8) -------------------------------------------------------
