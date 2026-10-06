@@ -416,7 +416,11 @@ class _Parser:
                 end = _quoted_end(text, pos)
                 if end < 0:
                     raise _Malformed("Unterminated field name")
-                name = self.unescape(text[pos + 1 : end - 1], line)
+                try:
+                    name = self.unescape(text[pos + 1 : end - 1], line)
+                except ToonDecodeError as exc:
+                    # A bad escape fails the header grammar like any other (§6).
+                    raise _Malformed(exc.msg) from None
                 pos = end
             else:
                 start = pos
