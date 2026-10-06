@@ -569,11 +569,12 @@ class _Parser:
         started = False
         self.lists += 1
         try:
-            while (
-                (item := self.peek())
-                and item.depth == depth
-                and _is_list_item(item.content)
-            ):
+            while (item := self.peek()) and item.depth >= depth:
+                if item.depth > depth:
+                    self.orphan(item)
+                    continue
+                if not _is_list_item(item.content):
+                    break
                 self.take()
                 if not started:
                     self.spans += 1
@@ -619,7 +620,10 @@ class _Parser:
         rows: list[Any] = []
         started = False
         try:
-            while (row := self.peek()) and row.depth == depth:
+            while (row := self.peek()) and row.depth >= depth:
+                if row.depth > depth:
+                    self.orphan(row)
+                    continue
                 colon = _find_unquoted(row.content, ":")
                 if colon >= 0:
                     split = _find_unquoted(row.content, delimiter)
@@ -643,7 +647,10 @@ class _Parser:
         obj: dict[str, Any] = {}
         count = 0
         try:
-            while (entry := self.peek()) and entry.depth == depth:
+            while (entry := self.peek()) and entry.depth >= depth:
+                if entry.depth > depth:
+                    self.orphan(entry)
+                    continue
                 self.take()
                 if not count:
                     self.spans += 1
