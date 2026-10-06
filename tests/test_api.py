@@ -27,7 +27,7 @@ def test_public_names() -> None:
             "loads",
         ]
     )
-    assert toon_format.__toon_spec__ == "4.1"
+    assert toon_format.__toon_spec__ == "4.2"
     assert re.fullmatch(r"\d+\.\d+\.\d+.*", toon_format.__version__)
 
 

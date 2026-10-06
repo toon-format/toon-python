@@ -4,27 +4,12 @@
   "description": "Whitespace tolerance in decoding – surrounding spaces around delimiters and values",
   "tests": [
     {
-      "name": "tolerates spaces around commas in inline arrays",
-      "input": "tags[3]: a , b , c",
+      "name": "tolerates spaces around comma, pipe, and tab delimiters in inline arrays",
+      "input": "comma[3]: a , b , c\npipe[3|]: a | b | c\ntab[3\t]: a \t b \t c",
       "expected": {
-        "tags": ["a", "b", "c"]
-      },
-      "specSection": "12",
-      "note": "Trimming removes U+0020 only, never other Unicode whitespace"
-    },
-    {
-      "name": "tolerates spaces around pipes in inline arrays",
-      "input": "tags[3|]: a | b | c",
-      "expected": {
-        "tags": ["a", "b", "c"]
-      },
-      "specSection": "12"
-    },
-    {
-      "name": "tolerates spaces around tabs in inline arrays",
-      "input": "tags[3\t]: a \t b \t c",
-      "expected": {
-        "tags": ["a", "b", "c"]
+        "comma": ["a", "b", "c"],
+        "pipe": ["a", "b", "c"],
+        "tab": ["a", "b", "c"]
       },
       "specSection": "12"
     },
@@ -56,22 +41,23 @@
       "specSection": "9.1"
     },
     {
-      "name": "preserves NBSP-leading unquoted value",
-      "input": "k: \u00a0v",
+      "name": "keeps a leading NBSP and a trailing tab in unquoted values",
+      "input": "a: \u00a0v\nb: v\t",
       "expected": {
-        "k": "\u00a0v"
+        "a": "\u00a0v",
+        "b": "v\t"
       },
       "specSection": "12",
-      "note": "Token trimming removes U+0020 only; NBSP is part of the token"
+      "note": "Token trimming removes U+0020 only; NBSP and tab are part of the token"
     },
     {
-      "name": "preserves NBSP around inline array tokens",
-      "input": "items[2]: \u00a0a\u00a0,b",
+      "name": "preserves NBSP and tab around inline array tokens",
+      "input": "items[2]: \u00a0a\u00a0,\tb",
       "expected": {
-        "items": ["\u00a0a\u00a0", "b"]
+        "items": ["\u00a0a\u00a0", "\tb"]
       },
       "specSection": "12",
-      "note": "A host trim() that strips the full Unicode whitespace set corrupts this round-trip"
+      "note": "Token trimming removes U+0020 only; a host trim() that also strips NBSP or tab corrupts this round-trip"
     },
     {
       "name": "decodes CRLF line terminators",
@@ -123,6 +109,33 @@
       },
       "specSection": "12",
       "note": "Trailing spaces are stripped before line classification",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "keeps a second carriage return before CRLF as content",
+      "input": "a: x\r\r\nb: 1",
+      "expected": {
+        "a": "x\r",
+        "b": 1
+      },
+      "specSection": "12"
+    },
+    {
+      "name": "keeps a second leading byte-order mark as content",
+      "input": "\ufeff\ufeffa: 1",
+      "expected": {
+        "\ufeffa": 1
+      },
+      "specSection": "12",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "removes a byte-order mark before a comment line",
+      "input": "\ufeff# c\na: 1",
+      "expected": {
+        "a": 1
+      },
+      "specSection": "12",
       "minSpecVersion": "4.1"
     }
   ]

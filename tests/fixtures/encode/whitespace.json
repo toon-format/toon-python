@@ -4,14 +4,6 @@
   "description": "Whitespace and formatting invariants – no trailing spaces, no trailing newlines",
   "tests": [
     {
-      "name": "produces no trailing newline at end of output",
-      "input": {
-        "id": 123
-      },
-      "expected": "id: 123",
-      "specSection": "12"
-    },
-    {
       "name": "maintains proper indentation for nested structures",
       "input": {
         "user": {
@@ -46,6 +38,17 @@
       "specSection": "7.2",
       "note": "The whitespace trigger is U+0020 and U+0009 only",
       "minSpecVersion": "4.1"
+    },
+    {
+      "name": "indents list-item sibling fields by indentSize",
+      "input": {
+        "a": [{ "b": 1, "c": 2 }, 1]
+      },
+      "expected": "a[2]:\n    - b: 1\n        c: 2\n    - 1",
+      "options": {
+        "indentSize": 4
+      },
+      "specSection": "10"
     }
   ]
 }

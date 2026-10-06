@@ -19,7 +19,7 @@ from pathlib import PurePath
 from typing import Any, TypeAlias
 from uuid import UUID
 
-from ._text import encode_key, encode_string, format_decimal, format_float
+from ._text import encode_key, encode_string, format_decimal, format_float, quote
 
 __all__ = ["encode"]
 
@@ -268,6 +268,8 @@ class _Encoder:
                 self.array("", value, 0, tabular=True)
             else:
                 self.emit(0, "[]")
+        elif isinstance(value, str) and value.startswith("\ufeff"):
+            self.emit(0, quote(value))  # unquoted, it would read as a BOM (§7.2, §12)
         else:
             self.emit(0, self.primitive(value))
 

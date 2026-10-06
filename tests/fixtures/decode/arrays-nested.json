@@ -52,8 +52,8 @@
       "specSection": "9.4"
     },
     {
-      "name": "parses list items whose first field is a tabular array",
-      "input": "items[1]:\n  - users[2]{id,name}:\n      1,Ada\n      2,Bob\n    status: active",
+      "name": "parses list items whose first field is a tabular array, with and without sibling fields",
+      "input": "items[2]:\n  - users[2]{id,name}:\n      1,Ada\n      2,Bob\n    status: active\n  - users[2]{id,name}:\n      3,Cy\n      4,Dee",
       "expected": {
         "items": [
           {
@@ -62,6 +62,12 @@
               { "id": 2, "name": "Bob" }
             ],
             "status": "active"
+          },
+          {
+            "users": [
+              { "id": 3, "name": "Cy" },
+              { "id": 4, "name": "Dee" }
+            ]
           }
         ]
       },
@@ -69,47 +75,20 @@
       "note": "Canonical encoding: tabular header on hyphen line, rows at depth +2, sibling fields at depth +1"
     },
     {
-      "name": "parses single-field list-item object with tabular array",
-      "input": "items[1]:\n  - users[2]{id,name}:\n      1,Ada\n      2,Bob",
+      "name": "parses a legacy [0] header as a later field of a list-item object",
+      "input": "items[1]:\n  - name: Ada\n    data[0]:",
       "expected": {
-        "items": [
-          {
-            "users": [
-              { "id": 1, "name": "Ada" },
-              { "id": 2, "name": "Bob" }
-            ]
-          }
-        ]
+        "items": [{ "name": "Ada", "data": [] }]
       },
       "specSection": "10"
     },
     {
-      "name": "parses objects containing arrays (including empty arrays) in list form",
-      "input": "items[1]:\n  - name: Ada\n    data[0]:",
-      "expected": {
-        "items": [
-          { "name": "Ada", "data": [] }
-        ]
-      },
-      "specSection": "9.4"
-    },
-    {
-      "name": "parses arrays of arrays within objects",
+      "name": "parses a list-form array as the first field of a list-item object",
       "input": "items[1]:\n  - matrix[2]:\n      - [2]: 1,2\n      - [2]: 3,4\n    name: grid",
       "expected": {
-        "items": [
-          { "matrix": [[1, 2], [3, 4]], "name": "grid" }
-        ]
+        "items": [{ "matrix": [[1, 2], [3, 4]], "name": "grid" }]
       },
-      "specSection": "9.2"
-    },
-    {
-      "name": "parses nested arrays of primitives",
-      "input": "pairs[2]:\n  - [2]: a,b\n  - [2]: c,d",
-      "expected": {
-        "pairs": [["a", "b"], ["c", "d"]]
-      },
-      "specSection": "9.2"
+      "specSection": "10"
     },
     {
       "name": "parses quoted strings and mixed lengths in nested arrays",
@@ -124,14 +103,6 @@
       "input": "pairs[2]:\n  - [0]:\n  - [0]:",
       "expected": {
         "pairs": [[], []]
-      },
-      "specSection": "9.2"
-    },
-    {
-      "name": "parses mixed-length inner arrays",
-      "input": "pairs[2]:\n  - [1]: 1\n  - [2]: 2,3",
-      "expected": {
-        "pairs": [[1], [2, 3]]
       },
       "specSection": "9.2"
     },
@@ -194,25 +165,6 @@
       "specSection": "9.4"
     },
     {
-      "name": "parses arrays mixing objects and arrays",
-      "input": "items[2]:\n  - a: 1\n  - [2]: 1,2",
-      "expected": {
-        "items": [{ "a": 1 }, [1, 2]]
-      },
-      "specSection": "9.4"
-    },
-    {
-      "name": "parses quoted key with list-form array",
-      "input": "\"x-items\"[2]:\n  - id: 1\n  - id: 2",
-      "expected": {
-        "x-items": [
-          { "id": 1 },
-          { "id": 2 }
-        ]
-      },
-      "specSection": "9.4"
-    },
-    {
       "name": "accepts bare bracket pair as empty inner array list item",
       "input": "items[2]:\n  - []\n  - [1]: x",
       "expected": {
@@ -244,6 +196,90 @@
       "shouldError": true,
       "specSection": "9.4",
       "minSpecVersion": "4.1"
+    },
+    {
+      "name": "parses an array of arrays in list-item position",
+      "input": "[1]:\n  - [1]:\n    - [1]: 1",
+      "expected": [
+        [
+          [
+            1
+          ]
+        ]
+      ],
+      "specSection": "9.4"
+    },
+    {
+      "name": "parses an empty object as the first field of a list-item object",
+      "input": "items[1]:\n  - a:\n    b: 1",
+      "expected": {
+        "items": [
+          {
+            "a": {},
+            "b": 1
+          }
+        ]
+      },
+      "specSection": "10"
+    },
+    {
+      "name": "parses a tabular array as a later field of a list-item object",
+      "input": "items[1]:\n  - id: 1\n    users[2]{id,name}:\n      1,Ada\n      2,Bob",
+      "expected": {
+        "items": [
+          {
+            "id": 1,
+            "users": [
+              {
+                "id": 1,
+                "name": "Ada"
+              },
+              {
+                "id": 2,
+                "name": "Bob"
+              }
+            ]
+          }
+        ]
+      },
+      "specSection": "10"
+    },
+    {
+      "name": "parses quoted list item shaped like an inline array header",
+      "input": "xs[1]:\n  - \"[2]: x\"",
+      "expected": {
+        "xs": [
+          "[2]: x"
+        ]
+      },
+      "specSection": "9.4"
+    },
+    {
+      "name": "keeps list items under a legacy [0] header in non-strict mode",
+      "input": "a[0]:\n  - x",
+      "expected": {
+        "a": [
+          "x"
+        ]
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.1",
+      "note": "A legacy [0] is a declared length, so its content is decoded (§14.1)",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "parses list items shaped like headers without a colon as strings",
+      "input": "a[2]:\n  - [2]\n  - [1,2,3]",
+      "expected": {
+        "a": [
+          "[2]",
+          "[1,2,3]"
+        ]
+      },
+      "specSection": "6",
+      "minSpecVersion": "4.2"
     }
   ]
 }

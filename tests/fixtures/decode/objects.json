@@ -5,25 +5,17 @@
   "tests": [
     {
       "name": "parses objects with primitive values",
-      "input": "id: 123\nname: Ada\nactive: true",
+      "input": "id: 123\nname: Ada\nactive: true\nvalue: null",
       "expected": {
         "id": 123,
         "name": "Ada",
-        "active": true
-      },
-      "specSection": "8"
-    },
-    {
-      "name": "parses null values in objects",
-      "input": "id: 123\nvalue: null",
-      "expected": {
-        "id": 123,
+        "active": true,
         "value": null
       },
       "specSection": "8"
     },
     {
-      "name": "parses empty nested object header",
+      "name": "decodes a bare key: as an empty object, not an empty array",
       "input": "user:",
       "expected": {
         "user": {}
@@ -31,12 +23,13 @@
       "specSection": "8"
     },
     {
-      "name": "bare key: with no children decodes as empty object, not array",
-      "input": "matches:",
+      "name": "decodes a bare key followed by trailing spaces as an empty object",
+      "input": "matches: ",
       "expected": {
         "matches": {}
       },
-      "specSection": "8"
+      "specSection": "12",
+      "minSpecVersion": "4.1"
     },
     {
       "name": "applies last-write-wins for duplicate sibling keys in non-strict mode",
@@ -55,7 +48,7 @@
       "expected": {
         "note": "a:b"
       },
-      "specSection": "8"
+      "specSection": "4"
     },
     {
       "name": "parses quoted object value with comma",
@@ -63,7 +56,7 @@
       "expected": {
         "note": "a,b"
       },
-      "specSection": "8"
+      "specSection": "4"
     },
     {
       "name": "parses quoted object value with newline escape",
@@ -87,15 +80,7 @@
       "expected": {
         "text": " padded "
       },
-      "specSection": "8"
-    },
-    {
-      "name": "parses quoted object value with only spaces",
-      "input": "text: \"  \"",
-      "expected": {
-        "text": "  "
-      },
-      "specSection": "8"
+      "specSection": "4"
     },
     {
       "name": "parses quoted string value that looks like true",
@@ -103,7 +88,7 @@
       "expected": {
         "v": "true"
       },
-      "specSection": "8"
+      "specSection": "4"
     },
     {
       "name": "parses quoted string value that looks like integer",
@@ -111,24 +96,15 @@
       "expected": {
         "v": "42"
       },
-      "specSection": "8"
+      "specSection": "4"
     },
     {
-      "name": "parses quoted string value that looks like negative decimal",
-      "input": "v: \"-7.5\"",
-      "expected": {
-        "v": "-7.5"
-      },
-      "specSection": "8"
-    },
-    {
-      "name": "parses quoted object value shaped like an inline array header",
-      "input": "a: \"[2]: x\"",
+      "name": "parses an unquoted field value starting with a bracket segment as a string",
+      "input": "a: [2]: x",
       "expected": {
         "a": "[2]: x"
       },
-      "specSection": "8",
-      "note": "Quoted value is opaque (§4); the bracket-and-colon shape inside the quotes is data, not an array header (§6)"
+      "specSection": "5.2"
     },
     {
       "name": "parses quoted object value shaped like a count-matching inline array header",
@@ -136,7 +112,7 @@
       "expected": {
         "a": "[1]: x"
       },
-      "specSection": "8",
+      "specSection": "4",
       "note": "Quoting makes the value opaque (§4), so it is never parsed as a header – the matching count is irrelevant because a quoted scalar is never a header candidate"
     },
     {
@@ -145,7 +121,7 @@
       "expected": {
         "key": "foo [2]: bar"
       },
-      "specSection": "6",
+      "specSection": "5.2",
       "note": "An unquoted key cannot contain a colon, so the first colon ends the key; the bracket-and-colon shape in the remainder is value text, not an array header"
     },
     {
@@ -154,7 +130,7 @@
       "expected": {
         "a": "b [2]{x,y}: 1,2"
       },
-      "specSection": "6",
+      "specSection": "5.2",
       "note": "An unquoted key cannot contain a colon, so the first colon ends the key; the tabular-header shape in the remainder is value text, not an array header"
     },
     {
@@ -163,7 +139,7 @@
       "expected": {
         "content": "accept (process.argv[2]) and greet: name"
       },
-      "specSection": "8"
+      "specSection": "5.2"
     },
     {
       "name": "parses quoted key with colon",
@@ -171,7 +147,7 @@
       "expected": {
         "order:id": 7
       },
-      "specSection": "8"
+      "specSection": "7.4"
     },
     {
       "name": "decodes \\uXXXX in quoted key (U+0004 control character)",
@@ -190,24 +166,26 @@
       "specSection": "7.1"
     },
     {
-      "name": "parses quoted key with brackets",
-      "input": "\"[index]\": 5",
+      "name": "parses quoted keys with brackets and braces",
+      "input": "\"[index]\": 5\n\"{key}\": 6",
       "expected": {
-        "[index]": 5
+        "[index]": 5,
+        "{key}": 6
       },
-      "specSection": "8"
+      "specSection": "7.4"
     },
     {
-      "name": "treats extra brackets after valid array segment as literal key (non-strict)",
-      "input": "foo[1][bar]: 10",
+      "name": "treats content between bracket segment and colon as literal key (non-strict)",
+      "input": "foo[1][bar]: 10\nfoo[2]extra: a,b",
       "options": {
         "strict": false
       },
       "expected": {
-        "foo[1][bar]": 10
+        "foo[1][bar]": 10,
+        "foo[2]extra": "a,b"
       },
       "specSection": "6",
-      "note": "Non-whitespace [bar] between ] and : prevents array header interpretation; non-strict fall-through produces a literal key not constrained by §7.3"
+      "note": "Non-whitespace content between ] and : (a second bracket group or plain text) prevents array header interpretation; non-strict fall-through produces a literal key not constrained by §7.3"
     },
     {
       "name": "treats bracket segment without a length as literal key (non-strict)",
@@ -234,40 +212,21 @@
       "note": "[bar] fails integer parsing; non-strict fall-through produces a literal key not constrained by §7.3"
     },
     {
-      "name": "treats text between bracket segment and colon as literal key (non-strict)",
-      "input": "foo[2]extra: a,b",
-      "options": {
-        "strict": false
-      },
-      "expected": {
-        "foo[2]extra": "a,b"
-      },
-      "specSection": "6",
-      "note": "Non-whitespace content between ] and : prevents array header interpretation; non-strict fall-through produces a literal key"
-    },
-    {
-      "name": "parses quoted key with braces",
-      "input": "\"{key}\": 5",
-      "expected": {
-        "{key}": 5
-      },
-      "specSection": "8"
-    },
-    {
       "name": "parses quoted key with comma",
       "input": "\"a,b\": 1",
       "expected": {
         "a,b": 1
       },
-      "specSection": "8"
+      "specSection": "7.4"
     },
     {
-      "name": "parses quoted key with spaces",
-      "input": "\"full name\": Ada",
+      "name": "parses quoted keys with inner, leading, and trailing spaces",
+      "input": "\"full name\": Ada\n\" a \": 1",
       "expected": {
-        "full name": "Ada"
+        "full name": "Ada",
+        " a ": 1
       },
-      "specSection": "8"
+      "specSection": "7.4"
     },
     {
       "name": "parses quoted key with leading hyphen",
@@ -275,15 +234,7 @@
       "expected": {
         "-lead": 1
       },
-      "specSection": "8"
-    },
-    {
-      "name": "parses quoted key with leading and trailing spaces",
-      "input": "\" a \": 1",
-      "expected": {
-        " a ": 1
-      },
-      "specSection": "8"
+      "specSection": "7.4"
     },
     {
       "name": "parses quoted numeric key",
@@ -291,7 +242,7 @@
       "expected": {
         "123": "x"
       },
-      "specSection": "8"
+      "specSection": "7.4"
     },
     {
       "name": "parses quoted empty string key",
@@ -299,7 +250,7 @@
       "expected": {
         "": 1
       },
-      "specSection": "8"
+      "specSection": "7.4"
     },
     {
       "name": "parses dotted keys as identifiers",
@@ -310,34 +261,11 @@
       "specSection": "8"
     },
     {
-      "name": "parses underscore-prefixed keys",
-      "input": "_private: 1",
+      "name": "unescapes newline and quotes in keys",
+      "input": "\"line\\nbreak\": 1\n\"he said \\\"hi\\\"\": 2",
       "expected": {
-        "_private": 1
-      },
-      "specSection": "8"
-    },
-    {
-      "name": "parses underscore-containing keys",
-      "input": "user_name: 1",
-      "expected": {
-        "user_name": 1
-      },
-      "specSection": "8"
-    },
-    {
-      "name": "unescapes newline in key",
-      "input": "\"line\\nbreak\": 1",
-      "expected": {
-        "line\nbreak": 1
-      },
-      "specSection": "7.1"
-    },
-    {
-      "name": "unescapes tab in key",
-      "input": "\"tab\\there\": 2",
-      "expected": {
-        "tab\there": 2
+        "line\nbreak": 1,
+        "he said \"hi\"": 2
       },
       "specSection": "7.1"
     },
@@ -346,14 +274,6 @@
       "input": "\"\\t:x\": v",
       "expected": {
         "\t:x": "v"
-      },
-      "specSection": "7.1"
-    },
-    {
-      "name": "unescapes quotes in key",
-      "input": "\"he said \\\"hi\\\"\": 1",
-      "expected": {
-        "he said \"hi\"": 1
       },
       "specSection": "7.1"
     },
@@ -433,22 +353,15 @@
       "note": "The first unquoted colon ends the key; the entire post-colon token is the value (§11.2)"
     },
     {
-      "name": "materializes __proto__ as an ordinary own key",
-      "input": "__proto__: polluted",
+      "name": "materializes __proto__, constructor, and prototype as ordinary own keys",
+      "input": "__proto__: polluted\nconstructor: 1\nprototype: 2",
       "expected": {
-        "__proto__": "polluted"
-      },
-      "specSection": "15",
-      "note": "Decoding MUST NOT mutate the host object model, so the decoded object carries __proto__ as an own entry"
-    },
-    {
-      "name": "materializes constructor and prototype as ordinary own keys",
-      "input": "constructor: 1\nprototype: 2",
-      "expected": {
+        "__proto__": "polluted",
         "constructor": 1,
         "prototype": 2
       },
-      "specSection": "15"
+      "specSection": "15",
+      "note": "Decoding MUST NOT mutate the host object model, so the decoded object carries these keys as own entries"
     },
     {
       "name": "materializes __proto__ opening a nested object as an ordinary own key",
@@ -487,7 +400,7 @@
       "specSection": "15"
     },
     {
-      "name": "falls through to a key-value line when whitespace precedes the bracket segment",
+      "name": "falls through to a key-value line when whitespace precedes the bracket segment (non-strict)",
       "input": "foo [2]: bar,baz",
       "expected": {
         "foo [2]": "bar,baz"
@@ -509,6 +422,123 @@
       },
       "specSection": "7.4",
       "minSpecVersion": "4.1"
+    },
+    {
+      "name": "parses quoted empty string key opening a nested object",
+      "input": "\"\":\n  a: 1",
+      "expected": {
+        "": {
+          "a": 1
+        }
+      },
+      "specSection": "8"
+    },
+    {
+      "name": "parses quoted key shaped like an inline array header",
+      "input": "\"k[2]: y\": 1",
+      "expected": {
+        "k[2]: y": 1
+      },
+      "specSection": "5.2"
+    },
+    {
+      "name": "materializes __proto__ array header key as an ordinary own key",
+      "input": "__proto__[2]: 1,2",
+      "expected": {
+        "__proto__": [
+          1,
+          2
+        ]
+      },
+      "specSection": "15"
+    },
+    {
+      "name": "materializes __proto__ entry key as an ordinary own key",
+      "input": "u[1:]{x}:\n  __proto__: 1",
+      "expected": {
+        "u": {
+          "__proto__": {
+            "x": 1
+          }
+        }
+      },
+      "specSection": "15"
+    },
+    {
+      "name": "parses an unquoted key followed by spaces before the colon",
+      "input": "a : 1",
+      "expected": {
+        "a": 1
+      },
+      "specSection": "7.4"
+    },
+    {
+      "name": "parses a quoted key followed by spaces before the colon",
+      "input": "\"a\" : 1",
+      "expected": {
+        "a": 1
+      },
+      "specSection": "7.4",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "parses a hyphen-leading line outside a list as a key-value line",
+      "input": "- a: 1",
+      "expected": {
+        "- a": 1
+      },
+      "specSection": "5.2"
+    },
+    {
+      "name": "keeps keys that differ only in normalization form distinct",
+      "input": "\u00e9: 1\ne\u0301: 2",
+      "expected": {
+        "\u00e9": 1,
+        "e\u0301": 2
+      },
+      "specSection": "16",
+      "minSpecVersion": "4.1"
+    },
+    {
+      "name": "parses an empty unquoted key as the empty key",
+      "input": ": 1",
+      "expected": {
+        "": 1
+      },
+      "specSection": "7.4",
+      "minSpecVersion": "4.2"
+    },
+    {
+      "name": "parses a hyphen-leading line at list-item field depth as a key-value line",
+      "input": "items[1]:\n  - a: 1\n    - y: 2",
+      "expected": {
+        "items": [
+          {
+            "a": 1,
+            "- y": 2
+          }
+        ]
+      },
+      "specSection": "5.2",
+      "minSpecVersion": "4.2"
+    },
+    {
+      "name": "parses a key whose closed mid-token quote span hides a colon",
+      "input": "a\"b:c\"d: 1",
+      "expected": {
+        "a\"b:c\"d": 1
+      },
+      "specSection": "5.2",
+      "minSpecVersion": "4.2"
+    },
+    {
+      "name": "reads a line whose only unquoted colon sits in the bracket segment as a key-value line",
+      "input": "a[2:]{x}",
+      "expected": {
+        "a[2": "]{x}"
+      },
+      "specSection": "5.2",
+      "minSpecVersion": "4.2"
     }
   ]
 }

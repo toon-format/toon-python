@@ -4,22 +4,6 @@
   "description": "Primitive array encoding – inline arrays of strings, numbers, booleans",
   "tests": [
     {
-      "name": "encodes string arrays inline",
-      "input": {
-        "tags": ["reading", "gaming"]
-      },
-      "expected": "tags[2]: reading,gaming",
-      "specSection": "9.1"
-    },
-    {
-      "name": "encodes number arrays inline",
-      "input": {
-        "nums": [1, 2, 3]
-      },
-      "expected": "nums[3]: 1,2,3",
-      "specSection": "9.1"
-    },
-    {
       "name": "encodes mixed primitive arrays inline",
       "input": {
         "data": ["x", "y", true, 10]
@@ -84,7 +68,7 @@
       "specSection": "9.1"
     },
     {
-      "name": "quotes strings that look like booleans in arrays",
+      "name": "quotes strings that look like literals or numbers in arrays",
       "input": {
         "items": ["x", "true", "42", "-3.14"]
       },

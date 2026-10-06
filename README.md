@@ -3,14 +3,14 @@
 [![CI](https://github.com/toon-format/toon-python/actions/workflows/ci.yml/badge.svg)](https://github.com/toon-format/toon-python/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/toon-format.svg)](https://pypi.org/project/toon-format/)
 [![Python versions](https://img.shields.io/pypi/pyversions/toon-format.svg)](https://pypi.org/project/toon-format/)
-[![TOON spec](https://img.shields.io/badge/TOON%20spec-4.1-blue)](https://github.com/toon-format/spec/blob/main/SPEC.md)
+[![TOON spec](https://img.shields.io/badge/TOON%20spec-4.2-blue)](https://github.com/toon-format/spec/blob/main/SPEC.md)
 [![Documentation](https://readthedocs.org/projects/toon-format/badge/?version=stable)](https://toon-format.readthedocs.io/en/stable/)
 
 The official Python implementation of **TOON** (Token-Oriented Object Notation):
 a compact, human-readable encoding of the JSON data model, designed to save
 tokens in LLM prompts.
 
-- **Complete**: implements [TOON specification 4.1](https://github.com/toon-format/spec/blob/main/SPEC.md)
+- **Complete**: implements [TOON specification 4.2](https://github.com/toon-format/spec/blob/main/SPEC.md)
   and passes every official conformance fixture.
 - **Familiar**: `dumps`, `dump`, `loads`, and `load`, like the `json` module,
   with `encode` and `decode` as aliases.
@@ -119,7 +119,7 @@ implementations, and Pydantic.
 The distribution and the module keep their names, and `encode(value)` and
 `decode(text)` keep working. Options are now keyword arguments instead of a
 dictionary, the token helpers and the `toon` command are gone, and the output
-follows specification 4.1. See the
+follows specification 4.2. See the
 [migration guide](https://toon-format.readthedocs.io/en/stable/migration/).
 
 ## Contributing
