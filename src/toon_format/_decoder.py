@@ -83,7 +83,8 @@ def _split_lines(text: str, indent_size: int, strict: bool) -> list[_Line]:
         if stripped.startswith("#"):
             continue  # comment line (§5.1); lines are adjacent across it
         content = stripped.rstrip(" ")
-        if not content.strip("\t"):
+        # Tabs make a line blank only where they may indent it (§12).
+        if not content or (not strict and not content.strip(" \t")):
             blank = blank or number
             continue
         spaces = len(source) - len(stripped)
