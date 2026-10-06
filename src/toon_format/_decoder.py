@@ -468,6 +468,8 @@ class _Parser:
                         "Whitespace between a field name and its nested field group"
                     )
                 nested, pos = self.field_list(text, pos, delimiter, line)
+                while pos < n and text[pos] == " ":
+                    pos += 1
             if name in seen and self.strict:
                 raise self.error(f"Duplicate field name {name!r}", line)
             seen.add(name)
