@@ -348,8 +348,8 @@ class _Parser:
             end = _quoted_end(content, 0)
             if end < 0:
                 raise self.error("Unterminated string", line)
-            if content.startswith("[", end):
-                return self.header(content, end, colon, line)
+            if colon >= 0 and content.startswith("[", end):
+                return self.header(content, end, line)
             after = content[end:].lstrip(" ")
             if not after:
                 return _Scalar(content)
@@ -357,17 +357,15 @@ class _Parser:
                 raise self.error("Unexpected characters after closing quote", line)
             return _KeyValue(self.quoted(content[:end], line), after[1:].strip(" "))
         bracket = _find_unquoted(content, "[")
-        if bracket >= 0 and (colon < 0 or bracket < colon):
-            return self.header(content, bracket, colon, line)
+        if 0 <= bracket < colon:
+            return self.header(content, bracket, line)
         if colon >= 0:
             return _KeyValue(
                 content[:colon].strip(" "), content[colon + 1 :].strip(" ")
             )
         return _Scalar(content)
 
-    def header(
-        self, content: str, bracket: int, colon: int, line: _Line
-    ) -> _Header | _KeyValue | _Scalar:
+    def header(self, content: str, bracket: int, line: _Line) -> _Header | _KeyValue:
         """Parse a header candidate whose bracket segment starts at ``bracket``."""
         match = _BRACKET.match(content, bracket)
         try:
@@ -389,8 +387,6 @@ class _Parser:
             if fields is not None and rest:
                 raise _Malformed("Unexpected content after a header with a field list")
         except _Malformed as exc:
-            if colon < 0:
-                return _Scalar(content)  # without a colon it is a scalar line (§5.2)
             if self.strict:
                 raise self.error(str(exc), line) from None
             return self.literal_key_value(content, line)

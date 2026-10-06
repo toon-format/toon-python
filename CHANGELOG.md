@@ -15,6 +15,8 @@ All notable changes to this project are documented here. The format follows
   colon and that fails the header grammar is an error, also when its only
   colon sits in the bracket segment or field list (`a[1:`, `a[2:]{x}`). With
   `strict=False` it is still a key-value line.
+- A line without an unquoted colon is never a header, so `a[2]{x,x}` decodes
+  as a string instead of raising a duplicate field name error in strict mode.
 
 ## [1.1.0] - 2026-10-06
 
