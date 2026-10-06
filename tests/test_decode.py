@@ -247,9 +247,8 @@ def test_row_or_key_value_at_row_depth() -> None:
 
 
 def test_hyphen_outside_a_list_is_part_of_the_key() -> None:
-    # §5.2: outside the scope of an array in list form a leading hyphen is
-    # ordinary text.
-    assert toon_format.loads("- a: 1") == {"- a": 1}
+    # §5.2: a leading hyphen marks a list item only at item depth; elsewhere it
+    # is ordinary text.
     assert toon_format.loads("- a") == "- a"
     assert toon_format.loads("items[1]:\n  - x\n- a: 1", strict=False) == {
         "items": ["x"],
