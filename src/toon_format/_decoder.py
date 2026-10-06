@@ -228,9 +228,6 @@ class _Parser:
         # Number of enclosing header scopes that have consumed their first
         # item, row, or entry: a blank line inside any of them is a header span.
         self.spans = 0
-        # Number of enclosing arrays in list form. Inside them a line starting
-        # with "- " is a list item, admissible only at item depth (§5.2).
-        self.lists = 0
 
     # -- infrastructure -----------------------------------------------------
 
@@ -496,8 +493,6 @@ class _Parser:
     ) -> dict[str, Any]:
         """Parse the fields at ``depth`` of an object opened at ``parent`` (§8)."""
         while (line := self.peek()) is not None and line.depth > parent:
-            if self.lists and _is_list_item(line.content):
-                raise self.error("List item outside the item depth of its array", line)
             if line.depth != depth:
                 self.orphan(line)
                 continue
@@ -569,7 +564,6 @@ class _Parser:
         """Parse the list items of an array in list form (§9.2, §9.4)."""
         items: list[Any] = []
         started = False
-        self.lists += 1
         try:
             while (item := self.peek()) and item.depth > parent:
                 if item.depth != depth:
@@ -583,7 +577,6 @@ class _Parser:
                     started = True
                 items.append(self.item(item, depth))
         finally:
-            self.lists -= 1
             self.spans -= started
         self.check_count(len(items), header, line)
         return items

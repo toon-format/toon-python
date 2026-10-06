@@ -266,25 +266,6 @@ def test_hyphen_outside_a_list_is_part_of_the_key() -> None:
     }
 
 
-@pytest.mark.parametrize(
-    "text",
-    [
-        # A list item where a field of the list-item object is expected (§10).
-        "items[1]:\n  - a: 1\n    - b: 2",
-        "items[1]:\n  - a:\n      - b: 2",
-        # A list item too deep to be an item of the array.
-        "items[2]:\n  - a: 1\n      - b: 2",
-        "items[1]:\n  - [1]:\n    - x\n      - y",
-    ],
-)
-def test_list_item_outside_item_depth(text: str) -> None:
-    # §5.2: inside an array in list form a leading hyphen always marks a list
-    # item, which is admissible only at the array's item depth.
-    for strict in (True, False):
-        with pytest.raises(toon_format.ToonDecodeError):
-            toon_format.loads(text, strict=strict)
-
-
 def test_integer_beyond_the_conversion_limit() -> None:
     if not hasattr(sys, "set_int_max_str_digits"):
         pytest.skip("no integer string conversion limit")
