@@ -465,6 +465,10 @@ class _Parser:
                 pos += 1
             nested = None
             if text.startswith("{", pos):
+                if text[pos - 1] == " ":
+                    raise _Malformed(
+                        "Whitespace between a field name and its nested field group"
+                    )
                 nested, pos = self.field_list(text, pos, delimiter, line)
             if name in seen and self.strict:
                 raise self.error(f"Duplicate field name {name!r}", line)
