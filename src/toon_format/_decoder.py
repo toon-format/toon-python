@@ -476,7 +476,7 @@ class _Parser:
         if isinstance(kind, _Scalar) and len(self.lines) == 1:
             self.take()
             return self.primitive(first.content, first)
-        return self.finish(self.object_body(0, {}))
+        return self.finish(self.object_body(0, {}, -1))
 
     def end_of_root(self) -> None:
         """A root array or keyed object spans the whole document (§5)."""
@@ -491,12 +491,14 @@ class _Parser:
 
     # -- objects (§8) -------------------------------------------------------
 
-    def object_body(self, depth: int, obj: dict[str, Any]) -> dict[str, Any]:
-        """Parse the fields of an object whose content sits at ``depth``."""
-        while (line := self.peek()) is not None and line.depth >= depth:
+    def object_body(
+        self, depth: int, obj: dict[str, Any], parent: int
+    ) -> dict[str, Any]:
+        """Parse the fields at ``depth`` of an object opened at ``parent`` (§8)."""
+        while (line := self.peek()) is not None and line.depth > parent:
             if self.lists and _is_list_item(line.content):
                 raise self.error("List item outside the item depth of its array", line)
-            if line.depth > depth:
+            if line.depth != depth:
                 self.orphan(line)
                 continue
             self.take()
@@ -538,21 +540,21 @@ class _Parser:
             return self.finish({})
         if self.strict and child.depth != depth + 1:
             raise self.error("Indentation jumps more than one level", child)
-        return self.finish(self.object_body(child.depth, {}))
+        return self.finish(self.object_body(child.depth, {}, depth))
 
     # -- arrays and keyed objects (§9, §10) ---------------------------------
 
     def header_value(self, header: _Header, line: _Line, depth: int) -> Any:
         """Decode the value a header opens; ``depth`` is its content depth."""
         if header.keyed:
-            return self.entries(header, line, self.scope_depth(depth))
+            return self.entries(header, line, self.scope_depth(depth), depth - 1)
         if header.fields is not None:
-            return self.rows(header, line, self.scope_depth(depth))
+            return self.rows(header, line, self.scope_depth(depth), depth - 1)
         if header.rest:
             values = self.values(header.rest, header.delimiter, line)
             self.check_count(len(values), header, line)
             return values
-        return self.items(header, line, self.scope_depth(depth))
+        return self.items(header, line, self.scope_depth(depth), depth - 1)
 
     def check_count(self, count: int, header: _Header, line: _Line) -> None:
         if self.strict and count != header.length:
@@ -563,14 +565,14 @@ class _Parser:
         if self.strict and len(cells) != width:
             raise self.error(f"Expected {width} values but found {len(cells)}", line)
 
-    def items(self, header: _Header, line: _Line, depth: int) -> list[Any]:
+    def items(self, header: _Header, line: _Line, depth: int, parent: int) -> list[Any]:
         """Parse the list items of an array in list form (§9.2, §9.4)."""
         items: list[Any] = []
         started = False
         self.lists += 1
         try:
-            while (item := self.peek()) and item.depth >= depth:
-                if item.depth > depth:
+            while (item := self.peek()) and item.depth > parent:
+                if item.depth != depth:
                     self.orphan(item)
                     continue
                 if not _is_list_item(item.content):
@@ -611,17 +613,17 @@ class _Parser:
             obj[kind.key] = self.header_value(kind, line, depth + 2)
         else:
             obj[kind.key] = self.field_value(kind.rest, line, depth + 1)
-        return self.finish(self.object_body(depth + 1, obj))
+        return self.finish(self.object_body(depth + 1, obj, depth))
 
-    def rows(self, header: _Header, line: _Line, depth: int) -> list[Any]:
+    def rows(self, header: _Header, line: _Line, depth: int, parent: int) -> list[Any]:
         """Parse the rows of a tabular array (§9.3)."""
         assert header.fields is not None
         delimiter = header.delimiter
         rows: list[Any] = []
         started = False
         try:
-            while (row := self.peek()) and row.depth >= depth:
-                if row.depth > depth:
+            while (row := self.peek()) and row.depth > parent:
+                if row.depth != depth:
                     self.orphan(row)
                     continue
                 colon = _find_unquoted(row.content, ":")
@@ -641,14 +643,14 @@ class _Parser:
         self.check_count(len(rows), header, line)
         return rows
 
-    def entries(self, header: _Header, line: _Line, depth: int) -> Any:
+    def entries(self, header: _Header, line: _Line, depth: int, parent: int) -> Any:
         """Parse the entry rows of a keyed tabular object (§9.5)."""
         assert header.fields is not None
         obj: dict[str, Any] = {}
         count = 0
         try:
-            while (entry := self.peek()) and entry.depth >= depth:
-                if entry.depth > depth:
+            while (entry := self.peek()) and entry.depth > parent:
+                if entry.depth != depth:
                     self.orphan(entry)
                     continue
                 self.take()
