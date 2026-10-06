@@ -459,7 +459,8 @@ class _Parser:
     # -- document (§5) ------------------------------------------------------
 
     def document(self) -> Any:
-        first = self.peek()
+        while (first := self.peek()) is not None and first.depth > 0:
+            self.orphan(first)  # an indented first line is over-indented (§5, §8)
         if first is None:
             return self.finish({})  # empty document (§5)
         if first.content == "[]":
@@ -467,7 +468,7 @@ class _Parser:
             self.end_of_root()
             return []
         kind = self.classify(first.content, first)
-        if isinstance(kind, _Header) and kind.key is None and first.depth == 0:
+        if isinstance(kind, _Header) and kind.key is None:
             self.take()
             value = self.header_value(kind, first, 1)
             self.end_of_root()
