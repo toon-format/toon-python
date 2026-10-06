@@ -10,7 +10,8 @@ All notable changes to this project are documented here. The format follows
 
 - Support for [TOON specification 4.2](https://github.com/toon-format/spec/blob/v4.2.1/SPEC.md):
   all official fixtures of spec `v4.2.1` pass, and `toon_format.__toon_spec__`
-  is `"4.2"`. Encoder output is unchanged.
+  is `"4.2"`. A string starting with U+FEFF is quoted only as a root
+  primitive.
 - Decoding settles the edge cases that 4.1 left open: quoted strings accept raw
   control characters in strict mode, a leading hyphen marks a list item only at
   item depth, a line whose only colons sit in the bracket segment or its field
