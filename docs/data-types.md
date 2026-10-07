@@ -37,11 +37,11 @@ asks implementations to document the following choices.
 shortest representation that round-trips, in plain decimal between 1e-6 and
 1e21 and in exponent form (`1e+21`, `1e-7`) outside it. Integral floats from
 2⁵³ up are written with their exact digits, so that they decode to an equal
-`int`. A decoded number beyond the double range is an error in strict mode and
-`±inf` otherwise. `Decimal` input keeps every digit, and `parse_float=Decimal`
-keeps them when decoding. A `Decimal` beyond the double range, such as
-`Decimal("1e400")`, therefore encodes but does not decode back with the
-default strict decoder: pass `parse_float=Decimal` to read it.
+`int`. A decoded number beyond the double range is an error in both modes.
+`Decimal` input keeps every digit, and `parse_float=Decimal` keeps them when
+decoding. A `Decimal` beyond the double range, such as `Decimal("1e400")`,
+therefore encodes but does not decode back by default: pass
+`parse_float=Decimal` to read it.
 
 **Strings.** A string holding an unpaired surrogate cannot be encoded and
 raises `ValueError`. A root string starting with U+FEFF is quoted, because a

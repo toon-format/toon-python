@@ -23,6 +23,8 @@ All notable changes to this project are documented here. The format follows
   under a field), a row or entry row with the wrong number of cells, an
   over-indented line, an entry-depth line without a colon, and content after a
   root array or keyed object.
+- A number beyond the double range is an error with `strict=False` too, instead
+  of decoding to `±inf`.
 - A line without an unquoted colon is never a header, so `a[2]{x,x}` decodes
   as a string instead of raising a duplicate field name error in strict mode.
 

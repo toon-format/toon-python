@@ -324,7 +324,7 @@ class _Parser:
         if self.parse_float is not None:
             return self.parse_float(token)
         value = float(token)
-        if math.isinf(value) and self.strict:
+        if math.isinf(value):
             raise self.error(f"Number {token} is out of range", line)
         return value or 0.0  # -0 decodes to 0 (§4)
 

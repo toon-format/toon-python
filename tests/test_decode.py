@@ -40,7 +40,6 @@ def test_negative_zero_decodes_to_positive_zero() -> None:
 def test_out_of_range_floats() -> None:
     with pytest.raises(toon_format.ToonDecodeError, match="out of range"):
         toon_format.loads("x: 1e400")
-    assert toon_format.loads("x: -1e400", strict=False) == {"x": float("-inf")}
 
 
 def test_parse_float_and_parse_int() -> None:
