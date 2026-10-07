@@ -101,14 +101,15 @@ Set `HYPOTHESIS_PROFILE=ci` to run the property tests with more examples, as CI 
 - Comment lines and blank lines are handled while splitting lines, before any
   structural decision (§5.1, §12). Line numbers in errors always refer to the
   original document.
-- Line classification follows §5.2. In strict mode a malformed header is an
-  error; in non-strict mode it falls back to a key-value line with a literal
-  key (§6).
-- `strict=False` relaxes only what §14 lists as strict-only: counts and
-  widths, blank lines in header spans, indentation, over-indented lines,
-  duplicate keys (last write wins, first position kept), malformed headers,
-  and trailing content after a root array. Errors marked "any mode" in §14 stay
-  errors.
+- Line classification follows §5.2. A malformed header is an error in both
+  modes (§6).
+- Whitespace is space and tab only (§1.2): never decide syntax with
+  `str.isspace()`, an argument-less `strip()`, or `\s`.
+- `strict=False` applies exactly the five recoveries of §14.4: counts are
+  advisory, duplicate keys and repeated field names resolve last-write-wins
+  (first position kept), indentation depth is tabs plus floored spaces, blank
+  lines in header spans are ignored, and a jumped first line sets its scope's
+  depth. Every other §14 condition is an error in both modes.
 - A declared `[N]` never ends or truncates a scope; it is only compared with
   what the scope contains.
 - Numbers follow the §4 grammar, never Python's `int()`/`float()` grammar,
