@@ -365,7 +365,7 @@ class _Parser:
         match = _BRACKET.match(content, bracket)
         if match is None:
             raise self.error("Malformed bracket segment", line)
-        if content[bracket - 1 : bracket].isspace():
+        if content[bracket - 1 : bracket] in (" ", "\t"):  # SP and HTAB only (§1.2)
             raise self.error("Whitespace between a key and its bracket segment", line)
         delimiter = match.group(3) or ","
         pos = match.end()
@@ -418,7 +418,7 @@ class _Parser:
                 pos += 1
             nested = None
             if text.startswith("{", pos):
-                if text[pos - 1].isspace():
+                if text[pos - 1] == " ":
                     raise self.error(
                         "Whitespace between a field name and its nested field group",
                         line,

@@ -25,9 +25,6 @@ All notable changes to this project are documented here. The format follows
   root array or keyed object.
 - A line without an unquoted colon is never a header, so `a[2]{x,x}` decodes
   as a string instead of raising a duplicate field name error in strict mode.
-- Any Unicode whitespace, such as U+00A0, between a key and its bracket
-  segment or between a field name and its nested field group is a header
-  error, not only a space or tab.
 
 ## [1.1.0] - 2026-10-06
 
