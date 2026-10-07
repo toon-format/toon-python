@@ -53,8 +53,5 @@ last value, as in `json.loads`. When encoding, keys that become equal once
 converted to strings (`1` and `"1"`, `True` and `"true"`) raise `ValueError`
 instead of dropping a value. No key is special: `__proto__` is an ordinary key.
 
-**Tabs in indentation** are an error in strict mode; otherwise each leading tab
-counts as one level.
-
 **Nesting** deeper than the interpreter's recursion limit raises `ValueError`
 when encoding and `ToonDecodeError` when decoding.
