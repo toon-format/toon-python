@@ -82,7 +82,7 @@ def _split_lines(text: str, indent_size: int, strict: bool) -> list[_Line]:
         if stripped.startswith("#"):
             continue  # comment line (§5.1); lines are adjacent across it
         content = stripped.rstrip(" ")
-        # Tabs make a line blank only where they may indent it (§12).
+        # Tabs make a line blank only where they may indent it (§14.4).
         if not content or (not strict and not content.strip(" \t")):
             blank = blank or number
             continue
@@ -92,7 +92,7 @@ def _split_lines(text: str, indent_size: int, strict: bool) -> list[_Line]:
                 raise ToonDecodeError(
                     "Tabs are not allowed in indentation", number, source
                 )
-            # Non-strict: a tab counts as one level, spaces as usual (§12).
+            # Non-strict: a tab counts as one level, spaces as usual (§14.4).
             run = len(content) - len(content.lstrip(" \t"))
             spaces += content.count(" ", 0, run)
             depth = content.count("\t", 0, run) + spaces // indent_size
@@ -252,7 +252,7 @@ class _Parser:
     def assign(self, obj: dict[str, Any], key: str, value: Any, line: _Line) -> None:
         if self.strict and key in obj:
             raise self.error(f"Duplicate key {key!r}", line)
-        # Non-strict: last write wins (§14.3); like json.loads, the key keeps
+        # Non-strict: last write wins (§14.4); like json.loads, the key keeps
         # the position of its first occurrence.
         obj[key] = value
 
