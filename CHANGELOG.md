@@ -11,10 +11,18 @@ All notable changes to this project are documented here. The format follows
 - Support for [TOON specification 4.3](https://github.com/toon-format/spec/blob/v4.3.0/SPEC.md):
   all official fixtures of spec `v4.3.0` pass, and `toon_format.__toon_spec__`
   is `"4.3"`. Encoder output is unchanged.
-- In strict mode, a line whose first unquoted `[` precedes its first unquoted
-  colon and that fails the header grammar is an error, also when its only
-  colon sits in the bracket segment or field list (`a[1:`, `a[2:]{x}`). With
-  `strict=False` it is still a key-value line.
+- A line whose first unquoted `[` precedes its first unquoted colon and that
+  fails the header grammar is an error, also when its only colon sits in the
+  bracket segment or field list (`a[1:`, `a[2:]{x}`).
+- `strict=False` keeps five recoveries only: declared lengths are advisory,
+  duplicate keys and repeated field names resolve last-write-wins, an
+  indentation tab counts as one level and uneven spaces round down, blank lines
+  inside arrays and keyed objects are ignored, and a block whose first line
+  starts too deep takes that depth. Everything else is an error in both modes:
+  a malformed or misplaced header (`items [2]: a,b`, a keyless `[2]: x,y`
+  under a field), a row or entry row with the wrong number of cells, an
+  over-indented line, an entry-depth line without a colon, and content after a
+  root array or keyed object.
 - A line without an unquoted colon is never a header, so `a[2]{x,x}` decodes
   as a string instead of raising a duplicate field name error in strict mode.
 - Any Unicode whitespace, such as U+00A0, between a key and its bracket

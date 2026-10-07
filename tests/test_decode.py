@@ -181,10 +181,7 @@ def test_deep_nesting_raises_decode_error() -> None:
         ("a:\n\tb: 1", {"a": {"b": 1}}),  # a tab is one level
         ("a:\n    b: 1\n    c: 2", {"a": {"b": 1, "c": 2}}),  # depth jump
         ("items[2]:\n    - x\n    - y", {"items": ["x", "y"]}),
-        ("a: 1\n  b: 2\nc: 3", {"a": 1, "c": 3}),  # over-indented line is skipped
         ("a: 1\nb: 2\na: 3", {"a": 3, "b": 2}),  # last write wins, first position kept
-        ("t[2]{x,y}:\n  1\n  2,3,4", {"t": [{"x": 1}, {"x": 2, "y": 3}]}),
-        ("[2]: a\njunk: 1", ["a"]),  # trailing content after a root array is ignored
     ],
 )
 def test_non_strict(text: str, expected: Any) -> None:
@@ -240,10 +237,8 @@ def test_row_or_key_value_at_row_depth() -> None:
     # §9.3: a delimiter before the first colon keeps the line a row...
     assert toon_format.loads("t[1]{x,y}:\n  a,b:c") == {"t": [{"x": "a", "y": "b:c"}]}
     # ...and a colon first ends the rows, leaving the line in no scope.
-    text = "t[1]{x}:\n  1\n  n: 2"
     with pytest.raises(toon_format.ToonDecodeError, match="Unexpected indentation"):
-        toon_format.loads(text)
-    assert toon_format.loads(text, strict=False) == {"t": [{"x": 1}]}
+        toon_format.loads("t[1]{x}:\n  1\n  n: 2")
 
 
 def test_hyphen_outside_a_list_is_part_of_the_key() -> None:
@@ -261,22 +256,6 @@ def test_integer_beyond_the_conversion_limit() -> None:
         pytest.skip("no integer string conversion limit")
     with pytest.raises(toon_format.ToonDecodeError, match="line 1"):
         toon_format.loads("n: " + "9" * 5000)
-
-
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [
-        ("a:\n  [2]: x,y", {"a": {"[2]": "x,y"}}),
-        ("l[1]:\n  - [1]{v}:", {"l": [{"[1]{v}": {}}]}),
-        ("t[1]{a|b}:", {"t[1]{a|b}": {}}),
-        ("t[1]{a{b}c}:", {"t[1]{a{b}c}": {}}),
-        ("t[1]{a\u00a0{b}}:", {"t[1]{a\u00a0{b}}": {}}),
-    ],
-)
-def test_non_strict_header_fall_through(text: str, expected: Any) -> None:
-    with pytest.raises(toon_format.ToonDecodeError):
-        toon_format.loads(text)
-    assert toon_format.loads(text, strict=False) == expected
 
 
 def test_unterminated_quote_in_a_field_list_hides_the_colon() -> None:
