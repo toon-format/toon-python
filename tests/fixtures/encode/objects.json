@@ -53,11 +53,12 @@
       "specSection": "7.2"
     },
     {
-      "name": "quotes string value with leading space",
+      "name": "quotes string values with a leading or trailing space",
       "input": {
-        "text": " padded "
+        "lead": " padded",
+        "trail": "padded "
       },
-      "expected": "text: \" padded \"",
+      "expected": "lead: \" padded\"\ntrail: \"padded \"",
       "specSection": "7.2"
     },
     {
@@ -161,21 +162,22 @@
       "note": "The unquoted-key pattern is ASCII-only, so every non-ASCII key is quoted"
     },
     {
-      "name": "keeps a dotted key unquoted",
+      "name": "keeps dotted and literal-named keys unquoted",
       "input": {
-        "a.b": 1
+        "a.b": 1,
+        "true": 2
       },
-      "expected": "a.b: 1",
+      "expected": "a.b: 1\ntrue: 2",
       "specSection": "7.3",
       "minSpecVersion": "4.2"
     },
     {
       "name": "escapes newline and quotes in keys",
       "input": {
-        "line\nbreak": 1,
+        "line\n": 1,
         "he said \"hi\"": 2
       },
-      "expected": "\"line\\nbreak\": 1\n\"he said \\\"hi\\\"\": 2",
+      "expected": "\"line\\n\": 1\n\"he said \\\"hi\\\"\": 2",
       "specSection": "7.1"
     },
     {
@@ -274,9 +276,10 @@
         "b": "NaN",
         "c": "True",
         "d": "\ufeffx",
-        "e": "a\u007fb"
+        "e": "a\u007fb",
+        "f": "\u0664\u0662"
       },
-      "expected": "a: .5\nb: NaN\nc: True\nd: \ufeffx\ne: a\u007fb",
+      "expected": "a: .5\nb: NaN\nc: True\nd: \ufeffx\ne: a\u007fb\nf: \u0664\u0662",
       "specSection": "7.2",
       "note": "Only a root primitive starting with U+FEFF is quoted, and only U+0000–U+001F count as controls (§7.1, §7.2)",
       "minSpecVersion": "4.2"

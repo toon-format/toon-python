@@ -104,7 +104,7 @@
         "strict": false
       },
       "specSection": "5.1",
-      "note": "Comment removal applies in both modes; the resulting count mismatch is not an error when strict=false (§14.1)"
+      "note": "The resulting count mismatch is not an error when strict=false (§14.4)"
     },
     {
       "name": "throws on tab-indented hash line, which is not a comment",
@@ -134,7 +134,8 @@
         "strict": false
       },
       "specSection": "5.1",
-      "note": "Comment removal precedes the §12 tab leniency, so the tab keeps the line out of the pre-pass"
+      "note": "Comment removal precedes the §14.4 indentation recovery, so the tab keeps the line out of the pre-pass",
+      "minSpecVersion": "4.4"
     },
     {
       "name": "parses quoted hash-leading first cell as data, not comment",

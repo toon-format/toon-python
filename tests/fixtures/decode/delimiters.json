@@ -178,28 +178,16 @@
       "specSection": "11"
     },
     {
-      "name": "parses tabular headers with keys containing the active delimiter",
-      "input": "items[2|]{\"a|b\"}:\n  1\n  2",
+      "name": "parses tabular headers with keys containing a delimiter",
+      "input": "items[2|]{\"a|b\"|\"c,d\"}:\n  1|x\n  2|y",
       "expected": {
-        "items": [{ "a|b": 1 }, { "a|b": 2 }]
+        "items": [{ "a|b": 1, "c,d": "x" }, { "a|b": 2, "c,d": "y" }]
       },
       "specSection": "11"
     },
     {
-      "name": "falls through to a key-value line on a header delimiter mismatch",
-      "input": "a[0|]{x,y}:",
-      "expected": {
-        "a[0|]{x,y}": {}
-      },
-      "options": {
-        "strict": false
-      },
-      "specSection": "6",
-      "minSpecVersion": "4.1"
-    },
-    {
       "name": "treats a delimiter inside a closed or unclosed mid-token quote span as quoted",
-      "input": "k[2]: a\"b,c\",d\nu[1]: x\"y,z",
+      "input": "k[2]: a\"b,c\",d\nu[1]: x\"y,z\nv[1]: x\\\"y,z",
       "expected": {
         "k": [
           "a\"b,c\"",
@@ -207,6 +195,9 @@
         ],
         "u": [
           "x\"y,z"
+        ],
+        "v": [
+          "x\\\"y,z"
         ]
       },
       "specSection": "5.2",
@@ -219,6 +210,23 @@
         "items": [{ "t": [{ "a": 1, "b": 2 }] }]
       },
       "specSection": "11.2"
+    },
+    {
+      "name": "matches a delimiter, colon, space, or comment marker followed by a combining mark as syntax",
+      "input": "a[2]: x,\u0301y\nb:\u0301z\nk: \u0301z\nl[1]:\n  - \u0301w\n#\u0301 c",
+      "expected": {
+        "a": [
+          "x",
+          "\u0301y"
+        ],
+        "b": "\u0301z",
+        "k": "\u0301z",
+        "l": [
+          "\u0301w"
+        ]
+      },
+      "specSection": "1.2",
+      "minSpecVersion": "4.4"
     }
   ]
 }

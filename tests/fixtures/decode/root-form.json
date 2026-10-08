@@ -62,27 +62,26 @@
       "specSection": "5"
     },
     {
-      "name": "throws on a trailing bare token after a root array in non-strict mode",
-      "input": "[2]: 1,2\njunk",
+      "name": "throws on trailing content after a root array in non-strict mode",
+      "input": "[2]: 1,2\njunk: 3",
       "expected": null,
       "shouldError": true,
       "options": {
         "strict": false
       },
       "specSection": "5",
-      "note": "The non-strict leniency for trailing content excludes scalar lines (§5.2)",
-      "minSpecVersion": "4.1"
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "throws on a bare token line under a trailing header after a root array in non-strict mode",
-      "input": "[1]: 1\nx[1]:\n  junk",
+      "name": "throws on trailing content after a root empty array in non-strict mode",
+      "input": "[]\njunk: 3",
       "expected": null,
       "shouldError": true,
       "options": {
         "strict": false
       },
       "specSection": "5",
-      "minSpecVersion": "4.1"
+      "minSpecVersion": "4.4"
     },
     {
       "name": "parses a root line shaped like a header without a colon as a string",
@@ -100,7 +99,6 @@
         "strict": false
       },
       "specSection": "5",
-      "note": "The non-strict skip for over-indented lines excludes scalar lines (§5.2)",
       "minSpecVersion": "4.2"
     },
     {
@@ -123,15 +121,15 @@
       "minSpecVersion": "4.2"
     },
     {
-      "name": "throws on a scalar line after a skipped over-indented first line in non-strict mode",
-      "input": "  a: 1\nhello",
+      "name": "throws on a whole document indented by one level in non-strict mode",
+      "input": "  a: 1\n  b: 2",
       "expected": null,
       "shouldError": true,
       "options": {
         "strict": false
       },
-      "specSection": "5",
-      "minSpecVersion": "4.2"
+      "specSection": "8",
+      "minSpecVersion": "4.4"
     }
   ]
 }

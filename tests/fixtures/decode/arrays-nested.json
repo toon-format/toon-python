@@ -175,17 +175,20 @@
     },
     {
       "name": "keeps every list item when the count mismatches in non-strict mode",
-      "input": "a[1]:\n  - 1\n  - 2",
+      "input": "a[1]:\n  - 1\n  - 2\nb[3]:\n  - x",
       "expected": {
         "a": [
           1,
           2
+        ],
+        "b": [
+          "x"
         ]
       },
       "options": {
         "strict": false
       },
-      "specSection": "14.1",
+      "specSection": "14.4",
       "note": "A declared [N] never truncates a scope",
       "minSpecVersion": "4.1"
     },
@@ -265,16 +268,17 @@
       "options": {
         "strict": false
       },
-      "specSection": "14.1",
-      "note": "A legacy [0] is a declared length, so its content is decoded (§14.1)",
+      "specSection": "14.4",
+      "note": "A legacy [0] is a declared length, so its content is decoded (§14.4)",
       "minSpecVersion": "4.1"
     },
     {
       "name": "parses list items shaped like headers without a colon as strings",
-      "input": "a[2]:\n  - [2]\n  - [1,2,3]",
+      "input": "a[3]:\n  - [2]\n  - a[2]{x,x}\n  - [1,2,3]",
       "expected": {
         "a": [
           "[2]",
+          "a[2]{x,x}",
           "[1,2,3]"
         ]
       },

@@ -1,7 +1,7 @@
 {
   "version": "4.0",
   "category": "decode",
-  "description": "Object decoding – fields, nested objects, key parsing, §6 fall-through (non-strict), and §14.3 duplicate-key LWW",
+  "description": "Object decoding – fields, nested objects, key parsing, and §14.3 duplicate keys",
   "tests": [
     {
       "name": "parses objects with primitive values",
@@ -40,7 +40,7 @@
       "options": {
         "strict": false
       },
-      "specSection": "14.3"
+      "specSection": "14.4"
     },
     {
       "name": "parses quoted object value with colon",
@@ -83,18 +83,11 @@
       "specSection": "4"
     },
     {
-      "name": "parses quoted string value that looks like true",
-      "input": "v: \"true\"",
+      "name": "parses quoted field values that look like true or an integer",
+      "input": "v: \"true\"\nw: \"42\"",
       "expected": {
-        "v": "true"
-      },
-      "specSection": "4"
-    },
-    {
-      "name": "parses quoted string value that looks like integer",
-      "input": "v: \"42\"",
-      "expected": {
-        "v": "42"
+        "v": "true",
+        "w": "42"
       },
       "specSection": "4"
     },
@@ -116,22 +109,14 @@
       "note": "Quoting makes the value opaque (§4), so it is never parsed as a header – the matching count is irrelevant because a quoted scalar is never a header candidate"
     },
     {
-      "name": "parses unquoted value shaped like an inline array header after the key",
-      "input": "key: foo [2]: bar",
+      "name": "parses unquoted values shaped like inline or tabular array headers after the key",
+      "input": "key: foo [2]: bar\na: b [2]{x,y}: 1,2",
       "expected": {
-        "key": "foo [2]: bar"
-      },
-      "specSection": "5.2",
-      "note": "An unquoted key cannot contain a colon, so the first colon ends the key; the bracket-and-colon shape in the remainder is value text, not an array header"
-    },
-    {
-      "name": "parses unquoted value shaped like a tabular array header after the key",
-      "input": "a: b [2]{x,y}: 1,2",
-      "expected": {
+        "key": "foo [2]: bar",
         "a": "b [2]{x,y}: 1,2"
       },
       "specSection": "5.2",
-      "note": "An unquoted key cannot contain a colon, so the first colon ends the key; the tabular-header shape in the remainder is value text, not an array header"
+      "note": "An unquoted key cannot contain a colon, so the first colon ends the key; a header shape in the remainder is value text"
     },
     {
       "name": "parses quoted object value with bracket text and a later colon",
@@ -173,45 +158,6 @@
         "{key}": 6
       },
       "specSection": "7.4"
-    },
-    {
-      "name": "treats content between bracket segment and colon as literal key (non-strict)",
-      "input": "foo[1][bar]: 10\nfoo[2]extra: a,b",
-      "options": {
-        "strict": false
-      },
-      "expected": {
-        "foo[1][bar]": 10,
-        "foo[2]extra": "a,b"
-      },
-      "specSection": "6",
-      "note": "Non-whitespace content between ] and : (a second bracket group or plain text) prevents array header interpretation; non-strict fall-through produces a literal key not constrained by §7.3"
-    },
-    {
-      "name": "treats bracket segment without a length as literal key (non-strict)",
-      "input": "key[]: 1,2",
-      "options": {
-        "strict": false
-      },
-      "expected": {
-        "key[]": "1,2"
-      },
-      "specSection": "6",
-      "note": "An absent length prevents header interpretation; non-strict fall-through produces a literal key"
-    },
-    {
-      "name": "treats bracket content that fails the length grammar as literal key (non-strict)",
-      "input": "foo[bar][1]: 20\nn[-1]: 1\nk[\u0662]: a,b",
-      "options": {
-        "strict": false
-      },
-      "expected": {
-        "foo[bar][1]": 20,
-        "n[-1]": 1,
-        "k[\u0662]": "a,b"
-      },
-      "specSection": "6",
-      "note": "[bar], [-1] and [\u0662] (a non-ASCII digit) fail the length grammar; non-strict fall-through produces a literal key not constrained by §7.3"
     },
     {
       "name": "parses quoted key with comma",
@@ -264,9 +210,9 @@
     },
     {
       "name": "unescapes newline and quotes in keys",
-      "input": "\"line\\nbreak\": 1\n\"he said \\\"hi\\\"\": 2",
+      "input": "\"line\\n\": 1\n\"he said \\\"hi\\\"\": 2",
       "expected": {
-        "line\nbreak": 1,
+        "line\n": 1,
         "he said \"hi\"": 2
       },
       "specSection": "7.1"
@@ -292,20 +238,22 @@
       "specSection": "8"
     },
     {
-      "name": "applies LWW for nested duplicate sibling keys in non-strict mode",
-      "input": "outer:\n  name: Ada\n  name: Bob",
+      "name": "replaces a nested duplicate object key without merging in non-strict mode",
+      "input": "outer:\n  a:\n    x: 1\n  a:\n    y: 2",
       "expected": {
         "outer": {
-          "name": "Bob"
+          "a": {
+            "y": 2
+          }
         }
       },
       "options": {
         "strict": false
       },
-      "specSection": "14.3"
+      "specSection": "14.4"
     },
     {
-      "name": "applies LWW for duplicate keys within a list-item object in non-strict mode",
+      "name": "applies last-write-wins for duplicate keys within a list-item object in non-strict mode",
       "input": "items[1]:\n  - id: 1\n    id: 2",
       "expected": {
         "items": [
@@ -317,7 +265,7 @@
       "options": {
         "strict": false
       },
-      "specSection": "14.3"
+      "specSection": "14.4"
     },
     {
       "name": "accepts unquoted key outside the encoder key pattern (hyphen)",
@@ -329,10 +277,13 @@
       "note": "§7.3 constrains encoder output; decoders accept any token before the first unquoted colon as a literal key"
     },
     {
-      "name": "accepts unquoted key outside the encoder key pattern (leading digit)",
-      "input": "2key: x",
+      "name": "accepts unquoted keys with a leading digit or spelled like a literal or number as string keys",
+      "input": "2key: x\ntrue: 1\nnull: 2\n1.50: 3",
       "expected": {
-        "2key": "x"
+        "2key": "x",
+        "true": 1,
+        "null": 2,
+        "1.50": 3
       },
       "specSection": "7.4"
     },
@@ -347,11 +298,12 @@
     },
     {
       "name": "accepts unquoted values and keys an encoder would quote in strict mode",
-      "input": "k: b:c\npaths[2]: C:\\,D:\\\na\\: b",
+      "input": "k: b:c\npaths[2]: C:\\,D:\\\na\\: b\ne: {}",
       "expected": {
         "k": "b:c",
         "paths": ["C:\\", "D:\\"],
-        "a\\": "b"
+        "a\\": "b",
+        "e": "{}"
       },
       "specSection": "7.4",
       "note": "The first unquoted colon ends the key; the entire post-colon token is the value (§11.2)"
@@ -404,16 +356,29 @@
       "specSection": "15"
     },
     {
-      "name": "falls through to a key-value line when whitespace precedes the bracket segment (non-strict)",
-      "input": "foo [2]: bar,baz",
+      "name": "reads an NBSP before a quote, bracket segment, or nested field group as part of the name",
+      "input": "\u00a0[1]: z\n\u00a0\"q\"[1]: w\nn\u00a0[1]: y\na[1]{b\u00a0{c}}:\n  1",
       "expected": {
-        "foo [2]": "bar,baz"
+        "\u00a0": [
+          "z"
+        ],
+        "\u00a0\"q\"": [
+          "w"
+        ],
+        "n\u00a0": [
+          "y"
+        ],
+        "a": [
+          {
+            "b\u00a0": {
+              "c": 1
+            }
+          }
+        ]
       },
-      "options": {
-        "strict": false
-      },
-      "specSection": "5.2",
-      "minSpecVersion": "4.1"
+      "specSection": "6",
+      "note": "Whitespace is SP and HTAB only (§1.2); a leading NBSP keeps a line from being a keyless root header or a quoted key",
+      "minSpecVersion": "4.4"
     },
     {
       "name": "accepts a header key outside the encoder unquoted-key pattern",
@@ -469,12 +434,14 @@
       "specSection": "15"
     },
     {
-      "name": "parses an unquoted key followed by spaces before the colon",
-      "input": "a : 1",
+      "name": "parses a key-value colon with spaces before it and a key-value or header colon with none after it",
+      "input": "a : 1\nb:2\nc[2]:x,y",
       "expected": {
-        "a": 1
+        "a": 1,
+        "b": 2,
+        "c": ["x", "y"]
       },
-      "specSection": "7.4"
+      "specSection": "12"
     },
     {
       "name": "parses a quoted key followed by spaces before the colon",
@@ -542,18 +509,6 @@
         "a\"b:c\"d": 1,
         "e\"[1]:\"f": 2,
         "a\"b\"": ["x", "y"]
-      },
-      "specSection": "5.2",
-      "minSpecVersion": "4.2"
-    },
-    {
-      "name": "falls through to a key-value line in non-strict mode when a header line fails the grammar",
-      "input": "a[2:]{x}",
-      "expected": {
-        "a[2": "]{x}"
-      },
-      "options": {
-        "strict": false
       },
       "specSection": "5.2",
       "minSpecVersion": "4.2"

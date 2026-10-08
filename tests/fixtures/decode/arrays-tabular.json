@@ -95,11 +95,11 @@
       "specSection": "9.3"
     },
     {
-      "name": "parses sibling nested field groups by depth-first cell assignment",
-      "input": "shipments[1]{id,sender{name,city},receiver{name,city}}:\n  s1,ACME,Berlin,Globex,Oslo",
+      "name": "parses sibling nested field groups by depth-first cell assignment, with a name repeated across levels",
+      "input": "shipments[1]{id,sender{id,city},receiver{id,city}}:\n  s1,ACME,Berlin,Globex,Oslo",
       "expected": {
         "shipments": [
-          { "id": "s1", "sender": { "name": "ACME", "city": "Berlin" }, "receiver": { "name": "Globex", "city": "Oslo" } }
+          { "id": "s1", "sender": { "id": "ACME", "city": "Berlin" }, "receiver": { "id": "Globex", "city": "Oslo" } }
         ]
       },
       "specSection": "9.3"
@@ -148,7 +148,7 @@
       "specSection": "9.3"
     },
     {
-      "name": "applies LWW for duplicate field names, bare or grouped, in non-strict mode",
+      "name": "applies last-write-wins for duplicate field names, bare or grouped, in non-strict mode",
       "input": "items[1]{a,a,b,b{x}}:\n  1,2,3,4",
       "expected": {
         "items": [
@@ -158,16 +158,17 @@
       "options": {
         "strict": false
       },
-      "specSection": "14.3",
+      "specSection": "14.4",
       "note": "Duplicate field names yield duplicate sibling keys per row; non-strict resolves last-write-wins"
     },
     {
-      "name": "accepts a field name outside the encoder unquoted-key pattern",
-      "input": "items[1]{2key}:\n  1",
+      "name": "accepts field names outside the encoder unquoted-key pattern",
+      "input": "items[1]{2key,x:y}:\n  1,2",
       "expected": {
         "items": [
           {
-            "2key": 1
+            "2key": 1,
+            "x:y": 2
           }
         ]
       },
@@ -190,7 +191,7 @@
       "options": {
         "strict": false
       },
-      "specSection": "14.1",
+      "specSection": "14.4",
       "note": "A declared [N] never truncates a scope",
       "minSpecVersion": "4.1"
     },
@@ -225,41 +226,30 @@
       "minSpecVersion": "4.1"
     },
     {
-      "name": "materializes a nested field group without cells as an empty object in non-strict mode",
+      "name": "throws on a row missing a nested field group's cells in non-strict mode",
       "input": "items[1]{a,n{x}}:\n  1",
-      "expected": {
-        "items": [
-          {
-            "a": 1,
-            "n": {}
-          }
-        ]
-      },
+      "expected": null,
+      "shouldError": true,
       "options": {
         "strict": false
       },
       "specSection": "14.1",
-      "minSpecVersion": "4.1"
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "drops surplus cells when the width mismatches in non-strict mode",
+      "name": "throws on a row with more cells than fields in non-strict mode",
       "input": "items[1]{a}:\n  1,2",
-      "expected": {
-        "items": [
-          {
-            "a": 1
-          }
-        ]
-      },
+      "expected": null,
+      "shouldError": true,
       "options": {
         "strict": false
       },
       "specSection": "14.1",
-      "minSpecVersion": "4.1"
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "parses unquoted colon after the delimiter in tabular row as data",
-      "input": "items[1]{id,note}:\n  1,a:b",
+      "name": "parses an unquoted colon after the active delimiter in a tabular row as data",
+      "input": "items[1|]{id|note}:\n  1|a:b",
       "expected": {
         "items": [
           {
@@ -294,8 +284,7 @@
           "": 2
         }
       ],
-      "specSection": "6",
-      "minSpecVersion": "4.2"
+      "specSection": "6"
     },
     {
       "name": "unescapes a quoted field name",

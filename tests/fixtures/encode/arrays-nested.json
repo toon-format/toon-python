@@ -86,8 +86,7 @@
       },
       "expected": "a[1]:\n  - [2]:\n    - x: 1\n    - x: 2",
       "specSection": "9.4",
-      "note": "A keyless fields-bearing header is valid only at the document root",
-      "minSpecVersion": "4.1"
+      "note": "A keyless fields-bearing header is valid only at the document root"
     },
     {
       "name": "uses list form for an array of arrays in list-item position",

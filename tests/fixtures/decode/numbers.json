@@ -29,7 +29,7 @@
         "b": 0
       },
       "specSection": "4",
-      "note": "Most host environments do not distinguish -0 from 0"
+      "note": "-0 and 0 are equal numbers (§2)"
     },
     {
       "name": "parses array with mixed numeric forms",
@@ -69,8 +69,8 @@
     },
     {
       "name": "treats leading-zeros in array as strings",
-      "input": "nums[3]: 05,007,0123",
-      "expected": { "nums": ["05", "007", "0123"] },
+      "input": "nums[4]: 05,007,0123,01.5",
+      "expected": { "nums": ["05", "007", "0123", "01.5"] },
       "specSection": "4"
     },
     {
@@ -100,12 +100,14 @@
       "note": "The grammar admits only an optional leading minus, so leading-plus cells stay strings"
     },
     {
-      "name": "treats Infinity and NaN tokens as strings",
-      "input": "a: Infinity\nb: -Infinity\nc: NaN",
+      "name": "treats Infinity, NaN, and case variants of literals as strings",
+      "input": "a: Infinity\nb: -Infinity\nc: NaN\nd: True\ne: NULL",
       "expected": {
         "a": "Infinity",
         "b": "-Infinity",
-        "c": "NaN"
+        "c": "NaN",
+        "d": "True",
+        "e": "NULL"
       },
       "specSection": "4"
     },

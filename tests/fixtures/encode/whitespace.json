@@ -37,7 +37,7 @@
       "expected": "k: \u00a0x\u00a0",
       "specSection": "7.2",
       "note": "The whitespace trigger is U+0020 and U+0009 only",
-      "minSpecVersion": "4.1"
+      "minSpecVersion": "4.2"
     },
     {
       "name": "indents list-item sibling fields by indentSize",

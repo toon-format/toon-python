@@ -71,22 +71,22 @@
       "specSection": "7.1"
     },
     {
-      "name": "escapes U+0004 via \\uXXXX and keeps U+2028 literal in quoted strings",
-      "input": { "val": "a\u0004b", "sep": "a:\u2028b" },
-      "expected": "val: \"a\\u0004b\"\nsep: \"a:\u2028b\"",
+      "name": "escapes U+0004, U+0008, and U+000C via \\uXXXX and keeps DEL, U+0085, and U+2028 literal in quoted strings",
+      "input": { "val": "a\u0004\b\fb", "sep": "a:\u007f\u0085\u2028b" },
+      "expected": "val: \"a\\u0004\\u0008\\u000cb\"\nsep: \"a:\u007f\u0085\u2028b\"",
       "specSection": "7.1",
       "minSpecVersion": "4.2"
     },
     {
       "name": "escapes backslash in string",
-      "input": "C:\\Users\\path",
-      "expected": "\"C:\\\\Users\\\\path\"",
+      "input": "Users\\path",
+      "expected": "\"Users\\\\path\"",
       "specSection": "7.1"
     },
     {
-      "name": "keeps a string with an interior hash unquoted",
-      "input": "a #b",
-      "expected": "a #b",
+      "name": "keeps a string with an interior hyphen or hash unquoted",
+      "input": "a-b #c",
+      "expected": "a-b #c",
       "specSection": "7.2",
       "minSpecVersion": "4.2"
     },
@@ -111,8 +111,8 @@
     },
     {
       "name": "quotes string with bracket notation",
-      "input": "[test]",
-      "expected": "\"[test]\"",
+      "input": "a[test]",
+      "expected": "\"a[test]\"",
       "specSection": "7.2"
     },
     {
@@ -200,7 +200,8 @@
       "name": "encodes floats with their shortest round-trip digits",
       "input": [0.3333333333333333, 0.30000000000000004, -0.000001],
       "expected": "[3]: 0.3333333333333333,0.30000000000000004,-0.000001",
-      "specSection": "2"
+      "specSection": "2",
+      "minSpecVersion": "4.2"
     },
     {
       "name": "encodes true",
@@ -228,17 +229,11 @@
       "note": "Unquoted, a v3 host-parser decoder would read the number 1"
     },
     {
-      "name": "quotes string equal to hash",
-      "input": "#",
-      "expected": "\"#\"",
-      "specSection": "7.2",
-      "note": "Comment marker at position 0 must be quoted"
-    },
-    {
       "name": "quotes string starting with hash",
       "input": "#hello",
       "expected": "\"#hello\"",
-      "specSection": "7.2"
+      "specSection": "7.2",
+      "note": "Comment marker at position 0 must be quoted"
     },
     {
       "name": "quotes a root string starting with U+FEFF",
@@ -255,6 +250,13 @@
       "specSection": "2",
       "note": "The binary64 value is exactly 123456789012345683968",
       "minSpecVersion": "4.2"
+    },
+    {
+      "name": "quotes a delimiter, colon, hyphen, or number sign that a combining mark follows",
+      "input": { "items": ["a,\u0301b", "-\u0301", "#\u0301"], "k": "x:\u0301" },
+      "expected": "items[3]: \"a,\u0301b\",\"-\u0301\",\"#\u0301\"\nk: \"x:\u0301\"",
+      "specSection": "1.2",
+      "minSpecVersion": "4.4"
     }
   ]
 }

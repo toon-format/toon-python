@@ -1,7 +1,7 @@
 {
   "version": "4.0",
   "category": "decode",
-  "description": "Strict mode indentation validation – non-multiple indentation, tab characters, custom indentSizes",
+  "description": "Indentation validation and its non-strict recoveries – non-multiple indentation, tab characters, custom indentSizes",
   "tests": [
     {
       "name": "throws on object field with non-multiple indentation (3 spaces with indentSize 2)",
@@ -38,11 +38,18 @@
     },
     {
       "name": "accepts correct indentation with custom indentSize (4 spaces with indentSize 4)",
-      "input": "a:\n    b: 1",
+      "input": "a:\n    b: 1\nl[2]:\n    - b: 1\n        c: 2\n    - 1",
       "expected": {
         "a": {
           "b": 1
-        }
+        },
+        "l": [
+          {
+            "b": 1,
+            "c": 2
+          },
+          1
+        ]
       },
       "options": {
         "indentSize": 4,
@@ -62,7 +69,7 @@
     },
     {
       "name": "throws on mixed tabs and spaces in indentation",
-      "input": "a:\n \tb: 1",
+      "input": "a:\n  b:\n  \t\tc: 1",
       "expected": null,
       "shouldError": true,
       "options": {
@@ -114,19 +121,38 @@
       "specSection": "12"
     },
     {
-      "name": "accepts non-multiple indentation at nested depths when strict=false",
-      "input": "a:\n   b:\n     c: 1\n  d: 2",
+      "name": "accepts non-multiple indentation at nested depths in non-strict mode",
+      "input": "a:\n   b:\n     c: 1\n  d: 2\n   e[2]: 1,2",
       "expected": {
         "a": {
           "b": { "c": 1 },
-          "d": 2
+          "d": 2,
+          "e": [1, 2]
         }
       },
       "options": {
         "indentSize": 2,
         "strict": false
       },
-      "specSection": "12"
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "counts every tab and space of mixed indentation in non-strict mode",
+      "input": "a:\n  b:\n \t c: 1",
+      "expected": {
+        "a": {
+          "b": {
+            "c": 1
+          }
+        }
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.4",
+      "note": "One tab plus two spaces is depth 2 at indentSize 2, wherever the tab sits",
+      "minSpecVersion": "4.4"
     },
     {
       "name": "throws on depth jump of more than one level",
@@ -146,6 +172,13 @@
     {
       "name": "throws on an over-indented line under a primitive list item",
       "input": "items[2]:\n  - a\n    b: 1\n  - c",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "8"
+    },
+    {
+      "name": "throws on a field line indented under a bare hyphen",
+      "input": "items[1]:\n  -\n    b: 1",
       "expected": null,
       "shouldError": true,
       "specSection": "8"
@@ -174,16 +207,44 @@
       "specSection": "8"
     },
     {
-      "name": "throws on orphan scalar line under a primitive field in non-strict mode",
-      "input": "a: 1\n  hello",
+      "name": "throws on an over-indented line after keyed entry rows",
+      "input": "m[1:]{v}:\n  a: 1\n    b: 2",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "8"
+    },
+    {
+      "name": "throws on an over-indented line under a primitive field in non-strict mode",
+      "input": "a: 1\n  b: 2",
       "expected": null,
       "shouldError": true,
       "options": {
         "strict": false
       },
       "specSection": "8",
-      "note": "The non-strict skip for over-indented lines excludes scalar lines (§5.2)",
-      "minSpecVersion": "4.1"
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "throws on an over-indented line after tabular rows in non-strict mode",
+      "input": "u[1]{a}:\n  1\n    junk: 9",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "8",
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "throws on an over-indented line after keyed entry rows in non-strict mode",
+      "input": "m[1:]{v}:\n  a: 1\n    b: 2",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "8",
+      "minSpecVersion": "4.4"
     },
     {
       "name": "throws on an indented first line",
@@ -194,118 +255,116 @@
       "minSpecVersion": "4.2"
     },
     {
-      "name": "throws on a hyphen-leading bare token under a primitive field in non-strict mode",
-      "input": "a: 1\n  - x",
-      "expected": null,
-      "shouldError": true,
-      "options": {
-        "strict": false
-      },
-      "specSection": "5.2",
-      "minSpecVersion": "4.2"
-    },
-    {
       "name": "adopts the depth of a jumped first line in non-strict mode",
-      "input": "a:\n    b: 1\n  c: 2\n    d: 3\nitems[2]:\n    - 1\n    - 2",
+      "input": "a:\n    b:\n      x: 1\n    c: 2\nitems[2]:\n    - 1\n    - 2\nt[1]{a}:\n    1\nm[1:]{v}:\n    k: 2\nl[1]:\n  - k:\n        x: 1",
       "expected": {
-        "a": {
-          "b": 1,
-          "d": 3
-        },
-        "items": [
-          1,
-          2
-        ]
+        "a": { "b": { "x": 1 }, "c": 2 },
+        "items": [1, 2],
+        "t": [{ "a": 1 }],
+        "m": { "k": { "v": 2 } },
+        "l": [{ "k": { "x": 1 } }]
       },
       "options": {
         "strict": false
       },
-      "specSection": "8",
-      "minSpecVersion": "4.2"
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "skips a line above the adopted entry depth in non-strict mode",
+      "name": "throws on a line above the adopted depth in non-strict mode",
+      "input": "a:\n    b: 1\n  c: 2",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "throws on a line above the adopted entry depth in non-strict mode",
       "input": "m[1:]{a}:\n    x: 1\n  y: 2",
-      "expected": {
-        "m": {
-          "x": {
-            "a": 1
-          }
-        }
-      },
+      "expected": null,
+      "shouldError": true,
       "options": {
         "strict": false
       },
-      "specSection": "8",
-      "minSpecVersion": "4.2"
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "skips a line above the adopted row depth in non-strict mode",
+      "name": "throws on a line above the adopted row depth in non-strict mode",
       "input": "rows[2]{a}:\n    1\n  x: 9\n    2",
-      "expected": {
-        "rows": [
-          {
-            "a": 1
-          },
-          {
-            "a": 2
-          }
-        ]
-      },
+      "expected": null,
+      "shouldError": true,
       "options": {
         "strict": false
       },
-      "specSection": "8",
-      "minSpecVersion": "4.2"
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "skips over-indented lines under a primitive list item and after a list scope in non-strict mode",
-      "input": "items[2]:\n  - a\n    b: 1\n  - c\n  x: 1\nz: 2",
-      "expected": {
-        "items": [
-          "a",
-          "c"
-        ],
-        "z": 2
-      },
-      "options": {
-        "strict": false
-      },
-      "specSection": "8",
-      "minSpecVersion": "4.2"
-    },
-    {
-      "name": "throws on an over-indented scalar line under a primitive list item in non-strict mode",
-      "input": "items[2]:\n  - a\n    b\n  - c",
+      "name": "throws on an over-indented line under a primitive list item in non-strict mode",
+      "input": "items[2]:\n  - a\n    b: 1\n  - c",
       "expected": null,
       "shouldError": true,
       "options": {
         "strict": false
       },
       "specSection": "8",
-      "note": "The non-strict skip for over-indented lines excludes scalar lines (§5.2)",
-      "minSpecVersion": "4.1"
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "skips an over-indented line under a list-item field in non-strict mode",
-      "input": "items[1]:\n  - a: 1\n      deep: 1\n    b: 2",
-      "expected": {
-        "items": [
-          {
-            "a": 1,
-            "b": 2
-          }
-        ]
-      },
+      "name": "throws on a non-list-item line at item depth in non-strict mode",
+      "input": "items[1]:\n  - a\n  x: 1",
+      "expected": null,
+      "shouldError": true,
       "options": {
         "strict": false
       },
-      "specSection": "8",
-      "minSpecVersion": "4.2"
+      "specSection": "9.4",
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "throws on an over-indented line under a list-item field in non-strict mode",
+      "input": "items[1]:\n  - a: 1\n      b: 2",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.4",
+      "note": "The hyphen line is the list-item object's first line, so the depth-jump recovery does not apply",
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "throws on an over-indented line under a list-item inline array in non-strict mode",
+      "input": "items[1]:\n  - a[2]: 1,2\n      b: 2",
+      "expected": null,
+      "shouldError": true,
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
     },
     {
       "name": "throws on a depth jump to the first tabular row",
       "input": "rows[1]{a}:\n    1",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "8"
+    },
+    {
+      "name": "throws on a depth jump to the first list item",
+      "input": "items[1]:\n    - a",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "8"
+    },
+    {
+      "name": "throws on a depth jump to the first entry row",
+      "input": "m[1:]{v}:\n    k: 1",
       "expected": null,
       "shouldError": true,
       "specSection": "8"
