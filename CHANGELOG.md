@@ -8,9 +8,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
-- Support for [TOON specification 4.3](https://github.com/toon-format/spec/blob/v4.3.0/SPEC.md):
-  all official fixtures of spec `v4.3.0` pass, and `toon_format.__toon_spec__`
-  is `"4.3"`. Encoder output is unchanged.
+- Support for [TOON specification 4.4](https://github.com/toon-format/spec/blob/v4.4.0/SPEC.md):
+  all official fixtures of spec `v4.4.0` pass, and `toon_format.__toon_spec__`
+  is `"4.4"`. Encoder output is unchanged.
 - A line whose first unquoted `[` precedes its first unquoted colon and that
   fails the header grammar is an error, also when its only colon sits in the
   bracket segment or field list (`a[1:`, `a[2:]{x}`).

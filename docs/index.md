@@ -4,7 +4,7 @@ The official Python implementation of **TOON** (Token-Oriented Object Notation):
 a compact, human-readable encoding of the JSON data model, designed to save
 tokens in LLM prompts.
 
-- **Complete**: implements [TOON specification 4.3](https://github.com/toon-format/spec/blob/main/SPEC.md)
+- **Complete**: implements [TOON specification 4.4](https://github.com/toon-format/spec/blob/main/SPEC.md)
   and passes every official conformance fixture.
 - **Familiar**: `dumps`, `dump`, `loads`, and `load`, like the `json` module,
   with `encode` and `decode` as aliases.

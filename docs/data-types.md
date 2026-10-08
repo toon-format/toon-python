@@ -30,7 +30,7 @@ converted back to dates or other types.
 
 ## Specification choices
 
-This package targets **TOON 4.3** (`toon_format.__toon_spec__`). The specification
+This package targets **TOON 4.4** (`toon_format.__toon_spec__`). The specification
 asks implementations to document the following choices.
 
 **Numbers.** Integers encode and decode exactly at any size. Floats use the
