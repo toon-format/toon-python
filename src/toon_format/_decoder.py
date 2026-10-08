@@ -29,7 +29,6 @@ _BRACKET = re.compile(r"\[(0|[1-9][0-9]*)(:?)([\t|]?)\]")
 _QUOTED = re.compile(r'"(?:[^"\\]|\\.)*"', re.DOTALL)
 _HEX4 = re.compile(r"[0-9A-Fa-f]{4}")
 _SIMPLE_ESCAPES = {"\\": "\\", '"': '"', "n": "\n", "r": "\r", "t": "\t"}
-_MISSING = object()
 
 
 def decode(
@@ -83,7 +82,7 @@ def _split_lines(text: str, indent_size: int, strict: bool) -> list[_Line]:
         if stripped.startswith("#"):
             continue  # comment line (§5.1); lines are adjacent across it
         content = stripped.rstrip(" ")
-        # Tabs make a line blank only where they may indent it (§12).
+        # Tabs make a line blank only where they may indent it (§14.4).
         if not content or (not strict and not content.strip(" \t")):
             blank = blank or number
             continue
@@ -93,7 +92,7 @@ def _split_lines(text: str, indent_size: int, strict: bool) -> list[_Line]:
                 raise ToonDecodeError(
                     "Tabs are not allowed in indentation", number, source
                 )
-            # Non-strict: a tab counts as one level, spaces as usual (§12).
+            # Non-strict: a tab counts as one level, spaces as usual (§14.4).
             run = len(content) - len(content.lstrip(" \t"))
             spaces += content.count(" ", 0, run)
             depth = content.count("\t", 0, run) + spaces // indent_size
@@ -139,10 +138,6 @@ class _Scalar:
     token: str
 
 
-class _Malformed(Exception):
-    """A header that fails the grammar of §6; may fall through in non-strict mode."""
-
-
 def _is_list_item(content: str) -> bool:
     return content == "-" or content.startswith("- ")
 
@@ -170,27 +165,6 @@ def _find_unquoted(text: str, char: str, start: int = 0) -> int:
             in_quotes = True
         elif c == char:
             return i
-        i += 1
-    return -1
-
-
-def _brace_end(text: str, start: int) -> int:
-    """Index of the ``}`` closing the ``{`` at ``start``, outside quotes, or -1."""
-    depth = 0
-    i, n = start, len(text)
-    while i < n:
-        c = text[i]
-        if c == '"':
-            i = _quoted_end(text, i)
-            if i < 0:
-                return -1
-            continue
-        if c == "{":
-            depth += 1
-        elif c == "}":
-            depth -= 1
-            if depth == 0:
-                return i
         i += 1
     return -1
 
@@ -278,7 +252,7 @@ class _Parser:
     def assign(self, obj: dict[str, Any], key: str, value: Any, line: _Line) -> None:
         if self.strict and key in obj:
             raise self.error(f"Duplicate key {key!r}", line)
-        # Non-strict: last write wins (§14.3); like json.loads, the key keeps
+        # Non-strict: last write wins (§14.4); like json.loads, the key keeps
         # the position of its first occurrence.
         obj[key] = value
 
@@ -350,7 +324,7 @@ class _Parser:
         if self.parse_float is not None:
             return self.parse_float(token)
         value = float(token)
-        if math.isinf(value) and self.strict:
+        if math.isinf(value):
             raise self.error(f"Number {token} is out of range", line)
         return value or 0.0  # -0 decodes to 0 (§4)
 
@@ -369,8 +343,8 @@ class _Parser:
             end = _quoted_end(content, 0)
             if end < 0:
                 raise self.error("Unterminated string", line)
-            if content.startswith("[", end):
-                return self.header(content, end, colon, line)
+            if colon >= 0 and content.startswith("[", end):
+                return self.header(content, end, line)
             after = content[end:].lstrip(" ")
             if not after:
                 return _Scalar(content)
@@ -378,58 +352,39 @@ class _Parser:
                 raise self.error("Unexpected characters after closing quote", line)
             return _KeyValue(self.quoted(content[:end], line), after[1:].strip(" "))
         bracket = _find_unquoted(content, "[")
-        if bracket >= 0 and (colon < 0 or bracket < colon):
-            return self.header(content, bracket, colon, line)
+        if 0 <= bracket < colon:
+            return self.header(content, bracket, line)
         if colon >= 0:
             return _KeyValue(
                 content[:colon].strip(" "), content[colon + 1 :].strip(" ")
             )
         return _Scalar(content)
 
-    def header(
-        self, content: str, bracket: int, colon: int, line: _Line
-    ) -> _Header | _KeyValue | _Scalar:
-        """Parse a header candidate whose bracket segment starts at ``bracket``."""
+    def header(self, content: str, bracket: int, line: _Line) -> _Header:
+        """Parse a header whose bracket segment starts at ``bracket`` (§6)."""
         match = _BRACKET.match(content, bracket)
-        try:
-            if match is None:
-                raise _Malformed("Malformed bracket segment")
-            if content[bracket - 1 : bracket] in (" ", "\t"):
-                raise _Malformed("Whitespace between a key and its bracket segment")
-            delimiter = match.group(3) or ","
-            pos = match.end()
-            fields = None
-            if content.startswith("{", pos):
-                fields, pos = self.field_list(content, pos, delimiter, line)
-            if not content.startswith(":", pos):
-                raise _Malformed("Expected ':' after the array header")
-            rest = content[pos + 1 :].strip(" ")
-            keyed = bool(match.group(2))
-            if keyed and fields is None:
-                raise _Malformed("A keyed header requires a field list")
-            if fields is not None and rest:
-                raise _Malformed("Unexpected content after a header with a field list")
-        except _Malformed as exc:
-            if colon < 0:
-                return _Scalar(content)  # without a colon it is a scalar line (§5.2)
-            # A line whose only colons sit in the bracket segment or its field
-            # list is a key-value line, in strict mode too (§5.2, §6).
-            close = _find_unquoted(content, "]", bracket)
-            if close >= 0 and content.startswith("{", close + 1):
-                close = max(close, _brace_end(content, close + 1))
-            if self.strict and close >= 0 and _find_unquoted(content, ":", close) >= 0:
-                raise self.error(str(exc), line) from None
-            return self.literal_key_value(content, line)
+        if match is None:
+            raise self.error("Malformed bracket segment", line)
+        if content[bracket - 1 : bracket] in (" ", "\t"):  # SP and HTAB only (§1.2)
+            raise self.error("Whitespace between a key and its bracket segment", line)
+        delimiter = match.group(3) or ","
+        pos = match.end()
+        fields = None
+        if content.startswith("{", pos):
+            fields, pos = self.field_list(content, pos, delimiter, line)
+        if not content.startswith(":", pos):
+            raise self.error("Expected ':' after the array header", line)
+        rest = content[pos + 1 :].strip(" ")
+        keyed = bool(match.group(2))
+        if keyed and fields is None:
+            raise self.error("A keyed header requires a field list", line)
+        if fields is not None and rest:
+            raise self.error(
+                "Unexpected content after a header with a field list", line
+            )
         key_text = content[:bracket]
         key = self.key(key_text, line) if key_text else None
         return _Header(key, int(match.group(1)), keyed, delimiter, fields, rest)
-
-    def literal_key_value(self, content: str, line: _Line) -> _KeyValue:
-        """Read a rejected header line as a key-value line (§5.2, §6)."""
-        colon = _find_unquoted(content, ":")
-        return _KeyValue(
-            self.key(content[:colon], line), content[colon + 1 :].strip(" ")
-        )
 
     def field_list(
         self, text: str, pos: int, delimiter: str, line: _Line
@@ -445,7 +400,7 @@ class _Parser:
             if text.startswith('"', pos):
                 end = _quoted_end(text, pos)
                 if end < 0:
-                    raise _Malformed("Unterminated field name")
+                    raise self.error("Unterminated field name", line)
                 name = self.unescape(text[pos + 1 : end - 1], line)
                 pos = end
             else:
@@ -458,14 +413,15 @@ class _Parser:
                         pos += 1
                 name = text[start:pos].strip(" ")
                 if not name:
-                    raise _Malformed("Empty field name in field list")
+                    raise self.error("Empty field name in field list", line)
             while pos < n and text[pos] == " ":
                 pos += 1
             nested = None
             if text.startswith("{", pos):
                 if text[pos - 1] == " ":
-                    raise _Malformed(
-                        "Whitespace between a field name and its nested field group"
+                    raise self.error(
+                        "Whitespace between a field name and its nested field group",
+                        line,
                     )
                 nested, pos = self.field_list(text, pos, delimiter, line)
                 while pos < n and text[pos] == " ":
@@ -475,25 +431,26 @@ class _Parser:
             seen.add(name)
             fields.append((name, nested))
             if pos >= n:
-                raise _Malformed("Unmatched '{' in field list")
+                raise self.error("Unmatched '{' in field list", line)
             c = text[pos]
             pos += 1
             if c == "}":
                 return tuple(fields), pos
             if c != delimiter:
                 if c in DELIMITERS:
-                    raise _Malformed(
-                        "Field list delimiter does not match the bracket segment"
+                    raise self.error(
+                        "Field list delimiter does not match the bracket segment", line
                     )
-                raise _Malformed("Malformed field list")
+                raise self.error("Malformed field list", line)
 
     # -- document (§5) ------------------------------------------------------
 
     def document(self) -> Any:
-        while (first := self.peek()) is not None and first.depth > 0:
-            self.orphan(first)  # an indented first line is over-indented (§5, §8)
+        first = self.peek()
         if first is None:
             return self.finish({})  # empty document (§5)
+        if first.depth > 0:
+            raise self.over_indented(first)  # an indented first line (§5, §8)
         if first.content == "[]":
             self.take()
             self.end_of_root()
@@ -513,12 +470,7 @@ class _Parser:
         """A root array or keyed object spans the whole document (§5)."""
         line = self.peek()
         if line is not None:
-            if self.strict:
-                raise self.error("Unexpected content after the root value", line)
-            for trailing in self.lines[self.pos :]:
-                if isinstance(self.classify(trailing.content, trailing), _Scalar):
-                    raise self.error("Unexpected bare value", trailing)
-            self.pos = len(self.lines)
+            raise self.error("Unexpected content after the root value", line)
 
     # -- objects (§8) -------------------------------------------------------
 
@@ -528,34 +480,24 @@ class _Parser:
         """Parse the fields at ``depth`` of an object opened at ``parent`` (§8)."""
         while (line := self.peek()) is not None and line.depth > parent:
             if line.depth != depth:
-                self.orphan(line)
-                continue
+                raise self.over_indented(line)
             self.take()
             self.field(line, obj, depth)
         return obj
 
-    def orphan(self, line: _Line) -> None:
-        """Handle a line deeper than its scope that no line opened (§8, §14.2)."""
-        if self.strict:
-            raise self.error("Unexpected indentation", line)
-        if isinstance(self.classify(line.content, line), _Scalar):
-            raise self.error("Unexpected bare value", line)
-        self.take()
+    def over_indented(self, line: _Line) -> ToonDecodeError:
+        """A line deeper than its scope that no line opened (§8, §14.2)."""
+        return self.error("Unexpected indentation", line)
 
     def field(self, line: _Line, obj: dict[str, Any], depth: int) -> None:
         kind = self.classify(line.content, line)
         if isinstance(kind, _Header):
             if kind.key is None:
-                if self.strict:
-                    raise self.error(
-                        "A header without a key is only valid at the root", line
-                    )
-                kind = self.literal_key_value(line.content, line)
-            else:
-                self.assign(
-                    obj, kind.key, self.header_value(kind, line, depth + 1), line
+                raise self.error(
+                    "A header without a key is only valid at the root", line
                 )
-                return
+            self.assign(obj, kind.key, self.header_value(kind, line, depth + 1), line)
+            return
         if isinstance(kind, _Scalar):
             raise self.error("Expected 'key: value'", line)
         self.assign(obj, kind.key, self.field_value(kind.rest, line, depth), line)
@@ -591,7 +533,7 @@ class _Parser:
 
     def check_width(self, cells: list[Any], fields: Fields, line: _Line) -> None:
         width = _leaf_count(fields)
-        if self.strict and len(cells) != width:
+        if len(cells) != width:
             raise self.error(f"Expected {width} values but found {len(cells)}", line)
 
     def items(self, header: _Header, line: _Line, depth: int, parent: int) -> list[Any]:
@@ -601,8 +543,7 @@ class _Parser:
         try:
             while (item := self.peek()) and item.depth > parent:
                 if item.depth != depth:
-                    self.orphan(item)
-                    continue
+                    raise self.over_indented(item)
                 if not _is_list_item(item.content):
                     break
                 self.take()
@@ -626,13 +567,11 @@ class _Parser:
         if isinstance(kind, _Scalar):
             return self.primitive(rest, line)
         if isinstance(kind, _Header) and kind.key is None:
-            if kind.fields is None:
-                return self.header_value(kind, line, depth + 1)
-            if self.strict:
+            if kind.fields is not None:
                 raise self.error(
                     "A header with a field list cannot be a list item", line
                 )
-            kind = self.literal_key_value(rest, line)
+            return self.header_value(kind, line, depth + 1)
         # An object whose first field sits on the hyphen line at depth + 1.
         obj: dict[str, Any] = {}
         if isinstance(kind, _Header):
@@ -651,8 +590,7 @@ class _Parser:
         try:
             while (row := self.peek()) and row.depth > parent:
                 if row.depth != depth:
-                    self.orphan(row)
-                    continue
+                    raise self.over_indented(row)
                 colon = _find_unquoted(row.content, ":")
                 if colon >= 0:
                     split = _find_unquoted(row.content, delimiter)
@@ -678,17 +616,14 @@ class _Parser:
         try:
             while (entry := self.peek()) and entry.depth > parent:
                 if entry.depth != depth:
-                    self.orphan(entry)
-                    continue
+                    raise self.over_indented(entry)
                 self.take()
                 if not count:
                     self.spans += 1
                 count += 1
                 colon = _find_unquoted(entry.content, ":")
                 if colon < 0:
-                    if self.strict:
-                        raise self.error("Expected 'key: values' entry row", entry)
-                    continue
+                    raise self.error("Expected 'key: values' entry row", entry)
                 key = self.key(entry.content[:colon], entry)
                 cells = self.values(
                     entry.content[colon + 1 :].strip(" "), header.delimiter, entry
@@ -706,11 +641,7 @@ class _Parser:
         """Build one object from row cells, walking the field list depth-first."""
         obj: dict[str, Any] = {}
         for name, nested in fields:
-            value = (
-                next(cells, _MISSING)
-                if nested is None
-                else self.materialize(nested, cells)
+            obj[name] = (
+                next(cells) if nested is None else self.materialize(nested, cells)
             )
-            if value is not _MISSING:
-                obj[name] = value
         return self.finish(obj)

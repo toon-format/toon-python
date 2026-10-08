@@ -78,9 +78,9 @@
     {
       "name": "quotes strings with structural meanings in arrays",
       "input": {
-        "items": ["[5]", "- item", "{key}"]
+        "items": ["[5", "x]", "- item", "{key", "y}"]
       },
-      "expected": "items[3]: \"[5]\",\"- item\",\"{key}\"",
+      "expected": "items[5]: \"[5\",\"x]\",\"- item\",\"{key\",\"y}\"",
       "specSection": "9.1"
     },
     {

@@ -34,11 +34,11 @@
     },
     {
       "name": "parses empty tokens as empty string",
-      "input": "items[3]: a,,c",
+      "input": "items[4]: a,,c,",
       "expected": {
-        "items": ["a", "", "c"]
+        "items": ["a", "", "c", ""]
       },
-      "specSection": "9.1"
+      "specSection": "11.2"
     },
     {
       "name": "keeps a leading NBSP and a trailing tab in unquoted values",
@@ -60,6 +60,17 @@
       "note": "Token trimming removes U+0020 only; a host trim() that also strips NBSP or tab corrupts this round-trip"
     },
     {
+      "name": "keeps an NBSP or a tab around a key or field name",
+      "input": "a\u00a0: 1\nb\t: 2\nt[1]{\u00a0c}:\n  3",
+      "expected": {
+        "a\u00a0": 1,
+        "b\t": 2,
+        "t": [{ "\u00a0c": 3 }]
+      },
+      "specSection": "12",
+      "minSpecVersion": "4.1"
+    },
+    {
       "name": "decodes CRLF line terminators",
       "input": "a: 1\r\nb: 2\r\n",
       "expected": { "a": 1, "b": 2 },
@@ -70,13 +81,6 @@
       "input": "items[2]{a,b}:\r\n  1,2\r\n  3,4\r\n",
       "expected": { "items": [{ "a": 1, "b": 2 }, { "a": 3, "b": 4 }] },
       "specSection": "12"
-    },
-    {
-      "name": "keeps an escaped carriage return inside a quoted value",
-      "input": "a: \"x\\ry\"\r\n",
-      "expected": { "a": "x\ry" },
-      "specSection": "12",
-      "note": "Only a CR at the end of a line is part of the line terminator"
     },
     {
       "name": "treats a carriage-return-only line as blank",
@@ -101,7 +105,7 @@
     },
     {
       "name": "treats a hyphen followed by trailing spaces as the bare marker",
-      "input": "a[1]:\n  - ",
+      "input": "a[1]: \n  - ",
       "expected": {
         "a": [
           {}
@@ -110,6 +114,33 @@
       "specSection": "12",
       "note": "Trailing spaces are stripped before line classification",
       "minSpecVersion": "4.1"
+    },
+    {
+      "name": "tolerates extra spaces after a list-item hyphen and keeps an NBSP after them",
+      "input": "items[3]:\n  -  \u00a0a\n  -   [2]: 1,2\n  -  k[1]: v",
+      "expected": {
+        "items": [
+          "\u00a0a",
+          [
+            1,
+            2
+          ],
+          {
+            "k": [
+              "v"
+            ]
+          }
+        ]
+      },
+      "specSection": "5.2",
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "throws on a tab after a list-item hyphen",
+      "input": "items[1]:\n  -\tx",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "5.2"
     },
     {
       "name": "keeps a second carriage return before CRLF as content",
@@ -121,10 +152,11 @@
       "specSection": "12"
     },
     {
-      "name": "keeps a second leading byte-order mark as content",
-      "input": "\ufeff\ufeffa: 1",
+      "name": "keeps a byte-order mark after the document start as content",
+      "input": "\ufeff\ufeffa: 1\n\ufeffb: 2",
       "expected": {
-        "\ufeffa": 1
+        "\ufeffa": 1,
+        "\ufeffb": 2
       },
       "specSection": "12",
       "minSpecVersion": "4.1"

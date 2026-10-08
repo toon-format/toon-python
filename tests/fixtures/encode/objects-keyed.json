@@ -50,13 +50,14 @@
       "name": "uses the active delimiter in keyed headers and entry-row cells",
       "input": {
         "servers": {
-          "alpha": { "host": "a.example.com", "port": 8080 },
-          "beta": { "host": "b.example.com", "port": 9090 }
+          "alpha": { "host": "a.example.com", "port": 8080, "note": "x|y" },
+          "beta": { "host": "b.example.com", "port": 9090, "note": "p,q" }
         }
       },
       "options": { "delimiter": "|" },
-      "expected": "servers[2:|]{host|port}:\n  alpha: a.example.com|8080\n  beta: b.example.com|9090",
+      "expected": "servers[2:|]{host|port|note}:\n  alpha: a.example.com|8080|\"x|y\"\n  beta: b.example.com|9090|p,q",
       "specSection": "9.5",
+      "minSpecVersion": "4.2",
       "note": "The keyed marker precedes the delimiter symbol: [2:|]"
     },
     {

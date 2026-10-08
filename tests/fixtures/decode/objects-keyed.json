@@ -153,7 +153,7 @@
       "note": "Comment removal never ends a keyed scope, and a comment line never counts as an entry"
     },
     {
-      "name": "applies LWW for duplicate entry keys in non-strict mode",
+      "name": "applies last-write-wins for duplicate entry keys in non-strict mode",
       "input": "m[2:]{v}:\n  a: 1\n  a: 2",
       "expected": {
         "m": {
@@ -163,7 +163,7 @@
       "options": {
         "strict": false
       },
-      "specSection": "14.3",
+      "specSection": "14.4",
       "note": "Entry keys are sibling keys of the decoded object and resolve last-write-wins"
     },
     {
@@ -183,31 +183,38 @@
       "minSpecVersion": "4.1"
     },
     {
-      "name": "skips an entry-depth line without a colon in non-strict mode",
+      "name": "throws on an entry-depth line without a colon in non-strict mode",
       "input": "u[2:]{x}:\n  a: 1\n  boom",
-      "expected": {
-        "u": {
-          "a": {
-            "x": 1
-          }
-        }
-      },
+      "expected": null,
+      "shouldError": true,
       "options": {
         "strict": false
       },
       "specSection": "9.5",
-      "minSpecVersion": "4.1"
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "decodes every entry row beyond the declared count in non-strict mode",
-      "input": "m[1:]{v}:\n  a: 1\n  b: 2",
-      "expected": {
-        "m": { "a": { "v": 1 }, "b": { "v": 2 } }
-      },
+      "name": "throws on an entry row with fewer cells than fields in non-strict mode",
+      "input": "m[1:]{a,b}:\n  k: 1",
+      "expected": null,
+      "shouldError": true,
       "options": {
         "strict": false
       },
       "specSection": "14.1",
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "decodes every entry row whatever the declared count in non-strict mode",
+      "input": "m[1:]{v}:\n  a: 1\n  b: 2\nn[3:]{v}:\n  c: 3",
+      "expected": {
+        "m": { "a": { "v": 1 }, "b": { "v": 2 } },
+        "n": { "c": { "v": 3 } }
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.4",
       "minSpecVersion": "4.1"
     }
   ]

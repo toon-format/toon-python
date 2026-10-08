@@ -90,9 +90,12 @@ toon_format.load(fp, **options) -> Any
 ```
 
 `s` may also be `bytes`, and `fp` a binary file. By default the decoder
-enforces every check of the specification: declared lengths, row widths,
-indentation, blank lines inside arrays, and duplicate keys. `strict=False`
-tolerates them, which helps with hand-written or LLM-generated documents.
+enforces every check of the specification. `strict=False` tolerates five of
+them, which helps with hand-written or LLM-generated documents: a declared
+length that differs from the actual count, duplicate keys (the last one wins),
+tab or uneven indentation, blank lines inside arrays and keyed objects, and a
+block that starts too deep. Every other check, such as a row's number of cells
+or a header's syntax, applies in both modes.
 The hooks work as in `json.loads`:
 
 ```python

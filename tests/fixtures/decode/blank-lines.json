@@ -1,7 +1,7 @@
 {
   "version": "4.0",
   "category": "decode",
-  "description": "Blank line handling – strict mode errors on blank lines inside arrays, accepts blank lines outside arrays",
+  "description": "Blank line handling – a blank line inside a header span errors in strict mode and is ignored in non-strict mode; blank lines elsewhere are ignored",
   "tests": [
     {
       "name": "throws on blank line inside list array",
@@ -26,16 +26,6 @@
     {
       "name": "throws on blank line between keyed entry rows",
       "input": "m[2:]{v}:\n  a: 1\n\n  b: 2",
-      "expected": null,
-      "shouldError": true,
-      "options": {
-        "strict": true
-      },
-      "specSection": "14.2"
-    },
-    {
-      "name": "throws on multiple blank lines inside array",
-      "input": "items[2]:\n  - a\n\n\n  - b",
       "expected": null,
       "shouldError": true,
       "options": {
@@ -89,9 +79,10 @@
     },
     {
       "name": "accepts trailing newline at end of file",
-      "input": "a: 1\n",
+      "input": "a: 1\nitems[1]:\n  - b: 2\n",
       "expected": {
-        "a": 1
+        "a": 1,
+        "items": [{ "b": 2 }]
       },
       "options": {
         "strict": true
@@ -110,11 +101,18 @@
       "specSection": "12"
     },
     {
-      "name": "accepts blank line after array ends",
-      "input": "items[1]:\n  - a\n\nb: 2",
+      "name": "accepts blank lines after list, tabular, and keyed scopes end, at root and in a nested object",
+      "input": "items[1]:\n  - a\n\nb: 2\nc:\n  d[1]:\n    - x\n\n  e: 3\nt[1]{a}:\n  1\n\nm[1:]{v}:\n  k: 1\n\nz: 0",
       "expected": {
         "items": ["a"],
-        "b": 2
+        "b": 2,
+        "c": {
+          "d": ["x"],
+          "e": 3
+        },
+        "t": [{ "a": 1 }],
+        "m": { "k": { "v": 1 } },
+        "z": 0
       },
       "options": {
         "strict": true
@@ -122,8 +120,8 @@
       "specSection": "12"
     },
     {
-      "name": "accepts blank line between nested object fields",
-      "input": "a:\n  b: 1\n\n  c: 2",
+      "name": "accepts blank lines before and between nested object fields",
+      "input": "a:\n\n  b: 1\n\n  c: 2",
       "expected": {
         "a": {
           "b": 1,
@@ -136,29 +134,47 @@
       "specSection": "12"
     },
     {
-      "name": "ignores blank lines inside list array when strict=false",
-      "input": "items[3]:\n  - a\n\n  - b\n\n\n  - c",
+      "name": "accepts blank lines before and between nested object fields in non-strict mode",
+      "input": "a:\n\n  b: 1\n\n  c: 2",
       "expected": {
-        "items": ["a", "b", "c"]
+        "a": {
+          "b": 1,
+          "c": 2
+        }
       },
       "options": {
         "strict": false
       },
-      "specSection": "12"
+      "specSection": "12",
+      "minSpecVersion": "4.4"
     },
     {
-      "name": "ignores blank lines inside tabular array when strict=false",
-      "input": "items[2]{id,name}:\n  1,Ada\n\n  2,Bob",
+      "name": "ignores blank lines inside list array in non-strict mode",
+      "input": "items[4]:\n  - a\n\n  - b\n\n\n  - c\n  - x: 1\n\n    y: 2",
+      "expected": {
+        "items": ["a", "b", "c", { "x": 1, "y": 2 }]
+      },
+      "options": {
+        "strict": false
+      },
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
+    },
+    {
+      "name": "ignores blank lines between tabular rows and entry rows in non-strict mode",
+      "input": "items[2]{id,name}:\n  1,Ada\n\n  2,Bob\nm[2:]{v}:\n  a: 1\n\n  b: 2",
       "expected": {
         "items": [
           { "id": 1, "name": "Ada" },
           { "id": 2, "name": "Bob" }
-        ]
+        ],
+        "m": { "a": { "v": 1 }, "b": { "v": 2 } }
       },
       "options": {
         "strict": false
       },
-      "specSection": "12"
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
     },
     {
       "name": "throws on blank line between list items after nested tabular rows",
@@ -211,6 +227,14 @@
       "note": "The blank is after the nested object's content but inside the outer array's span (§12)"
     },
     {
+      "name": "throws on blank line between a list-item field and its nested object",
+      "input": "a[1]:\n  - k:\n\n      x: 1",
+      "expected": null,
+      "shouldError": true,
+      "specSection": "14.2",
+      "note": "The blank is between the field and its nested object's first line but inside the array's header span (§12)"
+    },
+    {
       "name": "throws on a tab-only line, which is not blank",
       "input": "a: 1\n\t\nb: 2",
       "expected": null,
@@ -228,8 +252,8 @@
       "options": {
         "strict": false
       },
-      "specSection": "12",
-      "minSpecVersion": "4.2"
+      "specSection": "14.4",
+      "minSpecVersion": "4.4"
     }
   ]
 }

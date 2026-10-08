@@ -7,7 +7,7 @@
       "name": "parses safe unquoted string",
       "input": "hello",
       "expected": "hello",
-      "specSection": "7.4"
+      "specSection": "4"
     },
     {
       "name": "parses empty quoted string",
@@ -32,6 +32,12 @@
       "input": "\"say \\\"hello\\\"\"",
       "expected": "say \"hello\"",
       "specSection": "7.1"
+    },
+    {
+      "name": "closes a quoted token after an escaped backslash",
+      "input": "\"a\\\\\"[2]: \"y\\\\\",z",
+      "expected": { "a\\": ["y\\", "z"] },
+      "specSection": "5.2"
     },
     {
       "name": "decodes \\uXXXX escape (U+0004)",

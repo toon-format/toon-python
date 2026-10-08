@@ -124,8 +124,8 @@
       "options": {
         "strict": false
       },
-      "specSection": "14.1",
-      "note": "A legacy [0] is a declared length, so its content is decoded (§14.1)",
+      "specSection": "14.4",
+      "note": "A legacy [0] is a declared length, so its content is decoded (§14.4)",
       "minSpecVersion": "4.1"
     },
     {
@@ -140,7 +140,7 @@
       "options": {
         "strict": false
       },
-      "specSection": "14.1",
+      "specSection": "14.4",
       "minSpecVersion": "4.1"
     },
     {

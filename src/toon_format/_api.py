@@ -114,9 +114,11 @@ def loads(
 
     Args:
         s: The document. Bytes are decoded as UTF-8; ill-formed UTF-8 is an error.
-        strict: Enforce every check of §14. With ``strict=False``, length and
-            width mismatches, blank lines inside arrays, irregular
-            indentation, and duplicate keys (last one wins) are tolerated.
+        strict: Enforce every check of §14. With ``strict=False``, declared
+            lengths are advisory, and duplicate keys (last one wins), tab or
+            uneven indentation, blank lines inside arrays and keyed objects,
+            and a block that starts too deep are tolerated (§14.4); every
+            other check applies.
         indent_size: Spaces per indentation level.
         parse_float: Called with the text of every number that has a fraction
             or an exponent, as in :func:`json.loads`. Use
