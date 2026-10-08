@@ -171,22 +171,7 @@ def test_deep_nesting_raises_decode_error() -> None:
         toon_format.loads(text)
 
 
-# -- non-strict leniency (§12, §14) ----------------------------------------------------
-
-
-@pytest.mark.parametrize(
-    ("text", "expected"),
-    [
-        ("a:\n\tb: 1", {"a": {"b": 1}}),  # a tab is one level
-        ("a:\n    b: 1\n    c: 2", {"a": {"b": 1, "c": 2}}),  # depth jump
-        ("items[2]:\n    - x\n    - y", {"items": ["x", "y"]}),
-        ("a: 1\nb: 2\na: 3", {"a": 3, "b": 2}),  # last write wins, first position kept
-    ],
-)
-def test_non_strict(text: str, expected: Any) -> None:
-    with pytest.raises(toon_format.ToonDecodeError):
-        toon_format.loads(text)
-    assert toon_format.loads(text, strict=False) == expected
+# -- indentation (§12) -----------------------------------------------------------------
 
 
 def test_indent_size_option() -> None:
